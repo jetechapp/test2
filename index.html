@@ -1,1053 +1,391 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#ffffff">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>QOTIA V55 PRO</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LEO GAME - Hardcore</title>
     <style>
-        :root {
-            /* COLORI RAFFINATI */
-            --primary: #0F172A;       
-            --primary-light: #1E293B;
-            --accent: #F59E0B;        
-            --accent-soft: #FFF7ED;
-            --bg-body: #F1F5F9;        
-            --surface: #FFFFFF;
-            --border: #E2E8F0;
-            --text-main: #1E293B;     
-            --text-sub: #64748B;
-            --danger: #EF4444; 
-            --success: #10B981;
-            
-            --h-header: 60px;
-            --h-nav: 85px; /* Più alto per iOS Safe Area */
-            --radius: 16px;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-            --shadow-card: 0 10px 15px -3px rgba(0,0,0,0.03), 0 4px 6px -2px rgba(0,0,0,0.02);
-            --shadow-float: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #222;
+            font-family: 'Verdana', sans-serif;
+            color: white;
+            overflow: hidden;
+            user-select: none; /* Impedisce la selezione del testo */
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        canvas {
+            border: 4px solid #fff;
+            background: linear-gradient(to bottom, #333, #111);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            text-align: center;
+            width: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        h1 { 
+            margin: 0; 
+            text-shadow: 3px 3px 0 #000; 
+            font-size: 40px; 
+            color: #ffcc00; /* Oro per Leo Game */
+        }
         
-        body { 
-            margin: 0; padding: 0; 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: var(--bg-body); color: var(--text-main); 
-            font-size: 14px; height: 100vh; width: 100vw;
-            display: flex; flex-direction: column; overflow: hidden;
+        p { margin: 5px 0; font-size: 14px; opacity: 0.8; }
+
+        /* Schermata Game Over */
+        #gameOver {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 30px;
+            border: 4px solid #ffcc00;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 10;
+            min-width: 300px;
         }
 
-        /* --- ANIMAZIONI & TRANSIZIONI --- */
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- LAYOUT GENERALE --- */
-        .view-section { 
-            display: none; flex-direction: column; height: 100%; width: 100%; 
-            position: absolute; top: 0; left: 0; 
-            overflow-y: auto; overflow-x: hidden;
-            padding-top: var(--h-header); 
-            padding-bottom: calc(var(--h-nav) + 20px); 
-            background: var(--bg-body); z-index: 10;
-            scroll-behavior: smooth;
-        }
-        .view-section.active { display: block; z-index: 20; animation: fadeIn 0.2s ease-out; }
-        
-        #view-editor { background: white; padding-bottom: 200px; } 
-
-        /* --- HEADER (GLASSMORPHISM) --- */
-        .mobile-header { 
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--h-header); 
-            background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8); 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 20px; z-index: 500; transition: all 0.3s ease;
-        }
-        .logo-text { font-weight: 800; font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px; }
-        .logo-text i { color: var(--accent); font-size: 1.1rem; }
-        .header-btn { font-size: 1.2rem; color: var(--text-main); background: transparent; border: none; padding: 8px; border-radius: 50%; cursor: pointer; transition: background 0.2s; }
-        .header-btn:active { background: #f1f5f9; }
-
-        /* --- HOME --- */
-        .home-container { padding: 20px; display: flex; flex-direction: column; gap: 24px; }
-        .welcome-block { margin-top: 10px; }
-        .welcome-sub { font-size: 1rem; color: var(--text-sub); font-weight: 500; }
-        .welcome-name { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin: 2px 0; }
-        .welcome-date { font-size: 0.9rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
-
-        /* BIG BUTTONS */
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .big-btn { 
-            height: 120px; border-radius: 20px; border: none;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            cursor: pointer; position: relative; overflow: hidden;
-            box-shadow: var(--shadow-sm); transition: transform 0.1s, box-shadow 0.2s;
-            background: white; color: var(--text-main);
-        }
-        .big-btn:active { transform: scale(0.97); }
-        .big-btn i { font-size: 2rem; margin-bottom: 12px; transition: transform 0.2s; }
-        .big-btn span { font-weight: 700; font-size: 0.85rem; letter-spacing: 0.5px; }
-        
-        .btn-chantier { background: linear-gradient(135deg, #FFFBEB 0%, #ffffff 100%); border: 1px solid #FEF3C7; color: #D97706; }
-        .btn-client { background: linear-gradient(135deg, #EFF6FF 0%, #ffffff 100%); border: 1px solid #DBEAFE; color: #2563EB; }
-        .btn-agenda-full { 
-            grid-column: span 2; height: 80px; flex-direction: row; gap: 20px; 
-            background: white; border: 1px solid var(--border);
-        }
-        .btn-agenda-full i { margin-bottom: 0; color: #64748B; font-size: 1.5rem; }
-
-        /* LISTS & CARDS */
-        .section-header { font-size: 0.8rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-left: 5px; }
-        .list-container { padding: 15px 20px; padding-bottom: 120px; }
-        
-        .card-item { 
-            background: white; padding: 18px; margin-bottom: 14px; 
-            border-radius: 16px; border: 1px solid transparent;
-            display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: var(--shadow-card); cursor: pointer; transition: transform 0.1s;
-        }
-        .card-item:active { transform: scale(0.98); background: #f8fafc; }
-        .card-info { flex: 1; }
-        .card-title { font-weight: 700; font-size: 1rem; color: var(--primary); margin-bottom: 4px; }
-        .card-sub { font-size: 0.85rem; color: var(--text-sub); }
-        .card-tag { font-size: 0.7rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: #F1F5F9; color: #64748B; display: inline-block; margin-bottom: 6px; }
-
-        .today-card { border-left: 4px solid var(--accent); }
-        .tc-empty { text-align: center; color: var(--text-sub); padding: 30px 20px; background: rgba(255,255,255,0.5); border-radius: 12px; border: 1px dashed var(--border); font-size: 0.9rem; }
-
-        /* KPI BAR */
-        .kpi-fixed-container { 
-            position: fixed; bottom: var(--h-nav); left: 0; width: 100%; 
-            padding: 10px 15px; z-index: 400; pointer-events: none; /* Let clicks pass through padding */
-        }
-        .kpi-bar { 
-            background: #FEF2F2; border: 1px solid #FECACA; 
-            border-radius: 16px; padding: 12px 20px; 
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; pointer-events: auto; 
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
-        }
-        .kpi-title { font-weight: 700; color: #991B1B; font-size: 0.75rem; letter-spacing: 0.5px; margin-bottom: 2px; }
-        .kpi-val { font-size: 1.2rem; font-weight: 800; color: #B91C1C; }
-
-        /* FAB */
-        .fab { 
-            position: fixed; bottom: 110px; right: 20px; 
-            width: 60px; height: 60px; border-radius: 50%; 
-            background: var(--primary); color: white; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 1.8rem; box-shadow: var(--shadow-float); 
-            border: none; z-index: 900; cursor: pointer; transition: transform 0.2s;
-        }
-        .fab:active { transform: scale(0.9) rotate(90deg); }
-
-        /* BOTTOM NAV */
-        .bottom-nav { 
-            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--h-nav); 
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); 
-            border-top: 1px solid var(--border); 
-            display: grid; grid-template-columns: repeat(5, 1fr); 
-            z-index: 1000; align-items: flex-start; padding-top: 12px;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        .nav-btn { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            color: #94A3B8; background: transparent; border: none; 
-            font-size: 0.65rem; font-weight: 600; gap: 5px; cursor: pointer; 
-        }
-        .nav-btn i { font-size: 1.4rem; transition: all 0.2s; }
-        .nav-btn.active { color: var(--primary); }
-        .nav-btn.active i { color: var(--accent); transform: translateY(-3px); }
-
-        /* SETTINGS PAGE SPECIFIC */
-        .settings-group { margin-bottom: 25px; }
-        .settings-card {
-            background: white; border-radius: 12px; padding: 0;
-            border: 1px solid var(--border); overflow: hidden;
-        }
-        .setting-row {
-            padding: 18px 20px; display: flex; align-items: center; gap: 15px;
-            border-bottom: 1px solid var(--border); cursor: pointer;
-            transition: background 0.1s;
-        }
-        .setting-row:last-child { border-bottom: none; }
-        .setting-row:active { background: #f8fafc; }
-        .setting-icon { 
-            width: 36px; height: 36px; border-radius: 8px; 
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem;
-        }
-        .st-title { font-weight: 600; font-size: 0.95rem; color: var(--primary); }
-        .st-sub { font-size: 0.8rem; color: var(--text-sub); margin-top: 2px; }
-
-        /* MODALS & FORMS */
-        .app-input { 
-            width: 100%; height: 50px; background: #F8FAFC; 
-            border: 1px solid #CBD5E1; border-radius: 12px; 
-            padding: 0 16px; font-size: 0.95rem; color: var(--primary); 
-            margin-bottom: 16px; outline: none; transition: border 0.2s;
+        button.retry-btn {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 20px;
+            cursor: pointer;
+            background: #ffcc00;
+            color: #000;
+            border: none;
             font-family: inherit;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: transform 0.1s;
         }
-        .app-input:focus { border-color: var(--accent); background: white; }
-        
-        .btn-primary { 
-            width: 100%; height: 52px; background: var(--primary); color: white; 
-            font-weight: 700; border-radius: 14px; border: none; font-size: 1rem; 
-            cursor: pointer; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
-        }
-        .btn-primary:active { transform: scale(0.98); }
+        button.retry-btn:active { transform: scale(0.95); }
 
-        .full-modal { 
-            position: fixed; inset: 0; background: #F1F5F9; 
-            z-index: 5000; display: flex; flex-direction: column; 
-            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        /* Bottone Salto (Mobile) */
+        #jumpButton {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 165, 0, 0.8);
+            border: 4px solid white;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 20;
+            -webkit-tap-highlight-color: transparent;
         }
-        .full-modal.open { transform: translateY(0); }
-        .modal-header { 
-            height: 60px; background: white; border-bottom: 1px solid var(--border); 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 20px; font-weight: 800; font-size: 1.1rem; flex-shrink: 0;
-        }
-        .modal-body { flex: 1; padding: 20px; overflow-y: auto; padding-bottom: 100px; }
-        .modal-footer { 
-            padding: 20px; background: white; border-top: 1px solid var(--border); 
-            padding-bottom: max(20px, env(safe-area-inset-bottom)); flex-shrink: 0;
+        #jumpButton:active {
+            background-color: rgba(255, 69, 0, 0.9);
+            transform: scale(0.9);
         }
 
-        /* TOAST NOTIFICATION */
-        #toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 9000; display: flex; flex-direction: column; gap: 10px; width: 90%; pointer-events: none; }
-        .toast { 
-            background: #1E293B; color: white; padding: 12px 20px; border-radius: 50px; 
-            text-align: center; font-weight: 600; font-size: 0.9rem; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2); opacity: 0; 
-            transform: translateY(20px); transition: all 0.3s;
+        /* Tabella Classifica */
+        .leaderboard-container {
+            margin-top: 20px;
+            text-align: left;
+            color: white;
         }
-        .toast.show { opacity: 1; transform: translateY(0); }
-
-        /* EDITOR STYLES */
-        .editor-header-wrapper { position: fixed; top: 0; left: 0; width: 100%; z-index: 400; background: white; border-bottom: 1px solid var(--border); }
-        .editor-top-bar { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; height: var(--h-header); }
-        .room-pill {
-            border: none; background: #f1f5f9; color: #64748B; padding: 8px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        .leaderboard-container h3 {
+            border-bottom: 1px solid #555;
+            padding-bottom: 5px;
+            color: #ffcc00;
         }
-        .room-pill.active { background: var(--primary); color: white; }
-        
-        .e-card { 
-            background: white; margin: 0 15px 12px 15px; padding: 16px; 
-            border-radius: 12px; border: 1px solid var(--border); 
-            border-left: 3px solid var(--primary); box-shadow: var(--shadow-sm); 
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
-        .e-head { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
-        .e-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; text-align: center; font-size: 0.9rem; }
-        .e-val { font-weight: 700; color: var(--primary); }
-
-        /* HELPERS */
-        .text-center { text-align: center; }
-        .empty-state { padding: 40px 20px; text-align: center; color: var(--text-sub); }
-        .empty-state i { font-size: 3rem; color: #cbd5e1; margin-bottom: 15px; }
+        li {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+        }
+        li span:first-child { font-weight: bold; color: #aaa; } /* Posizione */
+        li span:last-child { color: #fff; } /* Punteggio */
 
     </style>
 </head>
 <body>
 
-    <div id="toast-container"></div>
-
-    <main id="view-home" class="view-section active" style="padding-top:0;">
-        <header class="mobile-header" style="position: sticky;">
-            <div class="logo-text"><i class="fas fa-hammer"></i> QOTIA <span style="font-size:0.7em; opacity:0.6; font-weight:400;">PRO</span></div>
-            <button class="header-btn" onclick="App.nav('settings')"><i class="fas fa-cog"></i></button>
-        </header>
-
-        <div class="home-container">
-            <div class="welcome-block">
-                <div class="welcome-sub">Bonjour,</div>
-                <div class="welcome-name">Jean</div>
-                <div class="welcome-date" id="home-date-display">...</div>
-            </div>
-
-            <div class="action-grid">
-                <button class="big-btn btn-chantier" onclick="App.nav('projets')">
-                    <i class="fas fa-hard-hat"></i>
-                    <span>CHANTIERS</span>
-                </button>
-                <button class="big-btn btn-client" onclick="App.nav('clients')">
-                    <i class="fas fa-users"></i>
-                    <span>CLIENTS</span>
-                </button>
-                <button class="big-btn btn-agenda-full" onclick="App.openAgenda()">
-                    <div style="flex:1; display:flex; align-items:center; justify-content:center;"><i class="fas fa-calendar-alt"></i></div>
-                    <div style="flex:2; text-align:left;"><span style="display:block; font-size:1rem; margin-bottom:2px;">AGENDA</span><span style="font-size:0.75rem; color:var(--text-sub); font-weight:500;">Gérer les RDV</span></div>
-                </button>
-            </div>
-
-            <div class="today-section">
-                <div class="section-header">Aujourd'hui</div>
-                <div id="home-today-list"></div>
-            </div>
-            
-            <div style="height: 60px;"></div> </div>
-
-        <div class="kpi-fixed-container">
-            <div class="kpi-bar" onclick="App.nav('factures-global')">
-                <div>
-                    <div class="kpi-title">À ENCAISSER</div>
-                    <div class="kpi-val" id="home-unpaid">0 €</div>
-                </div>
-                <div style="display:flex; align-items:center; gap:10px; font-size:0.8rem; color:#B91C1C; font-weight:600;">
-                    Vedere <i class="fas fa-chevron-right"></i>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <main id="view-clients" class="view-section">
-        <header class="mobile-header">
-            <div class="logo-text">CLIENTS</div>
-            <button class="header-btn" onclick="App.openClientModal()"><i class="fas fa-plus"></i></button>
-        </header>
-        <div class="list-container">
-            <input type="text" class="app-input" placeholder="Cerca cliente..." onkeyup="App.renderClients(this.value)">
-            <div id="clients-list"></div>
-        </div>
-    </main>
-
-    <main id="view-projets" class="view-section">
-        <header class="mobile-header">
-            <div class="logo-text">CHANTIERS</div>
-            <button class="header-btn" onclick="App.openProjectWizard()"><i class="fas fa-plus"></i></button>
-        </header>
-        <div class="list-container" id="projects-list-full"></div>
-    </main>
-
-    <main id="view-documents" class="view-section">
-        <header class="mobile-header"><div class="logo-text">DOCUMENTS</div></header>
-        <div class="list-container">
-            <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px; margin-bottom:10px;">
-                <button class="room-pill active" onclick="App.renderDocuments('all', this)">Tous</button>
-                <button class="room-pill" onclick="App.renderDocuments('Devis', this)">Devis</button>
-                <button class="room-pill" onclick="App.renderDocuments('Facture', this)">Factures</button>
-            </div>
-            <div id="documents-list"></div>
-        </div>
-    </main>
-
-    <main id="view-hub" class="view-section">
-        <header class="mobile-header">
-            <button class="header-btn" onclick="App.nav('projets')"><i class="fas fa-arrow-left"></i></button>
-            <div class="logo-text" style="font-size:1rem;">DÉTAIL</div>
-            <div style="width:30px"></div>
-        </header>
-        <div style="background:white; padding:20px; border-bottom:1px solid var(--border);">
-            <div style="font-size:0.8rem; font-weight:700; color:var(--text-sub); text-transform:uppercase;" id="hub-client">-</div>
-            <div style="font-size:1.5rem; font-weight:800; color:var(--primary); line-height:1.2; margin-top:4px;" id="hub-name">-</div>
-        </div>
-        <div style="padding:20px;">
-            <div class="section-header">Gestion</div>
-            <button class="btn-primary" onclick="App.createNewDevis()" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; padding:0 20px;">
-                <span>Nuovo Preventivo</span> <i class="fas fa-plus"></i>
-            </button>
-            
-            <div class="section-header" style="margin-top:20px;">Preventivi</div>
-            <div id="hub-devis-list"></div>
-
-            <div class="section-header" style="margin-top:20px;">Fatturazione</div>
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button class="room-pill" onclick="App.openCreateInvoiceModal()" style="flex:1; text-align:center; background:white; border:1px solid var(--border);">+ Fattura</button>
-            </div>
-            <div id="hub-factures-list"></div>
-            
-            <div class="section-header" style="margin-top:20px;">Tecnico</div>
-            <button class="room-pill" onclick="App.openCreateCDCModal()" style="width:100%; text-align:left; background:white; border:1px solid var(--border); padding:12px; margin-bottom:10px;">+ Crea Cahier des Charges</button>
-            <div id="hub-docs-list"></div>
-        </div>
-    </main>
-
-    <main id="view-editor" class="view-section">
-        <div class="editor-header-wrapper">
-            <div class="editor-top-bar">
-                <button class="header-btn" onclick="App.openHub(Store.data.activeChantierId)"><i class="fas fa-arrow-left"></i></button>
-                <div style="text-align:right;">
-                    <div style="font-size:0.7rem; color:var(--text-sub); font-weight:700;">TOTALE</div>
-                    <div class="sum-val" id="ed-total-header" style="font-size:1.2rem; font-weight:800; color:var(--primary);">0 €</div>
-                </div>
-            </div>
-            <div style="padding:0 15px 10px; display:flex; gap:10px;">
-                <button onclick="App.switchEditorMode('devis')" class="room-pill active" style="flex:1;">Articoli</button>
-                <button onclick="App.switchEditorMode('etude')" class="room-pill" style="flex:1;">Opzioni</button>
-            </div>
-        </div>
-        <div id="editor-list" style="padding-top:140px;"></div>
-        <button class="fab" onclick="App.openLibrary()"><i class="fas fa-plus"></i></button>
-    </main>
-
-    <main id="view-factures-global" class="view-section">
-        <header class="mobile-header">
-            <button class="header-btn" onclick="App.nav('home')"><i class="fas fa-arrow-left"></i></button>
-            <div class="logo-text">FATTURE APERTE</div>
-            <div style="width:30px"></div>
-        </header>
-        <div class="list-container" id="global-invoice-list"></div>
-    </main>
-
-    <main id="view-settings" class="view-section">
-        <header class="mobile-header"><div class="logo-text">RÉGLAGES</div></header>
-        <div style="padding:20px;">
-            
-            <div class="section-header">Applicazione</div>
-            <div class="settings-group">
-                <div class="settings-card">
-                    <div class="setting-row" onclick="App.refreshApp()">
-                        <div class="setting-icon" style="background:#EFF6FF; color:#2563EB;"><i class="fas fa-sync-alt"></i></div>
-                        <div style="flex:1;">
-                            <div class="st-title">Rafraîchir</div>
-                            <div class="st-sub">Ricarica l'interfaccia e i dati</div>
-                        </div>
-                        <i class="fas fa-chevron-right" style="color:#cbd5e1"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-header">Dati & Memoria</div>
-            <div class="settings-group">
-                <div class="settings-card">
-                    <div class="setting-row" onclick="alert('Backup non configurato in demo.')">
-                        <div class="setting-icon" style="background:#F0FDF4; color:#16A34A;"><i class="fas fa-cloud-upload-alt"></i></div>
-                        <div style="flex:1;">
-                            <div class="st-title">Esporta Dati</div>
-                            <div class="st-sub">Salva un backup locale</div>
-                        </div>
-                    </div>
-                    <div class="setting-row" onclick="App.hardReset()">
-                        <div class="setting-icon" style="background:#FEF2F2; color:#DC2626;"><i class="fas fa-trash-alt"></i></div>
-                        <div style="flex:1;">
-                            <div class="st-title" style="color:#DC2626;">Réinitialiser l'App</div>
-                            <div class="st-sub">Cancella tutto e riparti da zero</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div style="text-align:center; color:#94A3B8; font-size:0.8rem; margin-top:40px;">
-                QOTIA V55 Fixed<br>Build 2023.10
-            </div>
-        </div>
-    </main>
-
-    <nav class="bottom-nav">
-        <button class="nav-btn active" onclick="App.nav('home')" id="nav-home">
-            <i class="fas fa-home"></i><span>Home</span>
-        </button>
-        <button class="nav-btn" onclick="App.nav('documents')" id="nav-documents">
-            <i class="fas fa-folder-open"></i><span>Docs</span>
-        </button>
-        <button class="nav-btn" onclick="alert('Funzione IA in arrivo!')">
-            <div style="width:45px; height:45px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:-20px; box-shadow:0 4px 10px rgba(15,23,42,0.3);">
-                <i class="fas fa-robot" style="color:white; font-size:1.2rem; transform:none;"></i>
-            </div>
-        </button>
-        <button class="nav-btn" onclick="App.nav('clients')" id="nav-clients">
-            <i class="fas fa-users"></i><span>Clienti</span>
-        </button>
-        <button class="nav-btn" onclick="App.nav('settings')" id="nav-settings">
-            <i class="fas fa-cog"></i><span>Set</span>
-        </button>
-    </nav>
-
-    <div id="modal-client" class="full-modal">
-        <div class="modal-header"><h3>Nuovo Cliente</h3><button class="header-btn" onclick="App.closeModal('modal-client')">×</button></div>
-        <div class="modal-body">
-            <input type="hidden" id="cli-id">
-            <label class="section-header">Anagrafica</label>
-            <input type="text" id="cli-nom" class="app-input" placeholder="Nome completo o Azienda">
-            <input type="text" id="cli-addr" class="app-input" placeholder="Indirizzo completo">
-            <label class="section-header">Contatti</label>
-            <input type="tel" id="cli-tel" class="app-input" placeholder="Telefono">
-            <input type="email" id="cli-email" class="app-input" placeholder="Email">
-        </div>
-        <div class="modal-footer"><button class="btn-primary" onclick="App.saveClient()">SALVA CLIENTE</button></div>
+    <div id="ui">
+        <h1>LEO GAME</h1>
+        <h2 id="score" style="color: white;">Punti: 0</h2>
     </div>
 
-    <div id="modal-projet" class="full-modal">
-        <div class="modal-header"><h3>Nuovo Cantiere</h3><button class="header-btn" onclick="App.closeModal('modal-projet')">×</button></div>
-        <div class="modal-body">
-            <label class="section-header">Cliente</label>
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <select id="prj-cli" class="app-input" style="flex:1; margin-bottom:0;"></select>
-                <button onclick="App.openClientModal()" style="width:50px; background:var(--accent); color:white; border:none; border-radius:12px; font-size:1.2rem;">+</button>
-            </div>
-            <label class="section-header">Dettagli Cantiere</label>
-            <input type="text" id="prj-nom" class="app-input" placeholder="Nome Cantiere (es. Ristrutturazione Bagno)">
-            <input type="text" id="prj-addr" class="app-input" placeholder="Indirizzo Cantiere (se diverso)">
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+    <div id="jumpButton">SALTA</div>
+
+    <div id="gameOver">
+        <h1 style="color:red">SEI MORTO!</h1>
+        <p style="font-size: 18px;">Il tuo punteggio: <strong id="finalScore" style="color:white">0</strong></p>
+        
+        <div class="leaderboard-container">
+            <h3>🏆 TOP 5 SCORE</h3>
+            <ul id="highScoresList">
+                </ul>
         </div>
-        <div class="modal-footer"><button class="btn-primary" onclick="App.createProject()">CREA CANTIERE</button></div>
-    </div>
 
-    <div id="modal-agenda" class="full-modal">
-        <div class="modal-header"><h3>Agenda</h3><button class="header-btn" onclick="App.closeModal('modal-agenda')">×</button></div>
-        <div class="modal-body">
-            <label class="section-header">Nuovo Evento</label>
-            <select id="agd-chantier" class="app-input"></select>
-            <input type="datetime-local" id="agd-date" class="app-input">
-            <button class="btn-primary" onclick="App.saveAgendaEvent()" style="height:45px; margin-bottom:30px;">AGGIUNGI RDV</button>
-            
-            <div class="section-header">Prossimi Appuntamenti</div>
-            <div id="agenda-list-view"></div>
-        </div>
-    </div>
-
-    <div id="modal-invoice" class="full-modal">
-        <div class="modal-header"><h3>Genera Fattura</h3><button class="header-btn" onclick="App.closeModal('modal-invoice')">×</button></div>
-        <div class="modal-body">
-            <label class="section-header">Basato su Preventivo</label>
-            <select id="inv-devis-select" class="app-input" onchange="App.onInvoiceDevisChange()"></select>
-            
-            <div style="background:#F8FAFC; padding:15px; border-radius:12px; margin-bottom:20px; text-align:center;">
-                <div style="font-size:0.8rem; color:var(--text-sub);">Totale Preventivo</div>
-                <div style="font-weight:900; font-size:1.4rem; color:var(--primary);" id="inv-total-quote">0€</div>
-            </div>
-
-            <div style="display:flex; gap:10px; margin-bottom:20px;">
-                <button id="btn-acompte" onclick="App.setInvType('acompte')" style="flex:1; height:45px; background:var(--primary); color:white; border-radius:10px; border:none; font-weight:600;">Acconto %</button>
-                <button id="btn-solde" onclick="App.setInvType('solde')" style="flex:1; height:45px; background:white; color:var(--text-sub); border:1px solid #ddd; border-radius:10px; font-weight:600;">Saldo</button>
-            </div>
-            
-            <input type="number" id="inv-percent" class="app-input" value="30" onchange="App.calcInvPreview()" placeholder="% Acconto">
-            
-            <div style="text-align:center; padding:20px;">
-                <div style="font-size:0.9rem; margin-bottom:5px;">Importo Fattura</div>
-                <div style="font-size:2.5rem; font-weight:900; color:var(--primary);" id="inv-preview-amount">0€</div>
-            </div>
-        </div>
-        <div class="modal-footer"><button class="btn-primary" onclick="App.generateInvoice()">EMETTI FATTURA</button></div>
-    </div>
-
-    <div id="modal-library" class="full-modal">
-        <div class="modal-header"><h3>Libreria Prezzi</h3><button class="header-btn" onclick="App.closeModal('modal-library')">×</button></div>
-        <div class="modal-body" id="lib-container"></div>
-    </div>
-
-    <div id="modal-create-cdc" class="full-modal">
-        <div class="modal-header"><h3>Cahier des Charges</h3><button class="header-btn" onclick="App.closeModal('modal-create-cdc')">×</button></div>
-        <div class="modal-body">
-            <p style="color:var(--text-sub); font-size:0.9rem;">Crea un documento tecnico estrapolando gli articoli dal preventivo selezionato.</p>
-            <select id="cdc-source-devis" class="app-input"></select>
-            <input type="text" id="cdc-name" class="app-input" placeholder="Nome Documento (es. CDC Cucina)">
-        </div>
-        <div class="modal-footer"><button class="btn-primary" onclick="App.generateCDCFromDevis()">GENERA DOCUMENTO</button></div>
-    </div>
-
-    <div id="modal-view-cahier" class="full-modal">
-        <div class="modal-header"><h3 id="vc-title">...</h3><button class="header-btn" onclick="App.closeModal('modal-view-cahier')">×</button></div>
-        <div class="modal-body">
-            <table style="width:100%; border-collapse:collapse;" id="vc-table"></table>
-        </div>
+        <button class="retry-btn" onclick="resetGame()">GIOCA ANCORA</button>
     </div>
 
     <script>
-        /* CONFIG & DATA STORE */
-        const Config = { 
-            LIB: { 
-                "Démolition": [
-                    {desc:"Dépose carrelage sol", unit:"m²", price:25},
-                    {desc:"Dépose faience murale", unit:"m²", price:22},
-                    {desc:"Evacuation gravats", unit:"forfait", price:150}
-                ], 
-                "Maçonnerie": [
-                    {desc:"Ragréage sol P3", unit:"m²", price:18},
-                    {desc:"Chape ciment", unit:"m²", price:45}
-                ],
-                "Plomberie": [
-                    {desc:"Pose WC Suspendu", unit:"U", price:450},
-                    {desc:"Modification arrivées eau", unit:"forfait", price:250}
-                ],
-                "Peinture": [
-                    {desc:"Impression murs", unit:"m²", price:12},
-                    {desc:"Peinture mate 2 couches", unit:"m²", price:22}
-                ]
-            } 
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const finalScoreEl = document.getElementById('finalScore');
+        const gameOverScreen = document.getElementById('gameOver');
+        const highScoresList = document.getElementById('highScoresList');
+        const jumpBtn = document.getElementById('jumpButton');
+
+        // Variabili di Gioco
+        let gameRunning = false;
+        let frames = 0;
+        let score = 0;
+        let gameSpeed = 5;
+        let obstacles = [];
+        const GRAVITY = 0.6;
+
+        // Giocatore
+        const player = {
+            x: 50,
+            y: 300,
+            width: 30,
+            height: 30,
+            dy: 0,
+            jumpForce: 12,
+            grounded: false,
+            color: '#00ff00'
         };
 
-        const Store = {
-            data: { clients: [], chantiers: [], appointments: [] },
-            init() { 
-                const s = localStorage.getItem('qotia_v55_pro'); 
-                if(s) this.data = JSON.parse(s); 
-                else this.seed(); 
-            },
-            seed() {
-                this.data.clients = [{id:1, nom:'Sophie Martin', addr:'12 Rue de la Paix, Nice', tel:'0612345678', email:'sophie@mail.com'}];
-                this.data.chantiers = [{
-                    id:1, clientId:1, name:'Rénov Complète Appart', ref:'C-2301', 
-                    devisList:[{id:101, ref:'D-101', name:'Devis Initial', status:'Validé', total:4500, items:[{desc:'Peinture', qty:100, price:22}, {desc:'Sol', qty:50, price:45}]}], 
-                    factures:[{id:201, ref:'FAC-001', type:'acompte', amount:1350, paid:false}], 
-                    extraDocs:[]
-                }];
-                this.data.appointments = [{id:1, date: new Date().toISOString(), title:'Visite Chantier', sub:'Sophie Martin'}];
-                this.save();
-            },
-            save() { localStorage.setItem('qotia_v55_pro', JSON.stringify(this.data)); }
-        };
-
-        /* APP LOGIC */
-        const App = {
-            state: { invType:'acompte' },
+        // Gestione Classifica (LocalStorage)
+        function updateLeaderboard(newScore) {
+            // Recupera punteggi salvati o crea array vuoto
+            let scores = JSON.parse(localStorage.getItem('leoGameScores')) || [];
             
-            init() { 
-                Store.init(); 
-                this.nav('home');
-            },
-
-            /* NAVIGATION & ROUTING */
-            nav(view) {
-                // Remove active classes
-                document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
-                document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
-                
-                // Set target view
-                let targetId = 'view-' + (view === 'editor' ? 'editor' : view);
-                const targetEl = document.getElementById(targetId);
-                if(targetEl) {
-                    targetEl.classList.add('active');
-                    targetEl.scrollTop = 0; // Reset scroll
-                }
-
-                // Update bottom nav
-                const navId = 'nav-' + view;
-                const navEl = document.getElementById(navId);
-                if(navEl) navEl.classList.add('active');
-                else if(view === 'projets' || view === 'documents') {
-                    // Keep home or documents active logically
-                    if(view === 'documents') document.getElementById('nav-documents').classList.add('active');
-                }
-                
-                // Logic per view
-                if(view==='home') this.renderHome();
-                if(view==='clients') this.renderClients();
-                if(view==='projets') this.renderProjets();
-                if(view==='documents') this.renderDocuments('all');
-                if(view==='factures-global') this.renderGlobalInvoices();
-            },
-
-            showToast(msg, type='info') {
-                const c = document.getElementById('toast-container');
-                const t = document.createElement('div');
-                t.className = 'toast';
-                t.innerText = msg;
-                if(type==='success') t.style.background = '#10B981';
-                if(type==='error') t.style.background = '#EF4444';
-                c.appendChild(t);
-                setTimeout(() => t.classList.add('show'), 10);
-                setTimeout(() => { t.classList.remove('show'); setTimeout(()=>t.remove(), 300); }, 3000);
-            },
-
-            refreshApp() {
-                this.showToast("Rafraîchissement en cours...");
-                setTimeout(() => window.location.reload(), 500);
-            },
-
-            /* HOME */
-            renderHome() {
-                const d = new Date(); 
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                const dateStr = d.toLocaleDateString('fr-FR', options);
-                document.getElementById('home-date-display').innerText = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-                
-                const todayList = document.getElementById('home-today-list'); 
-                todayList.innerHTML = '';
-                const todayStrCheck = new Date().toDateString();
-                const appts = (Store.data.appointments || []).filter(a => new Date(a.date).toDateString() === todayStrCheck);
-                
-                if(appts.length === 0) {
-                    todayList.innerHTML = '<div class="tc-empty"><i class="fas fa-mug-hot"></i><br>Nessun appuntamento oggi.</div>';
-                } else {
-                    appts.forEach(a => {
-                        const t = new Date(a.date);
-                        let div = document.createElement('div'); div.className = 'today-card card-item';
-                        div.innerHTML = `<div style="font-weight:800; font-size:1.1rem; color:var(--primary); width:60px;">${t.getHours()}:${t.getMinutes().toString().padStart(2,'0')}</div><div class="card-info"><div class="card-title">${a.title}</div><div class="card-sub">${a.sub}</div></div>`;
-                        todayList.appendChild(div);
-                    });
-                }
-
-                let unpaid = 0; 
-                Store.data.chantiers.forEach(c => { 
-                    if(c.factures) c.factures.forEach(f => { if(!f.paid) unpaid += f.amount; }); 
-                });
-                document.getElementById('home-unpaid').innerText = unpaid.toLocaleString('fr-FR', {style:'currency', currency:'EUR', minimumFractionDigits: 0});
-            },
-
-            /* CLIENTS */
-            renderClients(q='') {
-                const l = document.getElementById('clients-list'); l.innerHTML = '';
-                if(!Store.data.clients || Store.data.clients.length === 0) {
-                    l.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><br>Nessun cliente registrato.</div>';
-                    return;
-                }
-                Store.data.clients.forEach(c => {
-                    if(!c.nom) return;
-                    if(c.nom.toLowerCase().includes(q.toLowerCase())) {
-                        let div = document.createElement('div'); div.className = 'card-item';
-                        div.innerHTML = `
-                            <div class="card-info" onclick="App.editClient(${c.id})">
-                                <div class="card-title">${c.nom}</div>
-                                <div class="card-sub"><i class="fas fa-map-marker-alt" style="font-size:0.7rem"></i> ${c.addr || '-'}</div>
-                            </div>
-                            <div style="display:flex; gap:8px;">
-                                <a href="tel:${c.tel}" class="header-btn" style="background:#ECFDF5; color:var(--success);"><i class="fas fa-phone"></i></a>
-                                <button class="header-btn" onclick="App.editClient(${c.id})" style="background:#F1F5F9;"><i class="fas fa-pen"></i></button>
-                            </div>`;
-                        l.appendChild(div);
-                    }
-                });
-            },
-            openClientModal() { 
-                ['cli-id','cli-nom','cli-addr','cli-tel','cli-email'].forEach(k=>document.getElementById(k).value=''); 
-                document.getElementById('modal-client').classList.add('open'); 
-            },
-            editClient(id) { 
-                const c = Store.data.clients.find(x=>x.id==id); 
-                document.getElementById('cli-id').value=c.id; 
-                document.getElementById('cli-nom').value=c.nom; 
-                document.getElementById('cli-addr').value=c.addr; 
-                document.getElementById('cli-tel').value=c.tel; 
-                document.getElementById('cli-email').value=c.email; 
-                document.getElementById('modal-client').classList.add('open'); 
-            },
-            saveClient() {
-                const id = document.getElementById('cli-id').value; 
-                const c = { id: id?parseInt(id):Date.now(), nom:document.getElementById('cli-nom').value, addr:document.getElementById('cli-addr').value, tel:document.getElementById('cli-tel').value, email:document.getElementById('cli-email').value };
-                
-                if(!c.nom) return alert("Il nome è obbligatorio");
-
-                if(id) { const idx = Store.data.clients.findIndex(x=>x.id==id); Store.data.clients[idx]=c; } 
-                else { Store.data.clients.push(c); }
-                
-                Store.save(); 
-                this.showToast("Cliente salvato", "success");
-                App.closeModal('modal-client'); 
-                App.renderClients(); 
-                if(document.getElementById('modal-projet').classList.contains('open')) App.updateProjectClientSelect(c.id);
-            },
-
-            /* PROJETS */
-            renderProjets() {
-                const l = document.getElementById('projects-list-full'); l.innerHTML = '';
-                if(Store.data.chantiers.length === 0) {
-                    l.innerHTML = '<div class="empty-state"><i class="fas fa-hard-hat"></i><br>Nessun cantiere attivo.</div>';
-                    return;
-                }
-                Store.data.chantiers.forEach(c => {
-                    const cli = Store.data.clients.find(x=>x.id==c.clientId);
-                    let div = document.createElement('div'); div.className = 'card-item';
-                    div.innerHTML = `
-                        <div class="card-info">
-                            <span class="card-tag">${c.ref}</span>
-                            <div class="card-title">${c.name}</div>
-                            <div class="card-sub">${cli?cli.nom:'Cliente Sconosciuto'}</div>
-                        </div>
-                        <i class="fas fa-chevron-right" style="color:#ccc"></i>`;
-                    div.onclick = () => App.openHub(c.id); 
-                    l.appendChild(div);
-                });
-            },
-            openProjectWizard() { App.updateProjectClientSelect(); document.getElementById('modal-projet').classList.add('open'); },
-            updateProjectClientSelect(sid) { 
-                const s = document.getElementById('prj-cli'); s.innerHTML='<option value="">Seleziona Cliente...</option>'; 
-                Store.data.clients.forEach(c=>{ let o=document.createElement('option'); o.value=c.id; o.text=c.nom; s.appendChild(o); }); 
-                if(sid) s.value=sid; 
-            },
-            createProject() {
-                const cid=document.getElementById('prj-cli').value; 
-                const nom=document.getElementById('prj-nom').value;
-                if(cid && nom) { 
-                    const ch = { id:Date.now(), clientId:cid, name:nom, ref:"C-"+Date.now().toString().slice(-4), devisList:[], factures:[], extraDocs:[] }; 
-                    Store.data.chantiers.unshift(ch); 
-                    Store.save(); 
-                    this.showToast("Cantiere creato!", "success");
-                    App.closeModal('modal-projet'); 
-                    App.openHub(ch.id); 
-                } else {
-                    alert("Compila i campi obbligatori");
-                }
-            },
-
-            /* HUB */
-            openHub(id) {
-                Store.data.activeChantierId = id; Store.save();
-                const c = Store.data.chantiers.find(x=>x.id==id);
-                const cli = Store.data.clients.find(x=>x.id==c.clientId);
-                
-                document.getElementById('hub-name').innerText = c.name;
-                document.getElementById('hub-client').innerText = cli ? cli.nom : 'Cliente non trovato';
-                
-                const ld = document.getElementById('hub-devis-list'); ld.innerHTML=''; 
-                if(c.devisList.length === 0) ld.innerHTML = '<div class="text-center" style="color:#cbd5e1; font-style:italic; padding:10px;">Nessun preventivo</div>';
-                c.devisList.forEach(d => { 
-                    let div = document.createElement('div'); div.className='card-item'; 
-                    div.innerHTML=`<div class="card-info"><div class="card-title">${d.name}</div><div class="card-sub">${d.total.toLocaleString()} € - <span style="color:${d.status==='Validé'?'var(--success)':'orange'}">${d.status}</span></div></div><i class="fas fa-pen" style="color:#ccc"></i>`; 
-                    div.onclick=()=>App.openEditor(d.id, 'devis'); ld.appendChild(div); 
-                });
-
-                const lf = document.getElementById('hub-factures-list'); lf.innerHTML=''; 
-                if(c.factures.length === 0) lf.innerHTML = '<div class="text-center" style="color:#cbd5e1; font-style:italic; padding:10px;">Nessuna fattura</div>';
-                else c.factures.forEach(f => { 
-                    let div = document.createElement('div'); div.className='card-item'; 
-                    div.style.borderLeft = f.paid ? '4px solid var(--success)' : '4px solid var(--danger)';
-                    div.innerHTML=`<div class="card-info"><div class="card-title">${f.ref} <span style="font-weight:400; font-size:0.8em; color:var(--text-sub)">(${f.type})</span></div><div class="card-sub">${f.amount.toLocaleString()} €</div></div><div style="font-size:0.7rem; font-weight:700; color:${f.paid?'var(--success)':'var(--danger)'}">${f.paid?'PAGATO':'DA INCASSARE'}</div>`; 
-                    lf.appendChild(div); 
-                });
-
-                const ldoc = document.getElementById('hub-docs-list'); ldoc.innerHTML='';
-                if(c.extraDocs.length === 0) ldoc.innerHTML = '<div class="text-center" style="color:#cbd5e1; font-style:italic; padding:10px;">Nessun documento</div>';
-                else c.extraDocs.forEach(e => { 
-                    let div = document.createElement('div'); div.className='card-item'; 
-                    div.innerHTML=`<div class="card-info"><div class="card-title">${e.name}</div><div class="card-sub">CDC Generato</div></div><i class="fas fa-eye" style="color:var(--primary)"></i>`; 
-                    div.onclick=()=>App.viewCahierTable(e); ldoc.appendChild(div); 
-                });
-                
-                this.nav('hub');
-            },
-
-            /* DEVIS & EDITOR */
-            createNewDevis() { 
-                const c = Store.data.chantiers.find(x=>x.id==Store.data.activeChantierId); 
-                const newId = Date.now(); 
-                c.devisList.push({ id: newId, ref: 'D-'+Math.floor(Math.random()*1000), name: 'Preventivo #'+(c.devisList.length+1), status: 'Brouillon', items: [], total: 0 }); 
-                Store.save(); 
-                this.showToast("Preventivo creato");
-                App.openEditor(newId, 'devis'); 
-            },
-            openEditor(did, mode) { 
-                Store.data.activeDevisId = did; 
-                this.nav('editor'); 
-                App.renderItems(); 
-            },
-            renderItems() {
-                const c = Store.data.chantiers.find(x=>x.id==Store.data.activeChantierId);
-                const d = c.devisList.find(x=>x.id==Store.data.activeDevisId);
-                const l = document.getElementById('editor-list'); l.innerHTML=''; 
-                let tot = 0;
-                
-                if(d.items.length === 0) {
-                    l.innerHTML = '<div class="empty-state" onclick="App.openLibrary()"><i class="fas fa-plus-circle" style="color:var(--accent)"></i><br>Tocca il + per aggiungere articoli</div>';
-                }
-
-                d.items.forEach((i, idx) => {
-                   let row = i.qty * i.price; tot += row;
-                   let div = document.createElement('div'); div.className = 'e-card';
-                   div.innerHTML = `<div class="e-head"><div class="e-desc">${i.desc}</div><div style="font-size:0.8rem; color:#ccc;">#${idx+1}</div></div><div class="e-grid"><div class="e-lbl">Q.tà<br><b class="e-val">${i.qty}</b></div><div class="e-lbl">Prezzo<br><b class="e-val">${i.price}</b></div><div class="e-lbl">Totale<br><b class="e-val">${row.toLocaleString()}</b></div></div>`;
-                   l.appendChild(div);
-                });
-                d.total = tot; Store.save();
-                document.getElementById('ed-total-header').innerText = tot.toLocaleString() + ' €';
-            },
-            openLibrary() { 
-                const c=document.getElementById('lib-container'); c.innerHTML=''; 
-                for(let [k,v] of Object.entries(Config.LIB)) { 
-                    let h=document.createElement('div'); 
-                    h.innerHTML=`<div class="section-header" style="margin-top:15px;">${k}</div>`; 
-                    c.appendChild(h); 
-                    v.forEach(it=>{ 
-                        let d=document.createElement('div'); d.className='card-item'; 
-                        d.innerHTML = `<div class="card-info"><div class="card-title">${it.desc}</div><div class="card-sub">${it.price}€ / ${it.unit}</div></div><i class="fas fa-plus" style="color:var(--accent)"></i>`;
-                        d.onclick=()=>{ 
-                            const ch=Store.data.chantiers.find(x=>x.id==Store.data.activeChantierId); 
-                            const dv=ch.devisList.find(x=>x.id==Store.data.activeDevisId); 
-                            dv.items.push({id:Date.now(), ...it, qty:1, price:it.price}); 
-                            Store.save(); 
-                            this.showToast("Articolo aggiunto");
-                            App.closeModal('modal-library'); 
-                            App.renderItems(); 
-                        }; 
-                        c.appendChild(d); 
-                    }); 
-                } 
-                document.getElementById('modal-library').classList.add('open'); 
-            },
-
-            /* GLOBAL DOCS */
-            renderDocuments(filter, btn) {
-                if(btn) {
-                    document.querySelectorAll('#view-documents .room-pill').forEach(b=>b.classList.remove('active'));
-                    btn.classList.add('active');
-                }
-                const l = document.getElementById('documents-list'); l.innerHTML = '';
-                let docs = [];
-                Store.data.chantiers.forEach(c => {
-                    const cli = Store.data.clients.find(x=>x.id==c.clientId); const cname = cli ? cli.nom : '-';
-                    if(c.devisList) c.devisList.forEach(d => docs.push({type:'Devis', ref:d.ref, name:d.name, client:cname, cid:c.id, obj:d, date: d.id}));
-                    if(c.factures) c.factures.forEach(f => docs.push({type:'Facture', ref:f.ref, name:'Fattura', client:cname, cid:c.id, obj:f, date:f.id}));
-                    if(c.extraDocs) c.extraDocs.forEach(e => docs.push({type:'Etude', ref:e.ref, name:e.name, client:cname, cid:c.id, obj:e, date:e.id}));
-                });
-                
-                // Sort by date desc
-                docs.sort((a,b) => b.date - a.date);
-
-                if(filter !== 'all') docs = docs.filter(d => d.type === filter);
-                
-                if(docs.length === 0) {
-                     l.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><br>Nessun documento trovato.</div>';
-                     return;
-                }
-
-                docs.forEach(d => {
-                    let div = document.createElement('div'); div.className = 'card-item';
-                    let icon = d.type=='Devis'?'fa-file-contract':(d.type=='Facture'?'fa-file-invoice-dollar':'fa-clipboard-list');
-                    let color = d.type=='Devis'?'#3B82F6':(d.type=='Facture'?'#EF4444':'#F59E0B');
-                    
-                    div.innerHTML=`
-                        <div style="width:40px; height:40px; background:${color}15; color:${color}; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-right:15px;">
-                            <i class="fas ${icon}"></i>
-                        </div>
-                        <div class="card-info">
-                            <div class="card-title">${d.ref}</div>
-                            <div class="card-sub">${d.client}</div>
-                        </div>
-                        <i class="fas fa-chevron-right" style="color:#eee"></i>`;
-                    div.onclick = () => { Store.data.activeChantierId = d.cid; if(d.type === 'Devis') App.openEditor(d.obj.id, 'devis'); else if(d.type === 'Facture') App.openHub(d.cid); else App.viewCahierTable(d.obj); };
-                    l.appendChild(div);
-                });
-            },
+            // Aggiungi nuovo punteggio
+            scores.push(Math.floor(newScore));
             
-            renderGlobalInvoices() {
-                const l = document.getElementById('global-invoice-list'); l.innerHTML = '';
-                let totalDue = 0;
-                Store.data.chantiers.forEach(c => {
-                    if(c.factures) c.factures.forEach(f => {
-                        if(!f.paid) {
-                            totalDue += f.amount;
-                            const cli = Store.data.clients.find(x=>x.id==c.clientId);
-                            let div = document.createElement('div'); div.className = 'card-item';
-                            div.innerHTML = `<div class="card-info"><div class="card-title">${cli?cli.nom:'?'}</div><div class="card-sub">Ref: ${f.ref}</div></div><div style="font-weight:800; color:var(--danger)">${f.amount.toLocaleString()} €</div>`;
-                            l.appendChild(div);
-                        }
-                    });
-                });
-                if(totalDue === 0) l.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle" style="color:var(--success)"></i><br>Nessuna fattura in sospeso!</div>';
-            },
+            // Ordina dal più alto al più basso
+            scores.sort((a, b) => b - a);
+            
+            // Tieni solo i top 5
+            scores = scores.slice(0, 5);
+            
+            // Salva di nuovo
+            localStorage.setItem('leoGameScores', JSON.stringify(scores));
+            
+            // Disegna la tabella
+            renderLeaderboard(scores);
+        }
 
-            /* AGENDA */
-            openAgenda() {
-                const sC = document.getElementById('agd-chantier'); sC.innerHTML='<option value="">Seleziona Cantiere...</option>';
-                Store.data.chantiers.forEach(c => { let o = document.createElement('option'); o.value=c.id; o.text=c.name; sC.appendChild(o); });
-                document.getElementById('agd-date').value = '';
-                document.getElementById('modal-agenda').classList.add('open');
-                this.renderAgendaList();
-            },
-            saveAgendaEvent() {
-                const cid = document.getElementById('agd-chantier').value;
-                const date = document.getElementById('agd-date').value;
-                if(!cid || !date) return alert("Cantiere e data richiesti");
-                const c = Store.data.chantiers.find(x=>x.id==cid);
-                Store.data.appointments.push({ id: Date.now(), date: date, title: "Sopralluogo", sub: c.name });
-                Store.save(); 
-                this.showToast("Appuntamento aggiunto");
-                this.renderAgendaList(); 
-                this.renderHome();
-                document.getElementById('agd-date').value = '';
-            },
-            renderAgendaList() {
-                const l = document.getElementById('agenda-list-view'); l.innerHTML = '';
-                const sorted = (Store.data.appointments || []).sort((a,b) => new Date(a.date) - new Date(b.date));
-                sorted.forEach(a => {
-                    let div = document.createElement('div'); div.className='card-item';
-                    const d = new Date(a.date);
-                    div.innerHTML = `<div style="font-weight:700; font-size:0.9rem; margin-right:15px; text-align:center; line-height:1.1;">${d.getDate()}<br><span style="font-size:0.7rem; color:var(--text-sub)">${d.getMonth()+1}</span></div><div class="card-info"><div class="card-title">${a.sub}</div><div class="card-sub">${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')} - ${a.title}</div></div>`;
-                    l.appendChild(div);
-                });
-            },
+        function renderLeaderboard(scores) {
+            highScoresList.innerHTML = ""; // Pulisci lista
+            scores.forEach((s, index) => {
+                let li = document.createElement('li');
+                let medal = index === 0 ? "🥇" : (index === 1 ? "🥈" : (index === 2 ? "🥉" : `#${index + 1}`));
+                li.innerHTML = `<span>${medal}</span> <span>${s}</span>`;
+                highScoresList.appendChild(li);
+            });
+        }
 
-            /* INVOICES & CDC LOGIC */
-            openCreateInvoiceModal() { 
-                const c = Store.data.chantiers.find(x=>x.id==Store.data.activeChantierId); 
-                const s = document.getElementById('inv-devis-select'); s.innerHTML='';
-                if(c.devisList.length === 0) { alert("Crea prima un preventivo!"); return; }
-                c.devisList.forEach(d => { let o = document.createElement('option'); o.value=d.id; o.text=d.name; s.appendChild(o); });
-                document.getElementById('modal-invoice').classList.add('open'); 
-                App.onInvoiceDevisChange();
-            },
-            onInvoiceDevisChange() {
-                 const cid = Store.data.activeChantierId;
-                 const c = Store.data.chantiers.find(x=>x.id==cid);
-                 const did = document.getElementById('inv-devis-select').value;
-                 if(!did) return;
-                 const d = c.devisList.find(x=>x.id==did);
-                 document.getElementById('inv-total-quote').innerText = d.total.toLocaleString() + ' €';
-                 App.calcInvPreview();
-            },
-            setInvType(t) {
-                App.state.invType = t;
-                document.getElementById('btn-acompte').style.background = t==='acompte'? 'var(--primary)' : 'white';
-                document.getElementById('btn-acompte').style.color = t==='acompte'? 'white' : 'var(--text-sub)';
-                document.getElementById('btn-solde').style.background = t==='solde'? 'var(--primary)' : 'white';
-                document.getElementById('btn-solde').style.color = t==='solde'? 'white' : 'var(--text-sub)';
+        // Ostacoli
+        class Obstacle {
+            constructor() {
+                this.width = 30 + Math.random() * 20;
+                this.x = canvas.width;
+                this.markedForDeletion = false;
                 
-                const inp = document.getElementById('inv-percent');
-                if(t==='solde') { inp.value = 100; inp.disabled = true; } 
-                else { inp.value = 30; inp.disabled = false; }
-                App.calcInvPreview();
-            },
-            calcInvPreview() {
-                const cid = Store.data.activeChantierId;
-                const c = Store.data.chantiers.find(x=>x.id==cid);
-                const did = document.getElementById('inv-devis-select').value;
-                if(!did) return;
-                const d = c.devisList.find(x=>x.id==did);
-                const perc = parseInt(document.getElementById('inv-percent').value) || 0;
-                const amt = d.total * (perc/100);
-                document.getElementById('inv-preview-amount').innerText = amt.toLocaleString('fr-FR', {maximumFractionDigits:0}) + ' €';
-            },
-            generateInvoice() {
-                const c = Store.data.chantiers.find(x=>x.id==Store.data.activeChantierId);
-                const amtString = document.getElementById('inv-preview-amount').innerText.replace(' €','').replace(/\s/g,'');
-                c.factures.push({ id: Date.now(), ref: "FAC-"+Date.now().toString().slice(-4), type: App.state.invType, amount: parseFloat(amtString), paid: false });
-                Store.save(); 
-                this.showToast("Fattura generata!", "success");
-                App.closeModal('modal-invoice'); 
-                App.openHub(c.id);
-            },
-            openCreateCDCModal() { 
-                const c = Store.data.chantiers.find(x=>x.id==Store.data.activeChantierId); 
-                const s = document.getElementById('cdc-source-devis'); s.innerHTML=''; 
-                c.devisList.forEach(d => { let o = document.createElement('option'); o.value=d.id; o.text=d.name; s.appendChild(o); }); 
-                document.getElementById('modal-create-cdc').classList.add('open'); 
-            },
-            generateCDCFromDevis() {
-                const c = Store.data.chantiers.find(x=>x.id==Store.data.activeChantierId);
-                const did = document.getElementById('cdc-source-devis').value;
-                const name = document.getElementById('cdc-name').value || "Cahier Technique";
-                const d = c.devisList.find(x=>x.id==did);
-                c.extraDocs.push({ id: Date.now(), ref: "CDC-"+Date.now().toString().slice(-4), name: name, type: 'Etude', items: d.items });
-                Store.save(); 
-                this.showToast("Documento creato");
-                App.closeModal('modal-create-cdc'); 
-                App.openHub(c.id);
-            },
-            viewCahierTable(doc) {
-                document.getElementById('vc-title').innerText = doc.name;
-                const t = document.getElementById('vc-table'); 
-                t.innerHTML = '<tr style="background:#f1f5f9; text-align:left;"><th style="padding:10px;">Articolo</th><th style="padding:10px;">Qté</th></tr>';
-                doc.items.forEach(i => t.innerHTML += `<tr><td style="padding:10px; border-bottom:1px solid #eee;">${i.desc}</td><td style="padding:10px; border-bottom:1px solid #eee;">${i.qty}</td></tr>`);
-                document.getElementById('modal-view-cahier').classList.add('open');
-            },
+                const type = Math.random();
 
-            /* UTILS */
-            closeModal(id) { document.getElementById(id).classList.remove('open'); },
-            hardReset() { 
-                if(confirm("Attenzione: Questo cancellerà tutti i dati dell'app. Sei sicuro?")) { 
-                    localStorage.clear(); 
-                    location.reload(); 
-                } 
+                if (type < 0.5) { 
+                    // Terra
+                    this.type = 'ground';
+                    this.height = 30 + Math.random() * 30;
+                    this.y = canvas.height - this.height;
+                    this.color = '#ff4444'; 
+                    this.dy = 0;
+                } else if (type < 0.8) { 
+                    // Aria
+                    this.type = 'air';
+                    this.height = 30;
+                    this.y = canvas.height - 110; 
+                    this.color = '#4488ff'; 
+                    this.dy = 0;
+                } else {
+                    // Mobile
+                    this.type = 'moving';
+                    this.height = 40;
+                    this.y = canvas.height - 50;
+                    this.color = '#bf44ff'; 
+                    this.dy = Math.random() < 0.5 ? 2 : -2;
+                    this.minY = canvas.height - 150;
+                    this.maxY = canvas.height - 40;
+                }
             }
-        };
 
-        window.onload = () => App.init();
+            update() {
+                this.x -= gameSpeed;
+                if (this.type === 'moving') {
+                    this.y += this.dy;
+                    if (this.y < this.minY || this.y > this.maxY) this.dy *= -1;
+                }
+                if (this.x + this.width < 0) this.markedForDeletion = true;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(this.x, this.y, this.width, this.height);
+            }
+        }
+
+        // Input
+        function jump() {
+            if (player.grounded) {
+                player.dy = -player.jumpForce;
+                player.grounded = false;
+            }
+        }
+
+        // Eventi Tastiera
+        window.addEventListener('keydown', e => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') jump();
+            if (!gameRunning && e.code === 'KeyR') resetGame();
+        });
+
+        // Eventi Touch/Mouse sul bottone
+        jumpBtn.addEventListener('mousedown', (e) => { e.preventDefault(); jump(); });
+        jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
+        
+        // Eventi Touch sul canvas (opzionale, se si vuole saltare toccando ovunque)
+        canvas.addEventListener('touchstart', (e) => {
+             // Se non si tocca il bottone, salta comunque (opzionale)
+             if(e.target !== jumpBtn) { e.preventDefault(); jump(); }
+        });
+
+        function updatePlayer() {
+            player.dy += GRAVITY;
+            player.y += player.dy;
+
+            if (player.y + player.height > canvas.height) {
+                player.y = canvas.height - player.height;
+                player.dy = 0;
+                player.grounded = true;
+            } else {
+                player.grounded = false;
+            }
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.fillStyle = "black"; // Occhio
+            ctx.fillRect(player.x + 20, player.y + 5, 5, 5);
+        }
+
+        function handleObstacles() {
+            let spawnRate = Math.max(50, 120 - Math.floor(gameSpeed * 5)); 
+            if (frames % spawnRate === 0 && Math.random() > 0.1) {
+                obstacles.push(new Obstacle());
+            }
+
+            for (let i = 0; i < obstacles.length; i++) {
+                let o = obstacles[i];
+                o.update();
+                o.draw();
+
+                // Collisione
+                if (
+                    player.x < o.x + o.width &&
+                    player.x + player.width > o.x &&
+                    player.y < o.y + o.height &&
+                    player.y + player.height > o.y
+                ) {
+                    endGame();
+                }
+            }
+            obstacles = obstacles.filter(o => !o.markedForDeletion);
+        }
+
+        function endGame() {
+            gameRunning = false;
+            finalScoreEl.innerText = Math.floor(score);
+            updateLeaderboard(score); // Salva e aggiorna classifica
+            gameOverScreen.style.display = 'block';
+            jumpBtn.style.display = 'none'; // Nascondi bottone salto
+        }
+
+        function resetGame() {
+            player.y = 300;
+            player.dy = 0;
+            obstacles = [];
+            score = 0;
+            frames = 0;
+            gameSpeed = 5;
+            gameRunning = true;
+            gameOverScreen.style.display = 'none';
+            jumpBtn.style.display = 'flex'; // Mostra bottone salto
+            scoreEl.innerText = "Punti: 0";
+            requestAnimationFrame(animate);
+        }
+
+        function animate() {
+            if (!gameRunning) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Linea Suolo
+            ctx.strokeStyle = "white";
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.stroke();
+
+            updatePlayer();
+            drawPlayer();
+            handleObstacles();
+
+            frames++;
+            score += 0.1;
+            scoreEl.innerText = "Punti: " + Math.floor(score);
+
+            if (frames % 500 === 0) gameSpeed += 0.5;
+
+            requestAnimationFrame(animate);
+        }
+
+        // Mostra la classifica iniziale (anche se vuota) al caricamento per test
+        // ma non avvia il gioco finché non si preme o si chiama resetGame
+        // Qui avviamo subito il gioco
+        resetGame();
+
     </script>
 </body>
 </html>
