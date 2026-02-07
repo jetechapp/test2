@@ -3,263 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO GAME - Level 2 Update</title>
+    <title>LEO GAME - FINAL EDITION</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
         body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center;
             height: 100vh;
-            background-color: #222;
+            background-color: #050505;
             font-family: 'Verdana', sans-serif;
             color: white;
             overflow: hidden;
-            user-select: none;
+            user-select: none; -webkit-user-select: none; touch-action: none;
+        }
+
+        body::after {
+            content: " "; display: block; position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px; z-index: 2; pointer-events: none;
         }
 
         canvas {
-            border: 4px solid #fff;
-            /* Sfondo iniziale Livello 1 */
-            background: linear-gradient(to bottom, #333, #111);
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            max-width: 100%;
-            max-height: 100%;
-            transition: background 1s ease; /* Transizione morbida colore */
-        }
-
-        /* --- UI DI GIOCO --- */
-        #ui {
-            position: absolute;
-            top: 20px;
-            text-align: center;
-            width: 100%;
-            pointer-events: none;
-            z-index: 5;
-        }
-
-        h1 { margin: 0; text-shadow: 3px 3px 0 #000; font-size: 40px; color: #ffcc00; }
-        
-        /* --- MESSAGGIO LIVELLO 2 --- */
-        #levelUpMsg {
-            display: none;
-            position: absolute;
-            top: 40%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 80px;
-            font-weight: 900;
-            color: #ff00ff; /* Fucsia Neon */
-            text-shadow: 0 0 20px white, 4px 4px 0 #000;
-            z-index: 20;
-            animation: pulse 0.5s infinite alternate;
-            pointer-events: none;
-        }
-
-        @keyframes pulse {
-            from { transform: translate(-50%, -50%) scale(1); }
-            to { transform: translate(-50%, -50%) scale(1.2); }
-        }
-        
-        /* --- LOGIN SCREEN & ADMIN --- */
-        #loginOverlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        
-        .login-box {
-            background: #333;
-            padding: 30px;
-            border: 4px solid #ffcc00;
-            border-radius: 15px;
-            text-align: center;
-            width: 300px;
-        }
-
-        input {
-            width: 90%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ffcc00;
+            border: 3px solid #333;
             background: #111;
-            color: white;
-            font-size: 16px;
+            box-shadow: 0 0 50px rgba(255, 100, 0, 0.15); 
+            max-width: 100%; max-height: 100%;
+            transition: background 0.5s ease;
         }
+        
+        canvas.fire-sky {
+            background: linear-gradient(to bottom, #ff3300, #660000) !important;
+            box-shadow: 0 0 80px rgba(255, 50, 0, 0.6) !important;
+            border-color: #ff3300 !important;
+        }
+
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-5px, 0, 0); }
+            20%, 80% { transform: translate3d(8px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-10px, 0, 0); }
+            40%, 60% { transform: translate3d(10px, 0, 0); }
+        }
+
+        #ui { position: absolute; top: 10px; width: 100%; pointer-events: none; z-index: 5; display:flex; justify-content:space-between; padding: 0 20px; box-sizing: border-box;}
+        .hud-left, .hud-right { text-align: left; }
+        .hud-right { text-align: right; }
+
+        h1 { 
+            font-family: 'Press Start 2P'; font-size: 20px; margin: 0;
+            background: -webkit-linear-gradient(#ffaa00, #ff0055); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .stat-box { font-family: 'Press Start 2P'; font-size: 12px; margin-top: 8px; color: #fff; text-shadow: 2px 2px 0 #000; }
+        .life-heart { color: #ff0055; font-size: 16px; }
+        .coin-icon { color: #ffd700; font-size: 16px; }
+
+        #damageMsg {
+            display: none; position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            font-family: 'Press Start 2P'; color: red; font-size: 20px; z-index: 10;
+            text-shadow: 2px 2px 0 #000; animation: fadeUp 1s forwards;
+        }
+        @keyframes fadeUp { from { opacity: 1; top: 30%; } to { opacity: 0; top: 20%; } }
+        
+        #elephantMsg {
+             display: none; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+             font-family: 'Press Start 2P'; color: #ffd700; font-size: 25px; z-index: 15;
+             text-shadow: 3px 3px 0 #ff0000; animation: pulse 0.5s infinite alternate;
+        }
+        @keyframes pulse { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); } }
+
+        #loginOverlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px);
+        }
+        .login-box {
+            background: #151515; padding: 25px; border: 2px solid #ffaa00; border-radius: 10px; text-align: center; width: 320px; box-shadow: 0 0 40px rgba(255, 170, 0, 0.2);
+        }
+        input { width: 85%; padding: 10px; margin: 10px 0; border: 1px solid #444; background: #000; color: #ffaa00; font-family: 'Verdana'; font-weight: bold; text-align: center; outline: none; }
+
+        .diff-container { display: flex; justify-content: space-between; margin: 15px 0; }
+        .diff-btn {
+            flex: 1; margin: 0 3px; padding: 10px 0; background: #222; border: 1px solid #555; color: #888;
+            font-family: 'Press Start 2P'; font-size: 9px; cursor: pointer; transition: all 0.2s;
+        }
+        .diff-btn.active-easy { background: #00ff00; color: black; box-shadow: 0 0 10px #00ff00; }
+        .diff-btn.active-mid { background: #ffff00; color: black; box-shadow: 0 0 10px #ffff00; }
+        .diff-btn.active-hard { background: #ff0000; color: white; box-shadow: 0 0 10px #ff0000; }
 
         button.main-btn {
-            width: 100%;
-            padding: 10px;
-            background: #ffcc00;
-            color: black;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            font-size: 18px;
-            cursor: pointer;
-            margin-top: 10px;
+            width: 100%; padding: 12px; background: linear-gradient(90deg, #ffaa00, #ff0055);
+            color: white; font-family: 'Press Start 2P'; font-size: 14px; border: none; cursor: pointer; margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(255, 0, 85, 0.4);
         }
         button.main-btn:active { transform: scale(0.95); }
 
-        .admin-section {
-            margin-top: 30px;
-            border-top: 1px dashed #666;
-            padding-top: 10px;
-        }
-        .admin-section h4 { color: #aaa; font-size: 14px; margin-bottom: 5px; }
-
-        /* --- GAME OVER --- */
         #gameOver {
-            display: none;
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95);
-            padding: 30px;
-            border: 4px solid #ffcc00;
-            border-radius: 15px;
-            text-align: center;
-            z-index: 10;
-            min-width: 300px;
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(15, 15, 15, 0.98); padding: 30px; border: 2px solid #ff0055; border-radius: 15px; text-align: center; z-index: 10; min-width: 320px;
         }
 
-        /* --- BOTTONE SALTO --- */
         #jumpButton {
-            display: none; /* Nascosto nel login */
-            position: absolute;
-            bottom: 30px; right: 30px;
-            width: 80px; height: 80px;
-            background-color: rgba(255, 165, 0, 0.8);
-            border: 4px solid white;
-            border-radius: 50%;
-            font-size: 14px; font-weight: bold; color: white;
-            justify-content: center; align-items: center;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            z-index: 20;
-            -webkit-tap-highlight-color: transparent;
+            display: none; position: absolute; bottom: 30px; right: 30px; width: 90px; height: 90px;
+            background: rgba(255, 255, 255, 0.1); border: 2px solid #ffaa00; border-radius: 50%;
+            color: #ffaa00; display: flex; justify-content: center; align-items: center;
+            font-family: 'Press Start 2P'; font-size: 10px; cursor: pointer; z-index: 20;
         }
-        #jumpButton:active { transform: scale(0.9); background-color: rgba(255, 69, 0, 0.9); }
+        #jumpButton:active { background: rgba(255, 170, 0, 0.4); }
 
-        #logoutBtn {
-            position: absolute;
-            top: 10px; right: 10px;
-            background: red; color: white;
-            border: none; padding: 5px 10px;
-            font-size: 12px; cursor: pointer;
-            z-index: 30;
-            display: none;
-            border-radius: 5px;
-        }
-
-        /* Classifica */
-        ul { list-style: none; padding: 0; margin: 0; text-align: left; }
-        li { padding: 8px 0; border-bottom: 1px solid #444; display: flex; justify-content: space-between; font-size: 14px; }
-        li span.u-name { color: #ffcc00; font-weight: bold; }
-        li span.u-score { color: white; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between; font-size: 12px; color:white; }
 
     </style>
 </head>
 <body>
 
-    <button id="logoutBtn" onclick="logout()">LOGOUT</button>
-
     <div id="ui">
-        <h1>LEO GAME</h1>
-        <p>Giocatore: <span id="currentPlayerDisplay" style="color:#ffcc00;">---</span> | Livello: <span id="levelDisplay">1</span></p>
-        <h2 id="score" style="color: white;">Punti: 0</h2>
+        <div class="hud-left">
+            <h1>LEO GAME</h1>
+            <div class="stat-box">PLAYER: <span id="currentPlayerDisplay" style="color:#ffaa00;">---</span></div>
+            <div class="stat-box">MODE: <span id="diffDisplay">EASY</span></div>
+        </div>
+        <div class="hud-right">
+            <div class="stat-box">SCORE: <span id="score">0</span></div>
+            <div class="stat-box"><span class="life-heart">❤️</span> x <span id="livesDisplay">1</span></div>
+            <div class="stat-box"><span class="coin-icon">💎</span> x <span id="coinsDisplay">0</span></div>
+        </div>
     </div>
 
-    <div id="levelUpMsg">LEVEL 2!</div>
+    <div id="damageMsg">-1 VITA!</div>
+    <div id="elephantMsg">ELEPHANT POWER!</div>
 
     <canvas id="gameCanvas" width="800" height="400"></canvas>
-
-    <div id="jumpButton">SALTA</div>
+    <div id="jumpButton" onmousedown="handleInput(event)" ontouchstart="handleInput(event)">JUMP</div>
 
     <div id="loginOverlay">
         <div class="login-box">
-            <h2 style="color: #ffcc00;">LOGIN GIOCATORE</h2>
-            <input type="text" id="loginUser" placeholder="Nome Utente">
-            <input type="password" id="loginPass" placeholder="Password">
-            <button class="main-btn" onclick="attemptLogin()">GIOCA</button>
-            <p id="loginMsg" style="color:red; font-size:12px; height:15px;"></p>
-
-            <div class="admin-section">
-                <h4>AREA ADMIN: Crea Amico</h4>
-                <input type="text" id="regUser" placeholder="Nuovo Nome Amico">
-                <input type="text" id="regPass" placeholder="Nuova Password">
-                <button class="main-btn" style="background:#444; color:white; font-size:14px;" onclick="registerUser()">REGISTRA AMICO</button>
-                <p id="regMsg" style="color:lime; font-size:12px;"></p>
+            <h2 style="color: #fff; font-family:'Press Start 2P'; font-size:16px; margin-bottom:15px;">LOGIN</h2>
+            <div class="diff-container">
+                <div class="diff-btn active-easy" onclick="setDiff('EASY', this)">EASY</div>
+                <div class="diff-btn" onclick="setDiff('MEDIUM', this)">MEDIUM</div>
+                <div class="diff-btn" onclick="setDiff('HARD', this)">HARD</div>
+            </div>
+            <input type="text" id="loginUser" placeholder="NOME">
+            <input type="password" id="loginPass" placeholder="PASSWORD">
+            <button class="main-btn" onclick="attemptLogin()">START GAME</button>
+            <p id="loginMsg" style="color:#ff0055; font-size:10px; height:15px; margin-top:5px;"></p>
+            <div style="margin-top:15px; border-top:1px dashed #444; padding-top:10px;">
+                <p style="font-size:10px; color:#666;">NUOVO?</p>
+                <input type="text" id="regUser" placeholder="NUOVO NOME">
+                <input type="text" id="regPass" placeholder="PASSWORD">
+                <button class="main-btn" style="background:#333; box-shadow:none; padding:8px; font-size:10px;" onclick="registerUser()">REGISTRATI</button>
+                <p id="regMsg" style="font-size:10px; margin-top:5px;"></p>
             </div>
         </div>
     </div>
 
     <div id="gameOver">
-        <h1 style="color:red">SEI MORTO!</h1>
-        <p>Score: <strong id="finalScore" style="color:white">0</strong></p>
-        <div style="margin-top: 15px; text-align: left;">
-            <h3 style="color:#ffcc00; border-bottom:1px solid #555; padding-bottom:5px;">🏆 CLASSIFICA AMICI</h3>
+        <h1 style="color:#ff0055; font-size: 24px;">GAME OVER</h1>
+        <p style="font-size: 16px; margin-bottom: 20px;">SCORE: <strong id="finalScore" style="color:#fff">0</strong></p>
+        <div style="margin-top: 15px; text-align: left; background:#111; padding:15px; border-radius:10px;">
+            <h3 style="color:#fff; font-size:12px; margin:0 0 10px 0; border-bottom:1px solid #333;">TOP PLAYERS</h3>
             <ul id="highScoresList"></ul>
         </div>
-        <button class="main-btn" onclick="resetGame()">GIOCA ANCORA</button>
+        <button class="main-btn" onclick="resetGame()">RITENTA</button>
+        <button class="main-btn" style="background:#333; margin-top:5px; font-size:10px;" onclick="location.reload()">MENU PRINCIPALE</button>
     </div>
 
     <script>
-        // --- GESTIONE UTENTI (LOCAL STORAGE) ---
-        let usersDB = JSON.parse(localStorage.getItem('leoGameUsers')) || [];
-        let currentUser = null;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
 
-        if(usersDB.length === 0) {
-            usersDB.push({user: "leo", pass: "admin", bestScore: 0});
-            localStorage.setItem('leoGameUsers', JSON.stringify(usersDB));
-        }
-
-        function registerUser() {
-            const u = document.getElementById('regUser').value.trim();
-            const p = document.getElementById('regPass').value.trim();
-            const msg = document.getElementById('regMsg');
-
-            if(!u || !p) { msg.style.color = 'red'; msg.innerText = "Inserisci nome e password!"; return; }
-            if(usersDB.find(x => x.user === u)) { msg.style.color = 'red'; msg.innerText = "Nome già esistente!"; return; }
-
-            usersDB.push({user: u, pass: p, bestScore: 0});
-            localStorage.setItem('leoGameUsers', JSON.stringify(usersDB));
-            msg.style.color = 'lime'; msg.innerText = "Amico registrato!";
-            document.getElementById('regUser').value = '';
-            document.getElementById('regPass').value = '';
-        }
-
-        function attemptLogin() {
-            const u = document.getElementById('loginUser').value.trim();
-            const p = document.getElementById('loginPass').value.trim();
-            const msg = document.getElementById('loginMsg');
-
-            const found = usersDB.find(x => x.user === u && x.pass === p);
-
-            if(found) {
-                currentUser = found;
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('currentPlayerDisplay').innerText = currentUser.user.toUpperCase();
-                document.getElementById('logoutBtn').style.display = 'block';
-                document.getElementById('jumpButton').style.display = 'flex';
-                resetGame();
-            } else {
-                msg.innerText = "Utente o Password errati!";
+            if (type === 'jump') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'coin') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(1500, now); osc.frequency.linearRampToValueAtTime(2000, now + 0.1);
+                gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
+            } else if (type === 'coin_epic') { 
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(2000, now); osc.frequency.linearRampToValueAtTime(3000, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'break') { 
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(80, now); osc.frequency.exponentialRampToValueAtTime(10, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'hit') { 
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === '1up') { 
+                osc.type = 'square'; 
+                osc.frequency.setValueAtTime(400, now); osc.frequency.setValueAtTime(600, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'powerup') { 
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(800, now + 0.5);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
             }
         }
 
-        function logout() { location.reload(); }
+        let selectedDifficulty = 'EASY';
+        let difficultySettings = {
+            'EASY': { speed: 6, spawnRateBase: 70, color: '#00ff00' },
+            'MEDIUM': { speed: 9, spawnRateBase: 50, color: '#ffff00' },
+            'HARD': { speed: 10, spawnRateBase: 35, color: '#ff0000' }
+        };
+
+        function setDiff(diff, btn) {
+            selectedDifficulty = diff;
+            document.querySelectorAll('.diff-btn').forEach(b => b.className = 'diff-btn');
+            if(diff === 'EASY') btn.classList.add('active-easy');
+            if(diff === 'MEDIUM') btn.classList.add('active-mid');
+            if(diff === 'HARD') btn.classList.add('active-hard');
+        }
+
+        let usersDB = JSON.parse(localStorage.getItem('leoGameUsers')) || [];
+        let currentUser = null;
+        if(usersDB.length === 0) usersDB.push({user: "LEO_ADMIN", pass: "admin", bestScore: 0});
+
+        function registerUser() {
+            const u = document.getElementById('regUser').value.trim().toUpperCase();
+            const p = document.getElementById('regPass').value.trim();
+            const msg = document.getElementById('regMsg');
+            if(!u || !p) { msg.style.color = 'red'; msg.innerText = "Dati mancanti"; return; }
+            if(usersDB.find(x => x.user === u)) { msg.style.color = 'red'; msg.innerText = "Nome occupato"; return; }
+            usersDB.push({user: u, pass: p, bestScore: 0});
+            localStorage.setItem('leoGameUsers', JSON.stringify(usersDB));
+            msg.style.color = '#00ff00'; msg.innerText = "Registrato!";
+        }
+
+        function attemptLogin() {
+            const u = document.getElementById('loginUser').value.trim().toUpperCase();
+            const p = document.getElementById('loginPass').value.trim();
+            const found = usersDB.find(x => x.user === u && x.pass === p);
+            if(found) {
+                currentUser = found;
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('currentPlayerDisplay').innerText = currentUser.user;
+                document.getElementById('jumpButton').style.display = 'flex';
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                resetGame();
+            } else { document.getElementById('loginMsg').innerText = "Errore Credenziali"; }
+        }
 
         function saveScore(newScore) {
             if(!currentUser) return;
-            if(newScore > currentUser.bestScore) {
-                currentUser.bestScore = Math.floor(newScore);
+            const finalS = Math.floor(newScore);
+            if(finalS > currentUser.bestScore) {
+                currentUser.bestScore = finalS;
                 const idx = usersDB.findIndex(x => x.user === currentUser.user);
                 usersDB[idx] = currentUser;
                 localStorage.setItem('leoGameUsers', JSON.stringify(usersDB));
@@ -273,184 +274,342 @@
             let sortedUsers = [...usersDB].sort((a, b) => b.bestScore - a.bestScore).slice(0, 5);
             sortedUsers.forEach((u, i) => {
                 let li = document.createElement('li');
-                let medal = i === 0 ? "🥇" : (i === 1 ? "🥈" : (i === 2 ? "🥉" : ""));
-                li.innerHTML = `<span class="u-name">${i+1}. ${u.user} ${medal}</span> <span class="u-score">${u.bestScore}</span>`;
+                let color = i === 0 ? "#ffd700" : (i === 1 ? "#c0c0c0" : "#cd7f32");
+                li.innerHTML = `<span style="color:${i<3?color:'white'}">${i+1}. ${u.user}</span> <span>${u.bestScore}</span>`;
                 list.appendChild(li);
             });
         }
 
-        // --- MOTORE DI GIOCO ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreEl = document.getElementById('score');
-        const levelEl = document.getElementById('levelDisplay');
-        const jumpBtn = document.getElementById('jumpButton');
-        const levelMsg = document.getElementById('levelUpMsg');
+        const diffEl = document.getElementById('diffDisplay');
+        const livesEl = document.getElementById('livesDisplay');
+        const coinCountEl = document.getElementById('coinsDisplay');
+        const dmgMsg = document.getElementById('damageMsg');
+        const elephantMsg = document.getElementById('elephantMsg');
 
         let gameRunning = false;
         let frames = 0;
         let score = 0;
-        let gameSpeed = 5;
+        let coinsCollected = 0;
+        let lives = 1;
+        let gameSpeed = 6;
         let obstacles = [];
-        let level = 1; // Variabile livello
-        const GRAVITY = 0.6;
+        let particles = [];
+        let shockwaves = []; 
+        let coins = [];
+        let blocks = []; 
+        let trail = [];
+        const GRAVITY = 0.65;
+        const HITBOX_PADDING = 8; 
+
+        let elephantMode = false;
+        let elephantTimer = 0;
 
         const player = {
-            x: 50, y: 300, width: 30, height: 30, dy: 0, jumpForce: 12, grounded: false, color: '#00ff00'
+            x: 60, y: 300, width: 30, height: 30, dy: 0, jumpForce: 13, grounded: false,
+            color: '#00ff00', angle: 0, spinSpeed: 0,
+            invincible: false, invTimer: 0 
         };
+
+        class Shockwave {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.radius = 10; this.maxRadius = 60; this.alpha = 1.0; this.lineWidth = 5;
+            }
+            update() { this.radius += 3; this.alpha -= 0.05; this.lineWidth -= 0.1; }
+            draw() {
+                if(this.alpha <= 0) return;
+                ctx.save(); ctx.globalAlpha = this.alpha;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(0, this.lineWidth); ctx.stroke();
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * 0.7, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ffaa00'; ctx.lineWidth = Math.max(0, this.lineWidth / 2); ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, type, color) {
+                this.x = x; this.y = y; this.type = type; 
+                this.size = Math.random() * 5 + 3;
+                let angle = Math.random() * Math.PI * 2;
+                let speed = Math.random() * 5 + 2;
+                
+                if (type === 'fire_explosion') {
+                    this.speedX = Math.cos(angle) * speed; this.speedY = Math.sin(angle) * speed;
+                    this.life = 1.2;
+                    const colors = ['#ffffff', '#ffff00', '#ff8800', '#ff0000'];
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                } else {
+                    this.speedX = Math.random() * 6 - 3; this.speedY = Math.random() * 6 - 3;
+                    this.life = 1.0; this.color = color || '#fff';
+                }
+            }
+            update() { this.x += this.speedX; this.y += this.speedY; this.life -= 0.04; this.size *= 0.95; }
+            draw() {
+                ctx.globalAlpha = this.life; ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        class DestructibleBlock {
+            constructor() {
+                this.width = 60; this.height = 20; this.x = canvas.width; this.y = canvas.height - 130; 
+                this.markedForDeletion = false; this.color = '#ffaa00'; 
+            }
+            update() { this.x -= gameSpeed; if(this.x < -100) this.markedForDeletion = true; }
+            draw() {
+                ctx.fillStyle = this.color; ctx.shadowBlur = 15; ctx.shadowColor = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height); ctx.shadowBlur = 0;
+                ctx.fillStyle = "black"; ctx.fillRect(this.x + 5, this.y + 5, this.width - 10, this.height - 10);
+            }
+        }
+
+        class Gem {
+            constructor(tier, startX, startY) {
+                this.x = startX || canvas.width; this.markedForDeletion = false; this.rot = 0;
+                this.tier = tier;
+                if (tier === 5) { // ELEPHANT
+                    this.y = canvas.height - 200; this.color = '#ffd700'; this.points = 2000; this.size = 22;
+                } else if (tier === 4) { // DIAMOND
+                    this.y = startY || 50; this.color = '#ffffff'; this.points = 1000; this.size = 16;
+                } else if (tier === 3) { 
+                    this.y = canvas.height - 250; this.color = '#aa00ff'; this.points = 500; this.size = 14; 
+                } else if (tier === 2) { 
+                    this.y = canvas.height - 150; this.color = '#00dbde'; this.points = 150; this.size = 12; 
+                } else { 
+                    this.y = canvas.height - 50 - Math.random() * 50; this.color = '#00ff00'; this.points = 50; this.size = 10; 
+                }
+            }
+            update() { this.x -= gameSpeed; this.rot += 0.05; if(this.x < -50) this.markedForDeletion = true; }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rot);
+                
+                if (this.tier === 5) {
+                    // DISEGNO ELEFANTE PIXEL ART (Semplificato)
+                    ctx.fillStyle = "#ffd700";
+                    ctx.shadowBlur = 20; ctx.shadowColor = "#ffd700";
+                    // Testa
+                    ctx.fillRect(-10, -8, 20, 16);
+                    // Orecchie
+                    ctx.fillRect(-16, -6, 6, 12);
+                    ctx.fillRect(10, -6, 6, 12);
+                    // Proboscide
+                    ctx.fillRect(-2, 4, 4, 10);
+                    ctx.fillRect(0, 14, 4, 4);
+                } else {
+                    // GEMME STANDARD
+                    ctx.shadowBlur = this.points > 500 ? 20 : 10; ctx.shadowColor = this.color;
+                    ctx.fillStyle = this.color; 
+                    ctx.beginPath(); ctx.moveTo(0, -this.size); ctx.lineTo(this.size, 0); ctx.lineTo(0, this.size); ctx.lineTo(-this.size, 0); ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
 
         class Obstacle {
             constructor() {
-                this.width = 30 + Math.random() * 20;
-                this.x = canvas.width;
-                this.markedForDeletion = false;
-                const type = Math.random();
-
-                if (type < 0.5) { 
-                    this.type = 'ground';
-                    this.height = 30 + Math.random() * 30;
-                    this.y = canvas.height - this.height;
-                    this.color = '#ff4444'; 
-                    this.dy = 0;
-                } else if (type < 0.8) { 
-                    this.type = 'air';
-                    this.height = 30;
-                    this.y = canvas.height - 110; 
-                    this.color = '#4488ff'; 
-                    this.dy = 0;
-                } else {
-                    this.type = 'moving';
-                    this.height = 40;
-                    this.y = canvas.height - 50;
-                    this.color = '#bf44ff'; 
-                    this.dy = Math.random() < 0.5 ? 2 : -2;
-                    this.minY = canvas.height - 150;
-                    this.maxY = canvas.height - 40;
-                }
+                this.width = 30 + Math.random() * 20; this.x = canvas.width; this.markedForDeletion = false;
+                const r = Math.random();
+                if (r < 0.5) { this.type = 'ground'; this.height = 40 + Math.random() * 30; this.y = canvas.height - this.height; this.color = '#ff0055'; } 
+                else { this.type = 'moving'; this.height = 40; this.y = canvas.height - 60; this.color = '#fc00ff'; 
+                       this.dy = r < 0.75 ? 2 : -2; this.minY = canvas.height - 180; this.maxY = canvas.height - 40; }
             }
             update() {
                 this.x -= gameSpeed;
-                if (this.type === 'moving') {
-                    this.y += this.dy;
-                    if (this.y < this.minY || this.y > this.maxY) this.dy *= -1;
-                }
-                if (this.x + this.width < 0) this.markedForDeletion = true;
+                if (this.type === 'moving') { this.y += this.dy; if (this.y < this.minY || this.y > this.maxY) this.dy *= -1; }
+                if (this.x + this.width < -50) this.markedForDeletion = true;
             }
             draw() {
-                ctx.fillStyle = this.color;
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-                ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeRect(this.x, this.y, this.width, this.height);
+                ctx.fillStyle = this.color; ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height); ctx.shadowBlur = 0;
+                ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(this.x+5, this.y+5, this.width-10, this.height-10);
             }
         }
 
+        function createExplosion(x, y, color) {
+            playSound('break'); shockwaves.push(new Shockwave(x, y));
+            for(let i=0; i<30; i++) particles.push(new Particle(x, y, 'fire_explosion', color));
+        }
+        
+        function triggerElephantMode() {
+            elephantMode = true; elephantTimer = 360; playSound('powerup');
+            canvas.classList.add('fire-sky'); elephantMsg.style.display = 'block'; setTimeout(() => elephantMsg.style.display = 'none', 2000);
+        }
+
+        function handleInput(e) { if(e.cancelable) e.preventDefault(); if(gameRunning) jump(); }
         function jump() {
             if (player.grounded) {
-                player.dy = -player.jumpForce;
-                player.grounded = false;
+                player.dy = -player.jumpForce; player.grounded = false; playSound('jump');
+                for(let i=0; i<5; i++) particles.push(new Particle(player.x+15, player.y+30, 'dust'));
             }
         }
-
-        window.addEventListener('keydown', e => {
-            if (gameRunning && (e.code === 'Space' || e.code === 'ArrowUp')) jump();
-        });
-        jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameRunning) jump(); });
-        jumpBtn.addEventListener('mousedown', (e) => { e.preventDefault(); if(gameRunning) jump(); });
+        window.addEventListener('keydown', e => { if(gameRunning && (e.code==='Space'||e.code==='ArrowUp')) jump(); });
 
         function updateGame() {
+            if (elephantMode) { elephantTimer--; if (elephantTimer <= 0) { elephantMode = false; canvas.classList.remove('fire-sky'); } }
+            if (player.invincible) { player.invTimer--; if(player.invTimer <= 0) player.invincible = false; }
+
             player.dy += GRAVITY;
             player.y += player.dy;
 
             if (player.y + player.height > canvas.height) {
-                player.y = canvas.height - player.height;
-                player.dy = 0;
-                player.grounded = true;
-            } else {
-                player.grounded = false;
-            }
+                player.y = canvas.height - player.height; player.dy = 0; player.grounded = true; player.spinSpeed = 0; player.angle = 0; 
+            } else { player.grounded = false; }
 
-            // GESTIONE LIVELLO 2
-            if (score >= 500 && level === 1) {
-                level = 2;
-                gameSpeed += 3; // Boost di velocità
-                // Cambio Sfondo
-                canvas.style.background = "linear-gradient(to bottom, #2c003e, #000)"; 
-                levelEl.innerText = "2 (HARD)";
-                levelEl.style.color = "#ff00ff";
-                
-                // Mostra scritta LEVEL 2
-                levelMsg.style.display = "block";
-                setTimeout(() => { levelMsg.style.display = "none"; }, 3000);
-            }
-
-            // Spawn Ostacoli
-            // Al livello 2 spuntano più spesso
-            let baseRate = level === 1 ? 50 : 35; 
-            let spawnRate = Math.max(baseRate, 120 - Math.floor(gameSpeed * 5)); 
-            
-            if (frames % spawnRate === 0 && Math.random() > 0.1) obstacles.push(new Obstacle());
-
-            // Gestione Ostacoli
-            for (let i = 0; i < obstacles.length; i++) {
-                let o = obstacles[i];
-                o.update();
-                o.draw();
-                if (player.x < o.x + o.width && player.x + player.width > o.x && player.y < o.y + o.height && player.y + player.height > o.y) {
-                    endGame();
+            blocks.forEach(b => {
+                b.update();
+                if (player.x + HITBOX_PADDING < b.x + b.width && player.x + player.width - HITBOX_PADDING > b.x) {
+                    
+                    // MODALITA ELEFANTE: Distruggi tutto al contatto
+                    if (elephantMode && player.y < b.y + b.height && player.y + player.height > b.y) {
+                         b.markedForDeletion = true; createExplosion(b.x + b.width/2, b.y + b.height/2, '#ffaa00'); score += 200;
+                    }
+                    else {
+                        // 1. ATTERRAGGIO SOPRA
+                        if (player.dy >= 0 && player.y + player.height >= b.y && player.y + player.height <= b.y + 20) {
+                            player.y = b.y - player.height; player.dy = 0; player.grounded = true; player.spinSpeed = 0; player.angle = 0;
+                        }
+                        // 2. COLPO DA SOTTO (CATAPULTA FIX: Gemme distanziate sulla parabola)
+                        else if (player.dy < 0 && player.y <= b.y + b.height && player.y > b.y + b.height - 20) {
+                            b.markedForDeletion = true;
+                            player.dy = -24; // Spinta extra forte
+                            player.spinSpeed = 0.8; 
+                            createExplosion(b.x + b.width/2, b.y + b.height/2, '#ffaa00');
+                        }
+                        // 3. SCHIANTO LATERALE
+                        else if (player.y + player.height > b.y + HITBOX_PADDING && player.y < b.y + b.height - HITBOX_PADDING && !player.invincible) {
+                             hitPlayer(); b.markedForDeletion = true; 
+                        }
+                    }
                 }
+            });
+
+            if (player.spinSpeed > 0) {
+                player.angle += player.spinSpeed;
+                if(frames % 2 === 0) particles.push(new Particle(player.x + 15, player.y + 15, 'fire_explosion'));
+                player.spinSpeed *= 0.96; if(player.spinSpeed < 0.05) player.spinSpeed = 0;
+            } else if(player.angle > 0) player.angle *= 0.8;
+
+            if(frames % 3 === 0) {
+                trail.push({x: player.x, y: player.y, angle: player.angle, color: elephantMode ? '#888' : player.color});
+                if(trail.length > 8) trail.shift();
             }
-            obstacles = obstacles.filter(o => !o.markedForDeletion);
+            trail.forEach(t => t.x -= gameSpeed);
+
+            let settings = difficultySettings[selectedDifficulty];
+            let rate = Math.max(settings.spawnRateBase, 100 - Math.floor(gameSpeed * 4));
+            
+            if (frames % rate === 0 && Math.random() > 0.1) obstacles.push(new Obstacle());
+            
+            // Spawn Blocchi & Gemme Celesti (Posizionate per la nuova parabola)
+            if (frames % 220 === 0 && Math.random() > 0.3) {
+                let newBlock = new DestructibleBlock(); blocks.push(newBlock);
+                // Le gemme partono più avanti (offset X) per intercettare il salto
+                for(let k=0; k<3; k++) coins.push(new Gem(4, newBlock.x + 100 + (k*90), 40 + (k*10))); 
+            }
+
+            if (frames % 80 === 0) {
+                let r = Math.random(); let tier = 1; if(r > 0.7) tier = 2; if(r > 0.9 && blocks.length > 0) tier = 3; 
+                // ELEPHANT GEM: Spawn aumentato (doppia probabilità)
+                if (frames % 300 === 0 && Math.random() > 0.3) tier = 5;
+                coins.push(new Gem(tier));
+            }
+
+            obstacles.forEach(o => {
+                o.update();
+                if (player.x + HITBOX_PADDING < o.x + o.width - HITBOX_PADDING &&
+                    player.x + player.width - HITBOX_PADDING > o.x + HITBOX_PADDING &&
+                    player.y + HITBOX_PADDING < o.y + o.height - HITBOX_PADDING &&
+                    player.y + player.height - HITBOX_PADDING > o.y + HITBOX_PADDING) {
+
+                    const isStomping = (player.y + player.height - o.y < 25) && (player.dy > 0);
+                    // NUOVO: Colpo di testa da sotto (Headbutt)
+                    const isHeadbutting = (player.y < o.y + o.height) && (player.y > o.y) && (player.dy < 0);
+
+                    if (elephantMode || isStomping || isHeadbutting) {
+                        o.markedForDeletion = true;
+                        if(!elephantMode && isStomping) player.dy = -10; // Rimbalzo
+                        if(!elephantMode && isHeadbutting) player.dy = 5; // Rimbalzo giù
+                        score += 100; createExplosion(o.x + o.width/2, o.y, o.color);
+                    } else {
+                        if (!player.invincible) { hitPlayer(); o.markedForDeletion = true; }
+                    }
+                }
+            });
+
+            coins.forEach(c => {
+                c.update();
+                if(player.x < c.x + c.size + 20 && player.x + player.width > c.x - c.size &&
+                   player.y < c.y + c.size + 20 && player.y + player.height > c.y - c.size) {
+                       score += c.points; coinsCollected++; c.markedForDeletion = true; 
+                       if (c.tier === 5) triggerElephantMode(); 
+                       else if(c.points >= 500) playSound('coin_epic'); else playSound('coin');
+                       for(let i=0; i<6; i++) particles.push(new Particle(c.x, c.y, 'coin', c.color));
+                       if(coinsCollected % 10 === 0) { lives++; playSound('1up'); livesEl.style.color = "#00ff00"; setTimeout(()=> livesEl.style.color = "white", 500); }
+                   }
+            });
+
+            particles.forEach(p => p.update()); shockwaves.forEach(s => s.update());
+            obstacles = obstacles.filter(o => !o.markedForDeletion); blocks = blocks.filter(b => !b.markedForDeletion);
+            coins = coins.filter(c => !c.markedForDeletion); particles = particles.filter(p => p.life > 0); shockwaves = shockwaves.filter(s => s.alpha > 0);
+            livesEl.innerText = lives; coinCountEl.innerText = coinsCollected;
+        }
+
+        function hitPlayer() {
+            if(elephantMode) return;
+            lives--; playSound('hit'); canvas.classList.add('shake'); setTimeout(() => canvas.classList.remove('shake'), 500);
+            if(lives <= 0) { endGame(); } 
+            else { dmgMsg.style.display = 'block'; setTimeout(() => dmgMsg.style.display = 'none', 1000); player.invincible = true; player.invTimer = 120; player.color = '#ff0000'; setTimeout(() => player.color = difficultySettings[selectedDifficulty].color, 300); }
         }
 
         function drawGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // Suolo
-            ctx.strokeStyle = "white"; ctx.beginPath(); ctx.moveTo(0, canvas.height); ctx.lineTo(canvas.width, canvas.height); ctx.stroke();
-            // Player
-            ctx.fillStyle = player.color; ctx.fillRect(player.x, player.y, player.width, player.height);
-            ctx.fillStyle = "black"; ctx.fillRect(player.x + 20, player.y + 5, 5, 5); 
+            ctx.strokeStyle = elephantMode ? "rgba(255, 100, 0, 0.3)" : "rgba(50, 50, 50, 0.4)"; ctx.lineWidth = 1;
+            for(let i=0; i<canvas.width; i+=50) { let x = (i - frames*gameSpeed/2)%canvas.width + (i<0?canvas.width:0); ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+
+            trail.forEach(t => {
+                ctx.fillStyle = t.color === '#888' ? "rgba(150, 150, 150, 0.3)" : "rgba(0, 255, 0, 0.2)";
+                ctx.save(); ctx.translate(t.x + player.width/2, t.y + player.height/2); ctx.rotate(t.angle); ctx.fillRect(-player.width/2, -player.height/2, player.width, player.height); ctx.restore();
+            });
+
+            if (!player.invincible || frames % 4 === 0) { 
+                ctx.save(); ctx.translate(player.x + player.width/2, player.y + player.height/2); ctx.rotate(player.angle);
+                if (elephantMode) {
+                    ctx.fillStyle = "#888888"; ctx.shadowBlur = 20; ctx.shadowColor = "#ff0000"; ctx.fillRect(-player.width/2, -player.height/2, player.width, player.height);
+                    ctx.fillStyle = "#ff0000"; ctx.shadowBlur = 0; ctx.fillRect(5, -10, 10, 20); ctx.fillRect(-15, 0, 10, 10); 
+                } else {
+                    ctx.fillStyle = player.color; ctx.shadowBlur = 15; ctx.shadowColor = player.color; ctx.fillRect(-player.width/2, -player.height/2, player.width, player.height);
+                    ctx.fillStyle = "black"; ctx.shadowBlur = 0; ctx.fillRect(5, -5, 6, 6);
+                }
+                ctx.restore();
+            }
+
+            blocks.forEach(b => b.draw()); coins.forEach(c => c.draw()); obstacles.forEach(o => o.draw()); particles.forEach(p => p.draw()); shockwaves.forEach(s => s.draw());
+            ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, canvas.height); ctx.lineTo(canvas.width, canvas.height); ctx.stroke();
         }
 
         function endGame() {
-            gameRunning = false;
-            document.getElementById('finalScore').innerText = Math.floor(score);
-            saveScore(score);
-            document.getElementById('gameOver').style.display = 'block';
-            jumpBtn.style.display = 'none';
+            gameRunning = false; document.getElementById('finalScore').innerText = Math.floor(score); saveScore(score);
+            document.getElementById('gameOver').style.display = 'block'; document.getElementById('jumpButton').style.display = 'none';
         }
 
         function resetGame() {
-            player.y = 300; player.dy = 0;
-            obstacles = []; score = 0; frames = 0; gameSpeed = 5;
-            level = 1; // Reset Livello
-            levelEl.innerText = "1";
-            levelEl.style.color = "white";
-            
-            // Reset sfondo
-            canvas.style.background = "linear-gradient(to bottom, #333, #111)";
-            levelMsg.style.display = "none";
-
-            gameRunning = true;
-            document.getElementById('gameOver').style.display = 'none';
-            jumpBtn.style.display = 'flex';
-            scoreEl.innerText = "Punti: 0";
+            player.y = 300; player.dy = 0; player.angle = 0; player.spinSpeed = 0; player.invincible = false;
+            elephantMode = false; elephantTimer = 0; canvas.classList.remove('fire-sky');
+            obstacles = []; coins = []; particles = []; trail = []; blocks = []; shockwaves = [];
+            score = 0; frames = 0; coinsCollected = 0; lives = 1; 
+            let set = difficultySettings[selectedDifficulty]; gameSpeed = set.speed; player.color = set.color; diffEl.innerText = selectedDifficulty; diffEl.style.color = set.color;
+            gameRunning = true; document.getElementById('gameOver').style.display = 'none'; document.getElementById('jumpButton').style.display = 'flex'; scoreEl.innerText = "0";
             requestAnimationFrame(loop);
         }
 
         function loop() {
-            if (!gameRunning) return;
-            drawGame();
-            updateGame();
-            
-            frames++;
-            score += 0.1;
-            scoreEl.innerText = "Punti: " + Math.floor(score);
-            
-            // Incremento graduale velocità standard (indipendente dal salto di livello)
-            if (frames % 500 === 0) gameSpeed += 0.2;
-
-            requestAnimationFrame(loop);
+            if (!gameRunning) return; updateGame(); drawGame(); frames++; score += 0.1; scoreEl.innerText = Math.floor(score);
+            if (frames % 600 === 0) gameSpeed += 0.5; requestAnimationFrame(loop);
         }
-
     </script>
 </body>
 </html>
