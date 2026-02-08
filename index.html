@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO GAME - FINAL PRODUCTION</title>
+    <title>LEO GAME - FINAL FIXED</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -19,7 +19,6 @@
             user-select: none; -webkit-user-select: none; touch-action: none;
         }
 
-        /* SFONDO E EFFETTI */
         body::after {
             content: " "; display: block; position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
@@ -46,11 +45,7 @@
             box-shadow: 0 0 50px #00ffff !important;
         }
 
-        @keyframes strobe {
-            0% { background: #001133; filter: brightness(1.2); }
-            50% { background: #003366; filter: brightness(1.5); }
-            100% { background: #001133; filter: brightness(1.2); }
-        }
+        @keyframes strobe { 0% { background: #001133; } 50% { background: #003366; } 100% { background: #001133; } }
 
         .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake {
@@ -58,7 +53,6 @@
             50% { transform: translate3d(4px, 0, 0); }
         }
 
-        /* UI */
         #ui { position: absolute; top: 15px; width: 100%; pointer-events: none; z-index: 10; display:flex; justify-content:space-between; padding: 0 25px; box-sizing: border-box;}
         .hud-left, .hud-right { text-align: left; }
         .hud-right { text-align: right; }
@@ -70,13 +64,12 @@
             display: none; position: absolute; left: 50%; transform: translate(-50%, -50%);
             font-family: 'Press Start 2P'; z-index: 20; text-shadow: 4px 4px 0 #000; pointer-events: none; text-align: center; width: 100%;
         }
-        #damageMsg { top: 30%; color: #ff0000; font-size: 24px; animation: fadeUp 0.8s forwards; }
+        #damageMsg { top: 30%; color: red; font-size: 24px; animation: fadeUp 0.8s forwards; }
         #powerMsg { top: 40%; font-size: 30px; animation: pulse 0.3s infinite alternate; }
 
         @keyframes fadeUp { from { opacity: 1; top: 30%; } to { opacity: 0; top: 20%; } }
         @keyframes pulse { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); } }
 
-        /* MODALI */
         #loginOverlay, #shopOverlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(8px);
@@ -97,15 +90,6 @@
         button.shop-btn { background: #ffaa00; box-shadow: 0 4px 0 #cc8800; color:black; }
         button.shop-btn:active { box-shadow: 0 0 0 #cc8800; }
 
-        /* CLASSIFICA */
-        .leaderboard-container { margin-top: 20px; border-top: 2px dashed #444; padding-top: 15px; width: 100%; }
-        .leaderboard-container h4 { color: #ffaa00; font-size: 12px; margin-bottom: 15px; font-family: 'Press Start 2P'; }
-        ul.ranking-list { list-style: none; padding: 0; margin: 0; text-align: left; } 
-        li.ranking-item { padding: 10px 5px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color:#ccc; }
-        .leader-rank-area { display: flex; align-items: center; }
-        .leader-skin-icon { width: 14px; height: 14px; display: inline-block; margin: 0 10px; border: 1px solid #fff; }
-
-        /* SHOP GRID */
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
         .skin-card { background: #222; border: 2px solid #444; padding: 10px; position: relative; }
         .skin-card.owned { border-color: #0f0; }
@@ -113,6 +97,13 @@
         .skin-preview { width: 50px; height: 50px; margin: 0 auto 10px auto; display: block; border: 2px solid rgba(255,255,255,0.1); }
         .skin-name { font-size: 9px; color: #aaa; font-weight: bold; display: block; margin-bottom: 5px; }
         .buy-btn { width: 100%; padding: 8px; font-size: 9px; cursor: pointer; border: none; font-weight: bold; font-family: 'Verdana'; }
+
+        .leaderboard-container { margin-top: 20px; border-top: 2px dashed #444; padding-top: 15px; width: 100%; }
+        .leaderboard-container h4 { color: #ffaa00; font-size: 12px; margin-bottom: 15px; font-family: 'Press Start 2P'; }
+        ul.ranking-list { list-style: none; padding: 0; margin: 0; text-align: left; } 
+        li.ranking-item { padding: 10px 5px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color:#ccc; }
+        .leader-rank-area { display: flex; align-items: center; }
+        .leader-skin-icon { width: 14px; height: 14px; display: inline-block; margin: 0 10px; border: 1px solid #fff; }
 
         #gameOver { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20, 20, 20, 0.98); padding: 40px; border: 4px solid #ff3333; text-align: center; z-index: 10; min-width: 380px; box-shadow: 0 0 50px rgba(255,0,0,0.3); }
         #jumpButton { display: none; position: absolute; bottom: 30px; right: 30px; width: 100px; height: 100px; background: rgba(255, 255, 255, 0.1); border: 4px solid #fff; border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; font-family: 'Press Start 2P'; font-size: 12px; cursor: pointer; z-index: 20; -webkit-tap-highlight-color: transparent; }
@@ -144,18 +135,14 @@
     <div id="loginOverlay">
         <div class="login-box">
             <h2 style="color: #fff; font-family:'Press Start 2P'; font-size:20px; margin-bottom: 20px;">LOGIN</h2>
-            
             <input type="text" id="loginUser" placeholder="NOME UTENTE">
             <input type="password" id="loginPass" placeholder="PASSWORD">
             <button class="main-btn" onclick="attemptLogin()">GIOCA ONLINE</button>
             <button class="main-btn" style="background:#555; margin-top:5px;" onclick="playOffline()">GIOCA OFFLINE (OSPITE)</button>
-            
             <p id="loginMsg" style="color:#ff0055; font-size:10px; height:15px; margin-top:5px;"></p>
-            
             <div style="margin-top:15px; padding-top:5px; border-top:1px solid #333;">
                 <button class="main-btn" style="background:#444; font-size:10px; padding:10px;" onclick="registerUser()">REGISTRATI (NUOVO)</button>
             </div>
-
             <div class="leaderboard-container">
                 <h4>TOP 5 GLOBAL</h4>
                 <ul id="preGameLeaderboard" class="ranking-list">
@@ -178,32 +165,23 @@
         <h1 style="color:#ff3333; font-size: 30px; margin-bottom:20px;">GAME OVER</h1>
         <p style="font-size: 18px; margin-bottom:10px;">SCORE: <strong id="finalScore" style="color:#fff">0</strong></p>
         <p style="font-size: 14px; color:#ffd700; margin-bottom:20px;">GUADAGNATO: +<span id="earnedCoins">0</span> $</p>
-        
         <div class="leaderboard-container" style="background:#111; padding:15px; border:1px solid #333;">
             <h4>TOP 5 GLOBAL</h4>
             <ul id="highScoresList" class="ranking-list">
                 <li class="ranking-item" style="color:#666; justify-content:center;">Caricamento...</li>
             </ul>
         </div>
-
         <button class="main-btn" onclick="resetGame()">RITENTA</button>
         <button class="main-btn shop-btn" onclick="openShop()">NEGOZIO SKIN</button>
     </div>
 
     <script>
-        // --- SUPABASE CONFIGURATION ---
         const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
 
         let sb = null;
-        try { 
-            if(typeof supabase !== 'undefined') {
-                sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log("DB Connesso");
-            } else { console.error("Libreria Supabase non caricata."); }
-        } catch(e){ console.error("Init Error:", e); }
+        try { if(typeof supabase !== 'undefined') sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e){ console.error(e); }
 
-        // --- ASSETS & 3D COLORS ---
         const SKINS = {
             'default': { name: 'NEON CORE', price: 0, top: '#00ff00', side: '#005500', front: '#00aa00' },
             'magma':   { name: 'MAGMA', price: 500, top: '#ffcc00', side: '#990000', front: '#ff4400' },
@@ -216,7 +194,6 @@
         let currentUser = null; 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        // --- AUDIO ---
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
@@ -233,7 +210,6 @@
             else if (type === 'powerup') { osc.type='sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(1000, now + 0.5); gain.gain.setValueAtTime(0.2, now); osc.start(now); osc.stop(now + 0.5); }
         }
 
-        // --- ACCOUNT LOGIC ---
         function playOffline() {
             currentUser = { username: "OSPITE", coins: 0, best_score: 0, inventory: 'default', current_skin: 'default', id: 'offline' };
             document.getElementById('loginOverlay').style.display = 'none';
@@ -243,18 +219,16 @@
         }
 
         async function registerUser() {
-            if(!sb) return alert("DB non connesso! Ricarica la pagina.");
+            if(!sb) return alert("Errore DB");
             const u = document.getElementById('regUser').value.trim();
             const p = document.getElementById('regPass').value.trim();
             if(!u || !p) return alert("Dati mancanti");
-            
             const { error } = await sb.from('leo_players').insert([{ username: u, password: p, coins: 0, inventory: 'default', current_skin: 'default' }]);
-            if(error) alert("Nome già preso o errore DB!"); 
-            else { alert("Registrato! Ora fai Login."); document.getElementById('loginUser').value = u; }
+            if(error) alert("Nome già preso!"); else { alert("Registrato! Fai Login"); document.getElementById('loginUser').value = u; }
         }
 
         async function attemptLogin() {
-            if(!sb) return alert("DB non connesso! Ricarica la pagina.");
+            if(!sb) return alert("Errore DB");
             const u = document.getElementById('loginUser').value.trim();
             const p = document.getElementById('loginPass').value.trim();
             const msg = document.getElementById('loginMsg'); msg.innerText = "Attendere...";
@@ -266,6 +240,7 @@
                     currentUser = data;
                     if(!currentUser.inventory) currentUser.inventory = "default";
                     if(!currentUser.current_skin) currentUser.current_skin = "default";
+                    if(currentUser.coins === null) currentUser.coins = 0;
                     document.getElementById('loginOverlay').style.display = 'none';
                     document.getElementById('currentPlayerDisplay').innerText = currentUser.username.toUpperCase();
                     updateBankUI();
@@ -281,35 +256,21 @@
             const newBest = Math.max(currentUser.best_score || 0, Math.floor(scoreToAdd));
             currentUser.best_score = newBest;
             updateBankUI();
-
             if(sb && currentUser.id !== 'offline') {
-                try {
-                    await sb.from('leo_players').update({ coins: currentUser.coins, best_score: newBest }).eq('id', currentUser.id);
-                    renderLeaderboard();
-                } catch(e) { console.error("Save failed", e); }
+                try { await sb.from('leo_players').update({ coins: currentUser.coins, best_score: newBest }).eq('id', currentUser.id); renderLeaderboard(); } catch(e){}
             }
         }
 
         async function renderLeaderboard() {
             const lists = [document.getElementById('highScoresList'), document.getElementById('preGameLeaderboard')];
             if(!sb) { lists.forEach(l => l.innerHTML = "<li class='ranking-item'>Offline Mode</li>"); return; }
-
             const { data, error } = await sb.from('leo_players').select('username, best_score, current_skin').order('best_score', { ascending: false }).limit(5);
-            
             if(data) {
                 const html = data.map((u, i) => {
                     let skinKey = u.current_skin || 'default';
                     let skinColor = SKINS[skinKey] ? SKINS[skinKey].front : '#00ff00';
                     let rankColor = i === 0 ? "#ffd700" : (i === 1 ? "#c0c0c0" : "#cd7f32");
-                    return `
-                    <li class="ranking-item">
-                        <div class="leader-rank-area">
-                            <span style="color:${rankColor}; width:15px;">${i+1}.</span>
-                            <div class="leader-skin-icon" style="background:${skinColor}"></div>
-                            <span style="color:${rankColor}">${u.username}</span>
-                        </div>
-                        <span>${u.best_score}</span>
-                    </li>`;
+                    return `<li class="ranking-item"><div class="leader-rank-area"><span style="color:${rankColor}; width:15px;">${i+1}.</span><div class="leader-skin-icon" style="background:${skinColor}"></div><span style="color:${rankColor}">${u.username}</span></div><span>${u.best_score}</span></li>`;
                 }).join('');
                 lists.forEach(l => l.innerHTML = html);
             }
@@ -324,7 +285,6 @@
             }
         }
 
-        // --- SHOP ---
         function openShop() { document.getElementById('shopOverlay').style.display='flex'; document.getElementById('gameOver').style.display='none'; renderShop(); }
         function closeShop() { document.getElementById('shopOverlay').style.display='none'; document.getElementById('gameOver').style.display='block'; }
 
@@ -334,22 +294,19 @@
             for (const [key, skin] of Object.entries(SKINS)) {
                 const isOwned = owned.includes(key);
                 const isEquipped = currentUser.current_skin === key;
-                let btnHtml = isEquipped ? `<button class="buy-btn" style="background:#444;color:#fff">EQUIPAGGIATO</button>` :
-                             isOwned ? `<button class="buy-btn" style="background:#00ff00;color:#000" onclick="equipSkin('${key}')">EQUIPAGGIA</button>` :
-                             `<button class="buy-btn" style="background:#ffd700;color:#000" onclick="buySkin('${key}')">${skin.price}$</button>`;
-                
+                let btnHtml = isEquipped ? `<button class="buy-btn" style="background:#444;color:#fff">EQUIPAGGIATO</button>` : isOwned ? `<button class="buy-btn" style="background:#00ff00;color:#000" onclick="equipSkin('${key}')">EQUIPAGGIA</button>` : `<button class="buy-btn" style="background:#ffd700;color:#000" onclick="buySkin('${key}')">${skin.price}$</button>`;
                 grid.innerHTML += `<div class="skin-card ${isOwned?'owned':''} ${isEquipped?'equipped':''}"><div class="skin-preview" style="background:${skin.front}; border-top:5px solid ${skin.top}; border-right:5px solid ${skin.side}"></div><span class="skin-name">${skin.name}</span>${btnHtml}</div>`;
             }
         }
 
         async function buySkin(key) {
-            if(currentUser.id === 'offline') return alert("Registrati per comprare skin!");
+            if(currentUser.id === 'offline') return alert("Registrati prima!");
             const skin = SKINS[key];
             if (currentUser.coins >= skin.price) {
                 currentUser.coins -= skin.price; currentUser.inventory += "," + key; playSound('buy'); updateBankUI();
                 await sb.from('leo_players').update({ coins: currentUser.coins, inventory: currentUser.inventory }).eq('id', currentUser.id);
                 renderShop();
-            } else alert("Non hai abbastanza soldi!");
+            } else alert("Soldi insufficienti!");
         }
 
         async function equipSkin(key) {
@@ -359,7 +316,6 @@
             renderShop();
         }
 
-        // --- GAME ENGINE ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const FLOOR_HEIGHT = 40; 
@@ -382,13 +338,12 @@
         let stars = []; 
         const GRAVITY = 0.65;
 
-        let powerMode = false; // Red Elephant
-        let shieldMode = false; // Blue Magnet
+        let powerMode = false; 
+        let shieldMode = false; 
         let powerTimer = 0;
 
         const player = { x: 60, y: 300, width: 30, height: 30, dy: 0, jumpForce: 13, grounded: false, angle: 0, spinSpeed: 0, invincible: false, invTimer: 0 };
 
-        // 3D DRAWING HELPERS
         function drawCube3D(ctx, x, y, size, colorFront, colorTop, colorSide) {
             let depth = size/4;
             ctx.fillStyle = colorSide; ctx.beginPath(); ctx.moveTo(x+size, y); ctx.lineTo(x+size+depth, y-depth); ctx.lineTo(x+size+depth, y+size-depth); ctx.lineTo(x+size, y+size); ctx.fill();
@@ -406,10 +361,7 @@
         function initStars() { stars=[]; for(let i=0; i<50; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*2}); }
         function drawStars() {
             ctx.fillStyle = "#fff";
-            stars.forEach(s => {
-                s.x -= gameSpeed * 0.1; if(s.x < 0) s.x = canvas.width;
-                ctx.fillRect(s.x, s.y, s.size, s.size);
-            });
+            stars.forEach(s => { s.x -= gameSpeed * 0.1; if(s.x < 0) s.x = canvas.width; ctx.fillRect(s.x, s.y, s.size, s.size); });
         }
 
         class FloatingText {
@@ -434,7 +386,6 @@
         function activatePower(type) {
             powerTimer = 300; playSound('powerup');
             let txt = document.getElementById('powerMsg'); txt.style.display = 'block';
-            
             if(type === 'red') {
                 powerMode = true; shieldMode = false;
                 canvas.classList.add('fire-sky'); canvas.classList.remove('shield-sky');
@@ -445,6 +396,63 @@
                 txt.innerText = "SHIELD MAGNET!"; txt.style.color = "#00ffff";
             }
             setTimeout(()=> txt.style.display='none', 2000);
+        }
+
+        class Obstacle {
+            constructor(score) {
+                this.x = canvas.width; this.markedForDeletion = false;
+                const r = Math.random();
+                let groundY = canvas.height - FLOOR_HEIGHT;
+                if(score > 1000 && r > 0.85) { this.type='water'; this.width=120; this.height=20; this.y=groundY+15; this.color='#0088ff'; } 
+                else if(score > 500 && r > 0.7) { this.type='spike'; this.width=30; this.height=30; this.y=groundY-30; this.color='#aaaaaa'; }
+                else if(r < 0.5) { this.type='ground'; this.width=40; this.height=40; this.y=groundY-40; this.color='#ff0055'; }
+                else { this.type='air'; this.width=40; this.height=40; this.y=groundY-100; this.color='#fc00ff'; }
+            }
+            update() { this.x -= gameSpeed; if(this.x < -100) this.markedForDeletion=true; }
+            draw() {
+                if(this.type==='water') { ctx.fillStyle=this.color; ctx.fillRect(this.x, canvas.height-FLOOR_HEIGHT, this.width, FLOOR_HEIGHT); }
+                else if(this.type==='spike') { 
+                    ctx.fillStyle=this.color; ctx.beginPath(); ctx.moveTo(this.x,this.y+this.height); ctx.lineTo(this.x+this.width/2,this.y); ctx.lineTo(this.x+this.width,this.y+this.height); ctx.fill();
+                    ctx.fillStyle="#666"; ctx.beginPath(); ctx.moveTo(this.x+this.width/2, this.y); ctx.lineTo(this.x+this.width, this.y+this.height); ctx.lineTo(this.x+this.width+5, this.y+this.height-5); ctx.fill(); 
+                }
+                else { drawCube3D(ctx, this.x, this.y, this.width, this.color, '#ff99cc', '#aa0033'); }
+            }
+        }
+
+        class DestructibleBlock {
+            constructor() { this.width=60; this.height=20; this.x=canvas.width; this.y=canvas.height-170; this.color='#ffaa00'; }
+            update() { this.x -= gameSpeed; if(this.x < -100) this.markedForDeletion=true; }
+            draw() { 
+                drawCube3D(ctx, this.x, this.y, 20, this.color, '#ffff00', '#cc8800'); 
+                drawCube3D(ctx, this.x+20, this.y, 20, this.color, '#ffff00', '#cc8800');
+                drawCube3D(ctx, this.x+40, this.y, 20, this.color, '#ffff00', '#cc8800');
+            }
+        }
+
+        class Gem {
+            constructor(tier, sx, sy) {
+                this.x = sx || canvas.width; this.tier = tier; this.rot = 0;
+                let groundY = canvas.height - FLOOR_HEIGHT;
+                if(tier===6) { this.y=groundY-180; this.color='#00ffff'; this.points=500; this.size=24; } 
+                else if(tier===5) { this.y=groundY-160; this.color='#ff0000'; this.points=2000; this.size=22; } 
+                else if(tier===4) { this.y=sy; this.color='#ffffff'; this.points=1000; this.size=16; } 
+                else { this.y=groundY-60-Math.random()*60; this.color=tier===2?'#00dbde':'#00ff00'; this.points=tier===2?150:50; this.size=12; }
+            }
+            update() { 
+                this.x -= gameSpeed; this.rot+=0.05; if(this.x<-50) this.markedForDeletion=true; 
+                if(shieldMode) { this.x += (player.x - this.x) * 0.1; this.y += (player.y - this.y) * 0.1; }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rot);
+                if(this.tier===5 || this.tier===6) { 
+                    ctx.fillStyle=this.color; ctx.shadowBlur=20; ctx.shadowColor=this.color;
+                    ctx.fillRect(-10,-8,20,16); ctx.fillRect(-16,-6,6,12); ctx.fillRect(10,-6,6,12); ctx.fillRect(-2,4,4,10); 
+                } else {
+                    ctx.fillStyle=this.color; ctx.shadowBlur=15; ctx.shadowColor=this.color;
+                    ctx.beginPath(); ctx.moveTo(0,-this.size); ctx.lineTo(this.size,0); ctx.lineTo(0,this.size); ctx.lineTo(-this.size,0); ctx.fill();
+                }
+                ctx.restore();
+            }
         }
 
         function handleInput(e) { if(e.cancelable) e.preventDefault(); if(gameRunning) jump(); }
@@ -465,7 +473,6 @@
 
             player.dy += GRAVITY; player.y += player.dy;
 
-            // FLOOR FIX
             let groundLevel = canvas.height - FLOOR_HEIGHT;
             if(player.y + player.height > groundLevel) { 
                 player.y = groundLevel - player.height; player.dy = 0; player.grounded=true; player.angle=0; player.spinSpeed=0; 
@@ -573,19 +580,15 @@
             document.getElementById('livesDisplay').innerText = lives;
         }
 
-        // GAME OVER SAFEGUARD
         function hitPlayer() {
             lives--; playSound('hit'); canvas.classList.add('shake'); setTimeout(()=>canvas.classList.remove('shake'), 500);
             currentCombo = 0;
             if(lives<=0) {
                 gameRunning = false;
-                // UI FIRST
                 document.getElementById('finalScore').innerText = Math.floor(score);
                 document.getElementById('earnedCoins').innerText = sessionCoins;
                 document.getElementById('gameOver').style.display = 'block';
                 document.getElementById('jumpButton').style.display = 'none';
-                
-                // SAVE THEN
                 try { saveGameData(score, sessionCoins); } catch(e) {}
             } else {
                 player.invincible=true; player.invTimer=120; document.getElementById('damageMsg').style.display='block'; setTimeout(()=>document.getElementById('damageMsg').style.display='none', 1000);
