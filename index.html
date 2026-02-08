@@ -199,12 +199,12 @@
     <script>
         // --- SUPABASE CONFIG ---
         // INSERISCI QUI LE TUE CHIAVI!
-        const SUPABASE_URL = 'INSERISCI_QUI_LA_TUA_URL_SUPABASE';
-        const SUPABASE_KEY = 'INSERISCI_QUI_LA_TUA_ANON_KEY';
+        const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
 
         let sb = null;
         try { 
-            if(!SUPABASE_URL.includes('INSERISCI')) {
+            if(!SUPABASE_URL.includes('https://jcylyutlybmbjrgghpzm.supabase.co')) {
                 sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             }
         } catch(e){ console.error("Supabase Error:", e); }
