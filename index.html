@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO GAME - FINAL LEGEND</title>
+    <title>LEO GAME - LEGENDARY EDITION</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -35,10 +35,8 @@
             transition: background 1s ease, border-color 0.5s ease;
         }
         
-        /* Sky Effects */
         canvas.fire-sky { background: linear-gradient(to bottom, #ff3300, #4a0000) !important; border-color: #ff3300 !important; box-shadow: 0 0 60px #ff0000 !important; }
 
-        /* Screen Shake */
         .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake {
             10%, 90% { transform: translate3d(-5px, 0, 0); }
@@ -47,7 +45,6 @@
             40%, 60% { transform: translate3d(10px, 0, 0); }
         }
 
-        /* UI */
         #ui { position: absolute; top: 10px; width: 100%; pointer-events: none; z-index: 5; display:flex; justify-content:space-between; padding: 0 20px; box-sizing: border-box;}
         .hud-left, .hud-right { text-align: left; }
         .hud-right { text-align: right; }
@@ -65,7 +62,6 @@
         @keyframes fadeUp { from { opacity: 1; top: 30%; } to { opacity: 0; top: 20%; } }
         @keyframes pulse { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); } }
 
-        /* MODALS */
         #loginOverlay, #shopOverlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px);
@@ -86,18 +82,28 @@
         button.main-btn:active { transform: scale(0.95); }
         button.shop-btn { background: #ffd700; color: black; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
 
-        /* SHOP GRID */
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .skin-card { background: #222; border: 1px solid #444; padding: 10px; border-radius: 5px; }
         .skin-card.owned { border-color: #00ff00; }
         .skin-card.equipped { border-color: #ffd700; box-shadow: 0 0 10px #ffd700; }
-        .skin-preview { width: 40px; height: 40px; margin: 0 auto 10px auto; display: block; }
+        
+        .skin-preview { width: 40px; height: 40px; margin: 0 auto 10px auto; display: block; border-radius: 4px; }
         .skin-name { font-size: 10px; color: #fff; font-weight: bold; display: block; }
         .buy-btn { width: 100%; padding: 5px; margin-top: 5px; font-size: 10px; cursor: pointer; border: none; font-weight: bold; }
 
-        #gameOver { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 15, 15, 0.98); padding: 30px; border: 2px solid #ff0055; border-radius: 15px; text-align: center; z-index: 10; min-width: 320px; }
+        /* CLASSIFICA STYLES */
+        ul { list-style: none; padding: 0; margin: 0; } 
+        li { 
+            padding: 10px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color:white; 
+        }
+        .leader-rank-area { display: flex; align-items: center; }
+        .leader-skin-icon {
+            width: 16px; height: 16px; display: inline-block; margin-right: 8px; margin-left: 8px;
+            border: 1px solid rgba(255,255,255,0.3); border-radius: 2px;
+        }
+
+        #gameOver { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 15, 15, 0.98); padding: 30px; border: 2px solid #ff0055; border-radius: 15px; text-align: center; z-index: 10; min-width: 350px; }
         #jumpButton { display: none; position: absolute; bottom: 30px; right: 30px; width: 90px; height: 90px; background: rgba(255, 255, 255, 0.1); border: 2px solid #00dbde; border-radius: 50%; color: #00dbde; display: flex; justify-content: center; align-items: center; font-family: 'Press Start 2P'; font-size: 10px; cursor: pointer; z-index: 20; }
-        ul { list-style: none; padding: 0; } li { padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between; font-size: 12px; color:white; }
 
     </style>
 </head>
@@ -125,11 +131,15 @@
     <div id="loginOverlay">
         <div class="login-box">
             <h2 style="color: #fff; font-family:'Press Start 2P'; font-size:16px;">LOGIN</h2>
+            <div class="diff-container">
+                <div class="diff-btn active-easy" onclick="setDiff('EASY', this)">EASY</div>
+                <div class="diff-btn" onclick="setDiff('MEDIUM', this)">MEDIUM</div>
+                <div class="diff-btn" onclick="setDiff('HARD', this)">HARD</div>
+            </div>
             <input type="text" id="loginUser" placeholder="NOME UTENTE">
             <input type="password" id="loginPass" placeholder="PASSWORD">
             <button class="main-btn" onclick="attemptLogin()">GIOCA</button>
             <p id="loginMsg" style="color:#ff0055; font-size:10px; height:15px; margin-top:5px;"></p>
-            
             <div style="margin-top:20px; border-top:1px dashed #444; padding-top:10px;">
                 <p style="font-size:10px;">NUOVO GIOCATORE?</p>
                 <input type="text" id="regUser" placeholder="NUOVO NOME">
@@ -154,7 +164,7 @@
         <p style="font-size: 16px;">SCORE: <strong id="finalScore" style="color:#fff">0</strong></p>
         <p style="font-size: 12px; color:#ffd700;">GUADAGNATO: +<span id="earnedCoins">0</span> $</p>
         <div style="margin-top: 15px; text-align: left; background:#111; padding:15px; border-radius:10px;">
-            <h3 style="color:#fff; font-size:12px; margin:0 0 10px 0;">TOP PLAYERS (ONLINE)</h3>
+            <h3 style="color:#fff; font-size:12px; margin:0 0 10px 0;">TOP PLAYERS</h3>
             <ul id="highScoresList">
                 <li style="color:#666; text-align:center;">Caricamento...</li>
             </ul>
@@ -165,28 +175,27 @@
 
     <script>
         // --- CONFIGURAZIONE SUPABASE ---
-        // Sostituisci le stringhe qui sotto con i dati presi da Supabase > Settings > API
+        // SOSTITUISCI QUESTE STRINGHE CON I TUOI DATI VERI!
         const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
 
-        // Init Client
         let sb = null;
         try { if(!SUPABASE_URL.includes('INSERISCI')) sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e){ console.error(e); }
 
-        // --- GAME CONFIG & ASSETS ---
+        // --- ASSETS & CONFIG ---
         const SKINS = {
-            'default': { name: 'CLASSIC', price: 0, color: '#00ff00' },
-            'magma':   { name: 'MAGMA', price: 50, color: '#ff4500' },
-            'ice':     { name: 'ICE', price: 100, color: '#00ffff' },
-            'ninja':   { name: 'NINJA', price: 200, color: '#333333' },
-            'gold':    { name: 'GOLD', price: 500, color: '#ffd700' },
-            'matrix':  { name: 'MATRIX', price: 1000, color: '#003300' }
+            'default': { name: 'NEON CORE', price: 0, css: 'linear-gradient(135deg, #00ff00, #003300)' },
+            'magma':   { name: 'MAGMA', price: 100, css: 'linear-gradient(135deg, #ffdd00, #ff0000)' },
+            'ice':     { name: 'FROST', price: 250, css: 'linear-gradient(135deg, #ffffff, #00ffff)' },
+            'ninja':   { name: 'STEALTH', price: 500, css: 'linear-gradient(135deg, #333, #000)' },
+            'gold':    { name: 'GOLD', price: 1000, css: 'linear-gradient(135deg, #fff700, #ffaa00)' },
+            'matrix':  { name: 'HACKER', price: 2000, css: 'black; border:1px solid #0f0' }
         };
 
         let currentUser = null; 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        // --- AUDIO SYSTEM ---
+        // --- AUDIO ---
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
@@ -204,15 +213,14 @@
             else if (type === 'powerup') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(800, now + 0.5); gain.gain.setValueAtTime(0.2, now); osc.start(now); osc.stop(now + 0.5); }
         }
 
-        // --- DATABASE LOGIC ---
+        // --- DATABASE ---
         async function registerUser() {
             if(!sb) return alert("Inserisci URL e KEY di Supabase nel codice!");
             const u = document.getElementById('regUser').value.trim();
             const p = document.getElementById('regPass').value.trim();
             if(!u || !p) return alert("Dati mancanti");
-            
             const { error } = await sb.from('leo_players').insert([{ username: u, password: p, coins: 0, inventory: 'default', current_skin: 'default' }]);
-            if(error) alert("Errore: " + error.message); else alert("Registrazione OK! Ora fai il login.");
+            if(error) alert("Errore (Nome occupato?)"); else alert("Registrazione OK! Ora fai il login.");
         }
 
         async function attemptLogin() {
@@ -220,14 +228,12 @@
             const u = document.getElementById('loginUser').value.trim();
             const p = document.getElementById('loginPass').value.trim();
             const msg = document.getElementById('loginMsg'); msg.innerText = "Verifica...";
-
             const { data, error } = await sb.from('leo_players').select('*').eq('username', u).eq('password', p).single();
             if(error || !data) { msg.innerText = "Credenziali errate"; msg.style.color = "red"; }
             else {
                 currentUser = data;
-                if(!currentUser.inventory) currentUser.inventory = "default"; // Fallback
+                if(!currentUser.inventory) currentUser.inventory = "default";
                 if(!currentUser.current_skin) currentUser.current_skin = "default";
-                
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('currentPlayerDisplay').innerText = currentUser.username.toUpperCase();
                 updateBankUI();
@@ -238,23 +244,36 @@
 
         async function saveGameData(scoreToAdd, coinsToAdd) {
             if(!currentUser || !sb) return;
-            // Aggiorna locale
             currentUser.coins = (currentUser.coins || 0) + coinsToAdd;
             const newBest = Math.max(currentUser.best_score || 0, Math.floor(scoreToAdd));
             currentUser.best_score = newBest;
             updateBankUI();
-
-            // Aggiorna DB
             await sb.from('leo_players').update({ coins: currentUser.coins, best_score: newBest }).eq('id', currentUser.id);
             renderLeaderboard();
         }
 
+        // MODIFICATA: Ora recupera anche "current_skin" per mostrarla
         async function renderLeaderboard() {
             if(!sb) return;
-            const { data } = await sb.from('leo_players').select('username, best_score').order('best_score', { ascending: false }).limit(5);
-            const list = document.getElementById('highScoresList');
-            list.innerHTML = "";
-            if(data) data.forEach((u, i) => list.innerHTML += `<li><span>${i+1}. ${u.username}</span> <span>${u.best_score}</span></li>`);
+            const { data } = await sb.from('leo_players').select('username, best_score, current_skin').order('best_score', { ascending: false }).limit(5);
+            const list = document.getElementById('highScoresList'); list.innerHTML = "";
+            
+            if(data) data.forEach((u, i) => {
+                // Recupera stile skin dal config locale
+                let skinKey = u.current_skin || 'default';
+                let skinStyle = SKINS[skinKey] ? SKINS[skinKey].css : SKINS['default'].css;
+                let color = i === 0 ? "#ffd700" : (i === 1 ? "#c0c0c0" : "#cd7f32");
+                
+                list.innerHTML += `
+                <li>
+                    <div class="leader-rank-area">
+                        <span style="color:${i<3?color:'white'}; min-width:15px;">${i+1}.</span>
+                        <div class="leader-skin-icon" style="background:${skinStyle}"></div>
+                        <span style="color:${i<3?color:'white'}">${u.username}</span>
+                    </div>
+                    <span>${u.best_score}</span>
+                </li>`;
+            });
         }
 
         function updateBankUI() {
@@ -264,36 +283,28 @@
             }
         }
 
-        // --- SHOP LOGIC ---
+        // --- SHOP ---
         function openShop() { document.getElementById('shopOverlay').style.display='flex'; document.getElementById('gameOver').style.display='none'; renderShop(); }
         function closeShop() { document.getElementById('shopOverlay').style.display='none'; document.getElementById('gameOver').style.display='block'; }
 
         function renderShop() {
             const grid = document.getElementById('skinGrid'); grid.innerHTML = "";
             const owned = (currentUser.inventory || "").split(',');
-
             for (const [key, skin] of Object.entries(SKINS)) {
                 const isOwned = owned.includes(key);
                 const isEquipped = currentUser.current_skin === key;
                 let btnHtml = isEquipped ? `<button class="buy-btn" style="background:#444;color:#fff">EQUIPAGGIATO</button>` :
                              isOwned ? `<button class="buy-btn" style="background:#00ff00;color:#000" onclick="equipSkin('${key}')">EQUIPAGGIA</button>` :
                              `<button class="buy-btn" style="background:#ffd700;color:#000" onclick="buySkin('${key}')">${skin.price}$</button>`;
-
-                grid.innerHTML += `
-                    <div class="skin-card ${isOwned?'owned':''} ${isEquipped?'equipped':''}">
-                        <div class="skin-preview" style="background:${skin.color};box-shadow:0 0 10px ${skin.color}"></div>
-                        <span class="skin-name">${skin.name}</span>
-                        ${btnHtml}
-                    </div>`;
+                
+                grid.innerHTML += `<div class="skin-card ${isOwned?'owned':''} ${isEquipped?'equipped':''}"><div class="skin-preview" style="background:${skin.css};box-shadow:0 0 10px rgba(255,255,255,0.2)"></div><span class="skin-name">${skin.name}</span>${btnHtml}</div>`;
             }
         }
 
         async function buySkin(key) {
             const skin = SKINS[key];
             if (currentUser.coins >= skin.price) {
-                currentUser.coins -= skin.price;
-                currentUser.inventory += "," + key;
-                playSound('buy'); updateBankUI();
+                currentUser.coins -= skin.price; currentUser.inventory += "," + key; playSound('buy'); updateBankUI();
                 await sb.from('leo_players').update({ coins: currentUser.coins, inventory: currentUser.inventory }).eq('id', currentUser.id);
                 renderShop();
             } else alert("Fondi insufficienti!");
@@ -305,10 +316,25 @@
             renderShop();
         }
 
+        let selectedDifficulty = 'EASY';
+        let difficultySettings = {
+            'EASY': { speed: 6, spawnRateBase: 70, color: '#00ff00' },
+            'MEDIUM': { speed: 9, spawnRateBase: 50, color: '#ffff00' },
+            'HARD': { speed: 10, spawnRateBase: 35, color: '#ff0000' }
+        };
+
+        function setDiff(diff, btn) {
+            selectedDifficulty = diff;
+            document.querySelectorAll('.diff-btn').forEach(b => b.className = 'diff-btn');
+            if(diff === 'EASY') btn.classList.add('active-easy');
+            if(diff === 'MEDIUM') btn.classList.add('active-mid');
+            if(diff === 'HARD') btn.classList.add('active-hard');
+        }
+
         // --- GAME ENGINE ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const HITBOX_PADDING = 8;
+        const HITBOX_PADDING = 12; 
         
         let gameRunning = false;
         let frames = 0;
@@ -331,17 +357,10 @@
 
         const player = { x: 60, y: 300, width: 30, height: 30, dy: 0, jumpForce: 13, grounded: false, angle: 0, spinSpeed: 0, invincible: false, invTimer: 0 };
 
-        // CLASSES
         class FloatingText {
-            constructor(text, x, y, color, size) {
-                this.text = text; this.x = x; this.y = y; this.color = color || '#fff'; this.size = size || 15;
-                this.life = 1.0; this.vy = -2;
-            }
+            constructor(text, x, y, color, size) { this.text = text; this.x = x; this.y = y; this.color = color || '#fff'; this.size = size || 15; this.life = 1.0; this.vy = -2; }
             update() { this.y += this.vy; this.life -= 0.02; }
-            draw() {
-                ctx.save(); ctx.globalAlpha = this.life; ctx.fillStyle = this.color; ctx.font = `bold ${this.size}px "Press Start 2P"`;
-                ctx.shadowColor = "black"; ctx.shadowBlur = 4; ctx.fillText(this.text, this.x, this.y); ctx.restore();
-            }
+            draw() { ctx.save(); ctx.globalAlpha = this.life; ctx.fillStyle = this.color; ctx.font = `bold ${this.size}px "Press Start 2P"`; ctx.shadowColor = "black"; ctx.shadowBlur = 4; ctx.fillText(this.text, this.x, this.y); ctx.restore(); }
         }
 
         class Particle {
@@ -359,7 +378,6 @@
             constructor(score) {
                 this.x = canvas.width; this.markedForDeletion = false;
                 const r = Math.random();
-                // Biomes: Spikes > 500, Water > 1000
                 if(score > 1000 && r > 0.85) { this.type='water'; this.width=100; this.height=20; this.y=canvas.height-10; this.color='rgba(0,100,255,0.8)'; }
                 else if(score > 500 && r > 0.7) { this.type='spike'; this.width=30; this.height=30; this.y=canvas.height-30; this.color='#aaa'; }
                 else if(r < 0.5) { this.type='ground'; this.width=40; this.height=40; this.y=canvas.height-40; this.color='#ff0055'; }
@@ -390,7 +408,6 @@
             draw() {
                 ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rot);
                 if(this.tier===5) { 
-                    // Pixel Art Elephant Head
                     ctx.fillStyle="#ffd700"; ctx.shadowBlur=20; ctx.shadowColor="#ffd700";
                     ctx.fillRect(-10,-8,20,16); ctx.fillRect(-16,-6,6,12); ctx.fillRect(10,-6,6,12); ctx.fillRect(-2,4,4,10); 
                 } else {
@@ -402,7 +419,8 @@
         }
 
         function createExplosion(x, y, color) { playSound('break'); for(let i=0;i<20;i++) particles.push(new Particle(x, y, 'fire_explosion', color)); }
-        
+        function triggerElephantMode() { elephantMode=true; elephantTimer=360; playSound('powerup'); canvas.classList.add('fire-sky'); document.getElementById('elephantMsg').style.display='block'; setTimeout(()=>document.getElementById('elephantMsg').style.display='none', 2000); }
+
         function handleInput(e) { if(e.cancelable) e.preventDefault(); if(gameRunning) jump(); }
         function jump() { 
             if(player.grounded) { 
@@ -418,14 +436,12 @@
 
             player.dy += GRAVITY; player.y += player.dy;
 
-            // GROUND Check & Combo Reset
             if(player.y + player.height > canvas.height) { 
                 player.y = canvas.height - player.height; player.dy = 0; player.grounded=true; player.angle=0; player.spinSpeed=0; 
                 if(currentCombo > 1) floatingTexts.push(new FloatingText("COMBO END", player.x, player.y-50, "#aaa", 10));
                 currentCombo = 0;
             } else { player.grounded=false; }
 
-            // BLOCKS LOGIC
             blocks.forEach(b => {
                 b.update();
                 if(player.x+HITBOX_PADDING < b.x+b.width && player.x+player.width-HITBOX_PADDING > b.x) {
@@ -445,18 +461,24 @@
             if(player.spinSpeed>0) { player.angle+=player.spinSpeed; player.spinSpeed*=0.96; } else if(player.angle>0) player.angle*=0.8;
 
             if(frames%3===0) {
-                trail.push({x: player.x, y: player.y, angle: player.angle, color: elephantMode ? '#888' : (SKINS[currentUser?.current_skin]?.color || '#0f0')});
+                let tColor = elephantMode ? '#888' : '#00ff00';
+                if(!elephantMode && currentUser && currentUser.current_skin && SKINS[currentUser.current_skin]) {
+                    // Extract color from gradient string roughly or hardcode
+                    if(currentUser.current_skin === 'magma') tColor = '#ff4500';
+                    else if(currentUser.current_skin === 'ice') tColor = '#00ffff';
+                    else if(currentUser.current_skin === 'gold') tColor = '#ffd700';
+                }
+                trail.push({x: player.x, y: player.y, angle: player.angle, color: tColor});
                 if(trail.length > 8) trail.shift();
             }
             trail.forEach(t => t.x -= gameSpeed);
 
-            // Spawning Logic
             let spawnRate = Math.max(50, 100 - Math.floor(gameSpeed*4));
             if(frames%spawnRate===0) obstacles.push(new Obstacle(score));
 
             if(frames%220===0 && Math.random()>0.3) {
                 let b = new DestructibleBlock(); blocks.push(b);
-                for(let k=0; k<3; k++) coins.push(new Gem(4, b.x+100+(k*90), 40+(k*10))); // Diamond Arc
+                for(let k=0; k<3; k++) coins.push(new Gem(4, b.x+100+(k*90), 40+(k*10))); 
             }
             if(frames%80===0) {
                 let t=1; if(Math.random()>0.7) t=2;
@@ -464,7 +486,6 @@
                 coins.push(new Gem(t));
             }
 
-            // ENTITIES COLLISION
             obstacles.forEach(o => {
                 o.update();
                 if(player.x+HITBOX_PADDING < o.x+o.width-HITBOX_PADDING && 
@@ -480,15 +501,12 @@
                     } else if(o.type === 'spike') {
                          if(!player.invincible) hitPlayer();
                     } else {
-                        // Stomp Logic
-                        let isStomp = player.dy > 0 && (player.y+player.height) < (o.y + o.height/2);
-                        let isHeadbutt = player.dy < 0 && player.y > o.y;
+                        let isStomp = player.dy > 0 && (player.y+player.height) < (o.y + o.height * 0.7);
+                        let isHeadbutt = player.dy < 0 && player.y > o.y + o.height * 0.3;
                         
                         if(isStomp || isHeadbutt) {
-                            o.markedForDeletion=true; 
-                            currentCombo++;
-                            let pts = 100 * currentCombo;
-                            score += pts;
+                            o.markedForDeletion=true; currentCombo++;
+                            let pts = 100 * currentCombo; score += pts;
                             createExplosion(o.x, o.y, o.color);
                             floatingTexts.push(new FloatingText(`+${pts} x${currentCombo}`, o.x, o.y, currentCombo>2?"#ff0":"#fff", 12));
                             if(isStomp) player.dy = -10; else player.dy = 5;
@@ -502,18 +520,12 @@
                 if(player.x < c.x+c.size+20 && player.x+player.width > c.x-c.size && player.y < c.y+c.size+20 && player.y+player.height > c.y-c.size) {
                     c.markedForDeletion=true; score+=c.points; sessionCoins++; playSound(c.points>=500?'coin_epic':'coin');
                     floatingTexts.push(new FloatingText(`+${c.points}`, c.x, c.y, c.color, 10));
-                    
-                    if(c.tier===5) { 
-                        elephantMode=true; elephantTimer=360; canvas.classList.add('fire-sky'); 
-                        document.getElementById('elephantMsg').style.display='block'; setTimeout(()=>document.getElementById('elephantMsg').style.display='none', 2000);
-                        playSound('powerup');
-                    }
+                    if(c.tier===5) triggerElephantMode();
                 }
             });
 
             particles.forEach(p => p.update());
             floatingTexts.forEach(t => t.update());
-            
             obstacles=obstacles.filter(o=>!o.markedForDeletion); blocks=blocks.filter(b=>!b.markedForDeletion); 
             coins=coins.filter(c=>!c.markedForDeletion); particles=particles.filter(p=>p.life>0); floatingTexts=floatingTexts.filter(t=>t.life>0);
             
@@ -537,20 +549,63 @@
             }
         }
 
+        function drawPlayerSkin(ctx, x, y, size) {
+            let skin = (currentUser && currentUser.current_skin) ? currentUser.current_skin : 'default';
+            
+            ctx.fillRect(-size/2, -size/2, size, size); // Core
+
+            if(skin === 'default') {
+                ctx.strokeStyle = '#00ff00'; ctx.lineWidth = 2; ctx.strokeRect(-size/2, -size/2, size, size);
+                ctx.fillStyle = "#003300"; ctx.fillRect(-size/4, -size/4, size/2, size/2);
+            } 
+            else if(skin === 'magma') {
+                ctx.strokeStyle = '#ffff00'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(-size/2, -size/2); ctx.lineTo(size/4, size/4); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(size/2, -size/2); ctx.lineTo(-size/4, 0); ctx.stroke();
+            }
+            else if(skin === 'ice') {
+                ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.fillRect(-size/2, -size/2, size/3, size/3);
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(-size/2, -size/2, size, size);
+            }
+            else if(skin === 'ninja') {
+                ctx.fillStyle = "#ff0000"; ctx.shadowBlur = 10; ctx.shadowColor = "red"; ctx.fillRect(-size/2, -5, size, 6); ctx.shadowBlur = 0;
+            }
+            else if(skin === 'gold') {
+                let grd = ctx.createLinearGradient(-size/2, -size/2, size, size);
+                grd.addColorStop(0, "white"); grd.addColorStop(0.5, "transparent"); grd.addColorStop(1, "white");
+                ctx.fillStyle = grd; ctx.globalAlpha = 0.3; ctx.fillRect(-size/2, -size/2, size, size); ctx.globalAlpha = 1.0;
+            }
+            else if(skin === 'matrix') {
+                ctx.fillStyle = "#0f0"; ctx.font = "8px monospace"; ctx.fillText("10", -8, -2); ctx.fillText("01", -8, 8);
+                ctx.strokeStyle = '#0f0'; ctx.strokeRect(-size/2, -size/2, size, size);
+            }
+
+            if(skin !== 'ninja') { ctx.fillStyle="black"; ctx.fillRect(6,-6,6,6); }
+        }
+
         function drawGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let skinKey = (currentUser && currentUser.current_skin) ? currentUser.current_skin : 'default';
-            let skinColor = SKINS[skinKey] ? SKINS[skinKey].color : '#00ff00';
             
-            if(elephantMode) {
+            if(!player.invincible || frames%4===0) {
                 ctx.save(); ctx.translate(player.x+player.width/2, player.y+player.height/2); ctx.rotate(player.angle);
-                ctx.fillStyle="#888"; ctx.fillRect(-15,-15,30,30); ctx.fillStyle="#f00"; ctx.fillRect(5,-10,10,20); ctx.fillRect(-15,0,10,10); ctx.restore();
-            } else if(!player.invincible || frames%4===0) {
-                ctx.save(); ctx.translate(player.x+player.width/2, player.y+player.height/2); ctx.rotate(player.angle);
-                ctx.fillStyle = skinColor; ctx.shadowBlur=15; ctx.shadowColor=skinColor; ctx.fillRect(-15,-15,30,30);
-                if(skinKey === 'ninja') { ctx.fillStyle="red"; ctx.fillRect(-15, -5, 30, 5); }
-                if(skinKey === 'ice') { ctx.fillStyle="white"; ctx.fillRect(-10, -10, 5, 5); }
-                ctx.fillStyle="black"; ctx.fillRect(5,-5,6,6); ctx.restore();
+                
+                if(elephantMode) {
+                    ctx.fillStyle="#888"; ctx.fillRect(-15,-15,30,30); ctx.fillStyle="#f00"; ctx.fillRect(5,-10,10,20); ctx.fillRect(-15,0,10,10); 
+                } else {
+                    let skinKey = (currentUser && currentUser.current_skin) ? currentUser.current_skin : 'default';
+                    let grd = ctx.createLinearGradient(-15, -15, 30, 30);
+                    if(skinKey==='magma') { grd.addColorStop(0, "#ffdd00"); grd.addColorStop(1, "#ff0000"); }
+                    else if(skinKey==='ice') { grd.addColorStop(0, "#ffffff"); grd.addColorStop(1, "#00ffff"); }
+                    else if(skinKey==='ninja') { grd.addColorStop(0, "#444"); grd.addColorStop(1, "#111"); }
+                    else if(skinKey==='gold') { grd.addColorStop(0, "#fff700"); grd.addColorStop(1, "#ffaa00"); }
+                    else if(skinKey==='matrix') { grd = "#000"; }
+                    else { grd.addColorStop(0, "#00ff00"); grd.addColorStop(1, "#004400"); }
+
+                    ctx.fillStyle = grd;
+                    ctx.shadowBlur = 15; ctx.shadowColor = (skinKey==='ninja' || skinKey==='matrix') ? '#0f0' : ctx.fillStyle; 
+                    drawPlayerSkin(ctx, 0, 0, 30);
+                }
+                ctx.restore();
             }
             
             blocks.forEach(b=>b.draw()); coins.forEach(c=>c.draw()); obstacles.forEach(o=>o.draw()); 
