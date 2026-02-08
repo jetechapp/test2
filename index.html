@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO GAME - ECONOMY UPDATE</title>
+    <title>LEO GAME - GLOBAL RANKING</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -70,7 +70,7 @@
 
         .login-box, .shop-box {
             background: #151515; padding: 25px; border: 2px solid #00dbde; border-radius: 10px; text-align: center; width: 350px; box-shadow: 0 0 40px rgba(0, 219, 222, 0.2);
-            max-height: 85vh; overflow-y: auto;
+            max-height: 90vh; overflow-y: auto;
         }
 
         input { width: 85%; padding: 10px; margin: 10px 0; border: 1px solid #444; background: #000; color: #00dbde; font-family: 'Verdana'; font-weight: bold; text-align: center; outline: none; }
@@ -92,13 +92,16 @@
         .buy-btn { width: 100%; padding: 5px; margin-top: 5px; font-size: 10px; cursor: pointer; border: none; font-weight: bold; }
 
         /* CLASSIFICA STYLES */
-        ul { list-style: none; padding: 0; margin: 0; } 
-        li { 
-            padding: 10px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color:white; 
+        .leaderboard-container { margin-top: 15px; border-top: 1px dashed #444; padding-top: 10px; width: 100%; }
+        .leaderboard-container h4 { color: #ffd700; font-size: 12px; margin-bottom: 10px; font-family: 'Press Start 2P'; }
+        
+        ul.ranking-list { list-style: none; padding: 0; margin: 0; } 
+        li.ranking-item { 
+            padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color:white; 
         }
         .leader-rank-area { display: flex; align-items: center; }
         .leader-skin-icon {
-            width: 16px; height: 16px; display: inline-block; margin-right: 8px; margin-left: 8px;
+            width: 12px; height: 12px; display: inline-block; margin-right: 8px; margin-left: 8px;
             border: 1px solid rgba(255,255,255,0.3); border-radius: 2px;
         }
 
@@ -131,17 +134,21 @@
     <div id="loginOverlay">
         <div class="login-box">
             <h2 style="color: #fff; font-family:'Press Start 2P'; font-size:16px;">LOGIN</h2>
-            <div class="diff-container"></div>
+            
             <input type="text" id="loginUser" placeholder="NOME UTENTE">
             <input type="password" id="loginPass" placeholder="PASSWORD">
             <button class="main-btn" onclick="attemptLogin()">GIOCA</button>
             <p id="loginMsg" style="color:#ff0055; font-size:10px; height:15px; margin-top:5px;"></p>
-            <div style="margin-top:20px; border-top:1px dashed #444; padding-top:10px;">
-                <p style="font-size:10px;">NUOVO GIOCATORE?</p>
-                <input type="text" id="regUser" placeholder="NUOVO NOME">
-                <input type="password" id="regPass" placeholder="PASSWORD">
-                <button class="main-btn" style="background:#333; box-shadow:none;" onclick="registerUser()">REGISTRATI NEL DB</button>
-                <p id="regMsg" style="font-size:10px; margin-top:5px;"></p>
+            
+            <div style="margin-top:10px; padding-top:5px;">
+                <button class="main-btn" style="background:#333; box-shadow:none; font-size:10px; padding:8px;" onclick="registerUser()">REGISTRATI NEL DB</button>
+            </div>
+
+            <div class="leaderboard-container">
+                <h4>TOP 5 GLOBAL</h4>
+                <ul id="preGameLeaderboard" class="ranking-list">
+                    <li class="ranking-item" style="color:#666; justify-content:center;">Caricamento...</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -159,26 +166,32 @@
         <h1 style="color:#ff0055; font-size: 24px;">GAME OVER</h1>
         <p style="font-size: 16px;">SCORE: <strong id="finalScore" style="color:#fff">0</strong></p>
         <p style="font-size: 12px; color:#ffd700;">GUADAGNATO: +<span id="earnedCoins">0</span> $</p>
-        <div style="margin-top: 15px; text-align: left; background:#111; padding:15px; border-radius:10px;">
-            <h3 style="color:#fff; font-size:12px; margin:0 0 10px 0;">TOP PLAYERS</h3>
-            <ul id="highScoresList">
-                <li style="color:#666; text-align:center;">Caricamento...</li>
+        
+        <div class="leaderboard-container" style="background:#111; padding:10px; border-radius:5px;">
+            <h4>TOP 5 GLOBAL</h4>
+            <ul id="highScoresList" class="ranking-list">
+                <li class="ranking-item" style="color:#666; justify-content:center;">Caricamento...</li>
             </ul>
         </div>
+
         <button class="main-btn" onclick="resetGame()">RITENTA</button>
         <button class="main-btn shop-btn" onclick="openShop()">NEGOZIO SKIN</button>
     </div>
 
     <script>
         // --- CONFIGURAZIONE SUPABASE ---
-        // INSERISCI QUI LE TUE CHIAVI!
+        // SOSTITUISCI QUESTE STRINGHE CON I TUOI DATI VERI!
         const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
 
         let sb = null;
-        try { if(!SUPABASE_URL.includes('INSERISCI')) sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e){ console.error("Supabase Error:", e); }
+        try { 
+            if(!SUPABASE_URL.includes('INSERISCI')) {
+                sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch(e){ console.error("Supabase Init Error:", e); }
 
-        // --- SKINS (PREZZI AUMENTATI) ---
+        // --- ASSETS & CONFIG ---
         const SKINS = {
             'default': { name: 'NEON CORE', price: 0, css: 'linear-gradient(135deg, #00ff00, #003300)' },
             'magma':   { name: 'MAGMA', price: 500, css: 'linear-gradient(135deg, #ffdd00, #ff0000)' },
@@ -211,16 +224,19 @@
 
         // --- DATABASE ---
         async function registerUser() {
-            if(!sb) return alert("Inserisci URL e KEY di Supabase nel codice!");
+            if(!sb) return alert("DB non configurato nel codice (riga 490).");
             const u = document.getElementById('regUser').value.trim();
             const p = document.getElementById('regPass').value.trim();
-            if(!u || !p) return alert("Dati mancanti");
+            const msg = document.getElementById('regMsg');
+            if(!u || !p) { msg.innerText = "Dati mancanti"; msg.style.color = "red"; return; }
+            
             const { error } = await sb.from('leo_players').insert([{ username: u, password: p, coins: 0, inventory: 'default', current_skin: 'default' }]);
-            if(error) alert("Errore (Nome occupato?)"); else alert("Registrazione OK! Ora fai il login.");
+            if(error) { msg.innerText = "Nome occupato!"; msg.style.color = "red"; }
+            else { msg.innerText = "OK! Ora fai il Login"; msg.style.color = "#0f0"; document.getElementById('loginUser').value = u; }
         }
 
         async function attemptLogin() {
-            if(!sb) return alert("Inserisci URL e KEY di Supabase nel codice!");
+            if(!sb) return alert("DB non configurato nel codice (riga 490).");
             const u = document.getElementById('loginUser').value.trim();
             const p = document.getElementById('loginPass').value.trim();
             const msg = document.getElementById('loginMsg'); msg.innerText = "Verifica...";
@@ -238,43 +254,40 @@
                     document.getElementById('jumpButton').style.display = 'flex';
                     resetGame();
                 }
-            } catch(err) {
-                msg.innerText = "Errore di connessione";
-            }
+            } catch(err) { msg.innerText = "Errore connessione"; msg.style.color="red"; }
         }
 
         async function saveGameData(scoreToAdd, coinsToAdd) {
             if(!currentUser || !sb) return;
-            
-            // LA LOGICA D'ORO:
-            // Prendo i soldi che avevo nel DB (currentUser.coins) e ci sommo quelli raccolti ora (coinsToAdd)
             currentUser.coins = (currentUser.coins || 0) + coinsToAdd;
-            
             const newBest = Math.max(currentUser.best_score || 0, Math.floor(scoreToAdd));
             currentUser.best_score = newBest;
             updateBankUI();
-            
             await sb.from('leo_players').update({ coins: currentUser.coins, best_score: newBest }).eq('id', currentUser.id);
             renderLeaderboard();
         }
 
         async function renderLeaderboard() {
-            if(!sb) return;
-            const list = document.getElementById('highScoresList');
+            // Seleziona entrambe le liste (Menu Iniziale e Game Over)
+            const lists = [document.getElementById('highScoresList'), document.getElementById('preGameLeaderboard')];
             
+            if(!sb) {
+                lists.forEach(l => l.innerHTML = "<li class='ranking-item' style='color:red; justify-content:center;'>DB NON CONFIGURATO</li>");
+                return;
+            }
+
             const { data, error } = await sb.from('leo_players').select('username, best_score, current_skin').order('best_score', { ascending: false }).limit(5);
             
             if(error) {
-                list.innerHTML = "<li style='color:red'>Errore caricamento</li>";
+                lists.forEach(l => l.innerHTML = "<li class='ranking-item' style='color:red; justify-content:center;'>Errore Connessione</li>");
             } else if(data) {
-                list.innerHTML = "";
-                data.forEach((u, i) => {
+                const htmlContent = data.map((u, i) => {
                     let skinKey = u.current_skin || 'default';
                     let skinStyle = SKINS[skinKey] ? SKINS[skinKey].css : SKINS['default'].css;
                     let color = i === 0 ? "#ffd700" : (i === 1 ? "#c0c0c0" : "#cd7f32");
                     
-                    list.innerHTML += `
-                    <li>
+                    return `
+                    <li class="ranking-item">
                         <div class="leader-rank-area">
                             <span style="color:${i<3?color:'white'}; min-width:15px;">${i+1}.</span>
                             <div class="leader-skin-icon" style="background:${skinStyle}"></div>
@@ -282,9 +295,16 @@
                         </div>
                         <span>${u.best_score}</span>
                     </li>`;
-                });
+                }).join('');
+
+                lists.forEach(l => l.innerHTML = htmlContent);
             }
         }
+
+        // CARICA CLASSIFICA ALL'AVVIO
+        window.onload = function() {
+            if(sb) renderLeaderboard();
+        };
 
         function updateBankUI() {
             if(currentUser) {
@@ -326,25 +346,10 @@
             renderShop();
         }
 
-        let selectedDifficulty = 'EASY';
-        let difficultySettings = {
-            'EASY': { speed: 6, spawnRateBase: 70, color: '#00ff00' },
-            'MEDIUM': { speed: 9, spawnRateBase: 50, color: '#ffff00' },
-            'HARD': { speed: 10, spawnRateBase: 35, color: '#ff0000' }
-        };
-
-        function setDiff(diff, btn) {
-            selectedDifficulty = diff;
-            document.querySelectorAll('.diff-btn').forEach(b => b.className = 'diff-btn');
-            if(diff === 'EASY') btn.classList.add('active-easy');
-            if(diff === 'MEDIUM') btn.classList.add('active-mid');
-            if(diff === 'HARD') btn.classList.add('active-hard');
-        }
-
         // --- GAME ENGINE ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const HITBOX_PADDING = 12; 
+        const HITBOX_PADDING = 14; // Increase padding to allow "grazing"
         
         let gameRunning = false;
         let frames = 0;
@@ -446,14 +451,14 @@
 
             player.dy += GRAVITY; player.y += player.dy;
 
-            // GROUND Check & Combo Reset
+            // GROUND Check
             if(player.y + player.height > canvas.height) { 
                 player.y = canvas.height - player.height; player.dy = 0; player.grounded=true; player.angle=0; player.spinSpeed=0; 
                 if(currentCombo > 1) floatingTexts.push(new FloatingText("COMBO END", player.x, player.y-50, "#aaa", 10));
                 currentCombo = 0;
             } else { player.grounded=false; }
 
-            // BLOCKS LOGIC (Fix: HITBOX PADDING ADDED)
+            // BLOCKS LOGIC with Extra Padding
             blocks.forEach(b => {
                 b.update();
                 if(player.x+HITBOX_PADDING < b.x+b.width && player.x+player.width-HITBOX_PADDING > b.x) {
@@ -462,10 +467,10 @@
                          b.markedForDeletion=true; score+=200; createExplosion(b.x, b.y, '#ffaa00');
                          floatingTexts.push(new FloatingText("SMASH!", b.x, b.y, "#ffd700", 15));
                     }
-                    else if(player.dy>=0 && player.y+player.height >= b.y && player.y+player.height <= b.y+20) { 
+                    else if(player.dy>=0 && player.y+player.height >= b.y && player.y+player.height <= b.y+25) { 
                         player.y=b.y-player.height; player.dy=0; player.grounded=true; currentCombo=0; 
                     }
-                    // CATAPULT FIX: Check for upward velocity AND collision with bottom
+                    // Catapult Logic: Upward velocity OR hitting bottom
                     else if(player.dy<0 && player.y <= b.y+b.height && player.y > b.y) { 
                         b.markedForDeletion=true; player.dy=-24; player.spinSpeed=0.8; createExplosion(b.x, b.y, '#ffaa00');
                         floatingTexts.push(new FloatingText("BOOST!", b.x, b.y, "#fff", 12));
@@ -479,7 +484,6 @@
             if(frames%3===0) {
                 let tColor = elephantMode ? '#888' : '#00ff00';
                 if(!elephantMode && currentUser && currentUser.current_skin && SKINS[currentUser.current_skin]) {
-                    // Extract color from gradient string roughly
                     if(currentUser.current_skin === 'magma') tColor = '#ff4500';
                     else if(currentUser.current_skin === 'ice') tColor = '#00ffff';
                     else if(currentUser.current_skin === 'gold') tColor = '#ffd700';
@@ -502,9 +506,10 @@
                 coins.push(new Gem(t));
             }
 
-            // ENTITIES COLLISION (Fixed with Padding)
+            // ENTITIES COLLISION - HITBOX FIX
             obstacles.forEach(o => {
                 o.update();
+                // Expanded Hitbox Logic:
                 if(player.x+HITBOX_PADDING < o.x+o.width-HITBOX_PADDING && 
                    player.x+player.width-HITBOX_PADDING > o.x+HITBOX_PADDING &&
                    player.y+HITBOX_PADDING < o.y+o.height-HITBOX_PADDING &&
@@ -518,9 +523,9 @@
                     } else if(o.type === 'spike') {
                          if(!player.invincible) hitPlayer();
                     } else {
-                        // Stomp Logic (More forgiving)
-                        let isStomp = player.dy > 0 && (player.y+player.height) < (o.y + o.height * 0.7);
-                        let isHeadbutt = player.dy < 0 && player.y > o.y + o.height * 0.3;
+                        // Stomp Logic
+                        let isStomp = player.dy > 0 && (player.y+player.height) < (o.y + o.height * 0.8);
+                        let isHeadbutt = player.dy < 0 && player.y > o.y + o.height * 0.2;
                         
                         if(isStomp || isHeadbutt) {
                             o.markedForDeletion=true; 
@@ -546,6 +551,7 @@
 
             particles.forEach(p => p.update());
             floatingTexts.forEach(t => t.update());
+            
             obstacles=obstacles.filter(o=>!o.markedForDeletion); blocks=blocks.filter(b=>!b.markedForDeletion); 
             coins=coins.filter(c=>!c.markedForDeletion); particles=particles.filter(p=>p.life>0); floatingTexts=floatingTexts.filter(t=>t.life>0);
             
