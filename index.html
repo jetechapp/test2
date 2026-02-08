@@ -3,462 +3,508 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO WORLD: GOD MODE UPDATE</title>
+    <title>LEO ARCADE: FINAL STABLE</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka:wght@600&display=swap" rel="stylesheet">
 
     <style>
-        :root { --primary: #00d2d3; --accent: #ff9f43; --danger: #ff4757; --dark: #1e272e; --glass: rgba(30, 39, 46, 0.95); }
-        body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; font-family: 'Fredoka', sans-serif; overflow: hidden; user-select: none; touch-action: none; }
-        
-        canvas { 
-            display: block; border-radius: 8px; 
-            box-shadow: 0 0 80px rgba(0,210,211,0.1); 
-            max-width: 100%; max-height: 100%; border: 3px solid #333; 
-            transition: border-color 0.3s;
+        :root { --neon-blue: #00f3ff; --neon-pink: #ff00ff; --neon-gold: #ffd700; --bg: #111; }
+        body { 
+            margin: 0; padding: 0; background: var(--bg); overflow: hidden; 
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+            font-family: 'Fredoka', sans-serif; touch-action: none; user-select: none;
         }
-        canvas.god-mode { border-color: #ffd700; box-shadow: 0 0 100px rgba(255, 215, 0, 0.6); }
+
+        canvas { 
+            background: #1a1a1a; 
+            border: 4px solid #333; 
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            max-width: 100%; max-height: 100%; 
+            image-rendering: pixelated; /* Stile Arcade Nitido */
+        }
 
         /* UI */
-        #uiLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
-        .gui-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
+        .hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
         
-        .badge { 
-            background: var(--glass); color: white; padding: 12px 20px; 
-            border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); 
-            backdrop-filter: blur(10px); font-weight: 800; font-size: 16px; 
-            display: flex; align-items: center; gap: 10px; margin-bottom: 8px; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 1px;
+        .stat-box { 
+            background: rgba(0,0,0,0.8); border: 2px solid #555; 
+            color: #fff; padding: 10px 15px; border-radius: 8px; margin-bottom: 10px;
+            font-family: 'Press Start 2P', cursive; font-size: 10px; line-height: 1.5;
+            box-shadow: 4px 4px 0 #000;
         }
+        .stat-value { color: var(--neon-gold); font-size: 12px; }
 
-        .leaderboard-box { 
-            background: var(--glass); border-radius: 12px; padding: 15px; 
-            min-width: 200px; color: #fff; font-size: 12px; pointer-events: auto; 
-            border: 1px solid rgba(255,255,255,0.1); 
+        /* Powerup Overlay Text */
+        #godModeText {
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            font-family: 'Press Start 2P'; font-size: 24px; color: var(--neon-gold);
+            text-shadow: 4px 4px 0 #ff0000; display: none; animation: flash 0.2s infinite;
+            text-align: center; width: 100%;
         }
+        @keyframes flash { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.1); } }
 
-        /* Powerup Text */
-        #powerupMsg {
-            position: absolute; top: 150px; left: 50%; transform: translate(-50%, -50%);
-            font-size: 40px; font-weight: 900; color: #ffd700; text-shadow: 0 0 20px #ff9f43;
-            display: none; animation: pulse 0.5s infinite alternate; pointer-events: none; text-align: center;
+        /* Menus */
+        .modal { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.95); display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; z-index: 100; pointer-events: auto;
         }
-        @keyframes pulse { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); } }
-
-        /* OVERLAYS */
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(20px); display: flex; justify-content: center; align-items: center; z-index: 100; }
-        .card { background: var(--dark); padding: 40px; border-radius: 24px; width: 450px; text-align: center; border: 1px solid #57606f; box-shadow: 0 30px 100px rgba(0,0,0,1); color: white; position: relative; overflow: hidden; }
-        .card::after { content:''; position: absolute; top:0; left:0; width:100%; height:6px; background: linear-gradient(90deg, var(--primary), var(--accent), var(--danger)); }
-
-        h1 { margin: 0 0 10px 0; font-size: 42px; font-weight: 900; letter-spacing: -2px; }
-        h2 { color: var(--primary); margin: 0 0 20px 0; font-size: 14px; letter-spacing: 4px; text-transform: uppercase; }
+        .panel { 
+            background: #222; border: 4px solid #fff; padding: 30px; 
+            text-align: center; max-width: 400px; width: 90%; 
+            box-shadow: 10px 10px 0 #000; 
+        }
         
-        input { width: 100%; padding: 16px; margin: 10px 0; background: #000; border: 2px solid #57606f; color: white; border-radius: 12px; font-weight: bold; box-sizing: border-box; }
-        input:focus { border-color: var(--primary); outline: none; }
+        h1 { font-family: 'Press Start 2P'; color: var(--neon-blue); font-size: 20px; margin-bottom: 20px; line-height: 1.5; text-shadow: 4px 4px 0 #000; }
         
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-family: inherit; font-weight: 900; font-size: 16px; cursor: pointer; margin-top: 15px; color: #fff; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; }
-        .btn:hover { transform: translateY(-4px); filter: brightness(1.2); }
-        .btn:active { transform: translateY(2px); }
-        .btn-green { background: linear-gradient(to right, #1dd1a1, #10ac84); box-shadow: 0 5px 0 #0c7457; }
-        .btn-blue { background: linear-gradient(to right, #54a0ff, #2e86de); box-shadow: 0 5px 0 #1c5980; }
-        .btn-orange { background: linear-gradient(to right, #ff9f43, #ee5253); box-shadow: 0 5px 0 #b33939; }
-
-        /* SHOP */
-        .shop-tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-height: 300px; overflow-y: auto; padding: 5px; }
-        .shop-item { background: #2f3542; border-radius: 12px; padding: 15px; border: 2px solid transparent; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; }
-        .shop-item:hover { border-color: var(--primary); background: #3a4150; }
-        .shop-item.owned { border-color: #57606f; }
-        .shop-item.equipped { border-color: var(--accent); background: rgba(255, 159, 67, 0.1); box-shadow: 0 0 20px rgba(255, 159, 67, 0.2); }
+        input { 
+            width: 100%; padding: 15px; margin: 10px 0; background: #000; 
+            border: 2px solid #555; color: #fff; font-family: 'Press Start 2P'; font-size: 10px; 
+            box-sizing: border-box; 
+        }
         
-        /* FIX PREVIEW SIZE */
-        .preview-canvas { width: 80px; height: 80px; margin: 10px auto; display: block; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); }
+        button { 
+            width: 100%; padding: 15px; margin-top: 10px; 
+            font-family: 'Press Start 2P'; font-size: 12px; border: none; cursor: pointer; 
+            background: var(--neon-blue); color: #000; box-shadow: 4px 4px 0 #0056b3; 
+            transition: transform 0.1s; 
+        }
+        button:active { transform: translate(4px, 4px); box-shadow: 0 0 0; }
+        .btn-shop { background: var(--neon-pink); box-shadow: 4px 4px 0 #800080; }
+        .btn-close { background: #555; color: #fff; box-shadow: 4px 4px 0 #222; }
 
-        #jumpBtn { position: absolute; bottom: 40px; right: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; justify-content: center; align-items: center; pointer-events: auto; backdrop-filter: blur(10px); cursor: pointer; font-size: 50px; }
-        #jumpBtn:active { background: rgba(255,255,255,0.3); transform: scale(0.9); }
+        /* Shop Grid */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; max-height: 250px; overflow-y: auto; }
+        .item { 
+            border: 2px solid #444; padding: 10px; background: #111; 
+            display: flex; flex-direction: column; align-items: center; 
+        }
+        .item.owned { border-color: #0f0; }
+        .item.equipped { border-color: var(--neon-gold); background: #333; }
+        .preview { width: 40px; height: 40px; margin-bottom: 10px; }
+
+        #jumpBtn {
+            position: absolute; bottom: 30px; right: 30px; width: 90px; height: 90px;
+            background: rgba(255,255,255,0.2); border: 4px solid #fff; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-size: 30px;
+            pointer-events: auto; touch-action: manipulation;
+        }
     </style>
 </head>
 <body>
 
-    <div id="uiLayer">
-        <div class="gui-top">
+    <div id="ui">
+        <div class="hud-top">
             <div>
-                <div class="badge" style="border-left: 5px solid var(--primary);">👤 <span id="uiName">...</span></div>
-                <div class="badge" style="border-left: 5px solid var(--accent); color:var(--accent);">⬢ <span id="uiCoins">0</span></div>
+                <div class="stat-box">PLAYER: <span id="hudName" class="stat-value">GUEST</span></div>
+                <div class="stat-box">BANK: <span id="hudCoins" class="stat-value">0</span> $</div>
             </div>
-            <div class="leaderboard-box">
-                <div style="border-bottom:2px solid #ffffff20; margin-bottom:10px; padding-bottom:5px; font-weight:900; color:var(--danger);">TOP HEROES</div>
-                <div id="leaderList" style="opacity:0.8;">Connecting...</div>
+            <div class="stat-box">
+                TOP PLAYERS<br>
+                <div id="leaderboard" style="margin-top:5px; color:#aaa;">Loading...</div>
             </div>
         </div>
-        <div id="powerupMsg">ELEPHANT POWER!</div>
-        <div class="badge" style="align-self: flex-end; font-size: 32px; background: linear-gradient(45deg, var(--accent), var(--danger)); border:none;">
-            SCORE: <span id="uiScore">0</span>
+        <div id="godModeText">ELEPHANT POWER!</div>
+        <div class="stat-box" style="align-self: flex-end; font-size:14px;">SCORE: <span id="hudScore" class="stat-value">0</span></div>
+    </div>
+
+    <canvas id="game" width="800" height="450"></canvas>
+    <div id="jumpBtn" onmousedown="game.jump()" ontouchstart="game.jump()">⬆️</div>
+
+    <div id="menuLogin" class="modal">
+        <div class="panel">
+            <h1>LEO ARCADE</h1>
+            <input type="text" id="inpUser" placeholder="USERNAME">
+            <input type="password" id="inpPass" placeholder="PASSWORD">
+            <button onclick="auth.login()">LOGIN / GIOCA</button>
+            <button class="btn-close" onclick="auth.guest()">GIOCA OSPITE</button>
+            <p style="font-size:10px; color:#666; margin-top:15px; cursor:pointer;" onclick="auth.register()">REGISTRATI (NUOVO)</p>
         </div>
     </div>
 
-    <canvas id="gameCanvas" width="900" height="500"></canvas>
-    <div id="jumpBtn" onmousedown="inputStart(event)" ontouchstart="inputStart(event)">🚀</div>
-
-    <div id="mainMenu" class="overlay">
-        <div class="card">
-            <h1>LEO WORLD</h1>
-            <h2>GOD MODE EDITION</h2>
-            <input type="text" id="loginUser" placeholder="Username">
-            <input type="password" id="loginPass" placeholder="Password">
-            <button class="btn btn-green" onclick="doLogin()">ENTRA</button>
-            <button class="btn btn-blue" onclick="playGuest()">OSPITE</button>
-            <div style="margin-top:20px; font-size:12px; cursor:pointer; text-decoration:underline;" onclick="doRegister()">Registrati</div>
+    <div id="menuShop" class="modal" style="display:none;">
+        <div class="panel" style="width: 500px; max-width:95%;">
+            <h1>SHOP</h1>
+            <div style="font-family:'Press Start 2P'; font-size:10px; margin-bottom:10px;">SOLDI: <span id="shopMoney" style="color:gold">0</span></div>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button style="width:auto; padding:10px;" onclick="shop.render('skins')">SKINS</button>
+                <button style="width:auto; padding:10px;" onclick="shop.render('pets')">PETS</button>
+            </div>
+            <div id="shopGrid" class="grid"></div>
+            <button class="btn-close" onclick="ui.showGame()">TORNA AL GIOCO</button>
         </div>
     </div>
 
-    <div id="shopMenu" class="overlay" style="display:none;">
-        <div class="card" style="width: 600px;">
-            <h1 style="color:var(--accent)">SHOP</h1>
-            <div class="badge" style="justify-content:center; margin:10px auto; background:#2f3640;">SALDO: ⬢ <span id="shopBalance">0</span></div>
-            <div class="shop-tabs">
-                <button class="btn btn-blue" style="margin:0; padding:10px 30px;" onclick="switchShop('skins')">EROI</button>
-                <button class="btn btn-orange" style="margin:0; padding:10px 30px;" onclick="switchShop('pets')">PETS</button>
-            </div>
-            <div class="shop-grid" id="shopGrid"></div>
-            <button class="btn btn-green" onclick="closeShop()">GIOCA</button>
-        </div>
-    </div>
-
-    <div id="gameOverMenu" class="overlay" style="display:none;">
-        <div class="card">
-            <h1 style="color:var(--danger);">GAME OVER</h1>
-            <div style="background:#111; padding:20px; border-radius:16px; margin:20px 0;">
-                <div style="font-size:14px; color:#aaa;">PUNTEGGIO</div>
-                <div style="font-size:48px; font-weight:900;" id="finalScore">0</div>
-                <div style="font-size:24px; color:var(--accent); margin-top:10px;">+<span id="finalCoins">0</span> ⬢</div>
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                <button class="btn btn-green" style="margin:0;" onclick="resetGame()">RIPROVA</button>
-                <button class="btn btn-orange" style="margin:0;" onclick="openShop()">SHOP</button>
-            </div>
+    <div id="menuOver" class="modal" style="display:none;">
+        <div class="panel">
+            <h1 style="color:#ff4444">GAME OVER</h1>
+            <p style="font-family:'Press Start 2P'; font-size:12px; margin-bottom:10px;">SCORE: <span id="endScore" style="color:#fff">0</span></p>
+            <p style="font-family:'Press Start 2P'; font-size:12px; margin-bottom:20px; color:gold;">EARNED: +<span id="endCoins">0</span> $</p>
+            <button onclick="game.reset()">RIPROVA</button>
+            <button class="btn-shop" onclick="ui.showShop()">NEGOZIO</button>
         </div>
     </div>
 
     <script>
-        // CONFIG
-        const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
-        let sb = null; try { if(typeof supabase !== 'undefined') sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
+        // --- CONFIG & SUPABASE ---
+        const SB_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
+        let sb = null;
+        try { if(typeof supabase !== 'undefined') sb = supabase.createClient(SB_URL, SB_KEY); } catch(e){}
 
-        const WORLDS = { 1: { name: "Sky Kingdom", top: '#48dbfb', bot: '#c8d6e5', ground: '#1dd1a1', stud: '#10ac84' } };
-        
-        // ASSETS - DEFINIZIONE COLORI CORRETTA (6 CIFRE)
+        // --- DATA ---
         const SKINS = {
-            'noob': { name: 'NOOB', price: 0, type: 'basic', c: ['#ffeaa7', '#0984e3', '#55efc4'] },
-            'iron': { name: 'IRON MAN', price: 2500, type: 'iron', c: ['#c0392b', '#c0392b', '#f1c40f'] },
-            'spider': { name: 'SPIDER-MAN', price: 5000, type: 'spider', c: ['#e74c3c', '#3498db', '#c0392b'] },
-            'cap': { name: 'CAP AMERICA', price: 7500, type: 'cap', c: ['#3498db', '#3498db', '#c0392b'] },
-            'hulk': { name: 'HULK', price: 10000, type: 'hulk', c: ['#2ecc71', '#2ecc71', '#8e44ad'] }
+            'noob': { name: 'NOOB', price: 0, c: '#00ff00' },
+            'iron': { name: 'IRON MAN', price: 2000, c: '#ff0000', detail: 'gold' },
+            'spider': { name: 'SPIDER', price: 4000, c: '#cc0000', detail: 'blue' },
+            'cap': { name: 'CAPTAIN', price: 6000, c: '#0000ff', detail: 'white' },
+            'hulk': { name: 'HULK', price: 8000, c: '#00aa00', detail: 'purple' }
         };
         const PETS = {
-            'none': { name: 'NESSUNO', price: 0, type: 'none' },
-            'cube': { name: 'CUBE', price: 1000, type: 'cube' },
-            'doge': { name: 'DOGE', price: 3000, type: 'doge' },
-            'ufo': { name: 'UFO', price: 6000, type: 'ufo' }
+            'none': { name: 'NESSUNO', price: 0 },
+            'cube': { name: 'CUBO', price: 1000, c: '#00ffff' },
+            'doge': { name: 'DOGE', price: 3000, c: '#ffcc00' },
+            'ufo': { name: 'UFO', price: 5000, c: '#aaaaaa' }
         };
 
-        let user = { username: 'Guest', id: 'guest', coins: 0, highscore: 0, inventory: ['noob'], skin: 'noob', pets: ['none'], pet: 'none' };
+        let user = { id:'guest', name:'GUEST', coins:0, high:0, skins:['noob'], curSkin:'noob', pets:['none'], curPet:'none' };
 
-        // AUDIO
+        // --- AUDIO ---
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        const ac = AudioCtx ? new AudioCtx() : null;
-        function sfx(t) {
-            if(!ac || ac.state === 'suspended') ac?.resume().catch(()=>{});
-            const o=ac.createOscillator(), g=ac.createGain(), n=ac.currentTime;
+        const ac = new AudioCtx();
+        function beep(freq, type, dur) {
+            if(ac.state === 'suspended') ac.resume();
+            const o=ac.createOscillator(); const g=ac.createGain();
+            o.type=type; o.frequency.value=freq;
             o.connect(g); g.connect(ac.destination);
-            if(t==='jump'){o.freq(300,600,0.1); g.env(0.1,0,0.15);}
-            else if(t==='coin'){o.type='triangle';o.freq(1500,1500,0.1);g.env(0.05,0,0.1);}
-            else if(t==='epic'){o.type='square';o.freq(400,1200,0.5);g.env(0.2,0,0.5);}
-            else if(t==='break'){o.type='sawtooth';o.freq(100,50,0.2);g.env(0.2,0,0.2);}
-            else if(t==='spring'){o.freq(200,800,0.3);g.env(0.2,0,0.3);}
-            else if(t==='die'){o.type='triangle';o.freq(300,50,0.5);g.env(0.3,0,0.5);}
-            o.start(n); o.stop(n+(t==='epic'?0.5:0.2));
+            o.start(); g.gain.exponentialRampToValueAtTime(0.00001, ac.currentTime + dur); o.stop(ac.currentTime + dur);
         }
-        OscillatorNode.prototype.freq = function(v1,v2,t){this.frequency.setValueAtTime(v1,ac.currentTime);this.frequency.linearRampToValueAtTime(v2,ac.currentTime+t)};
-        GainNode.prototype.env = function(v1,v2,t){this.gain.setValueAtTime(v1,ac.currentTime);this.gain.linearRampToValueAtTime(v2,ac.currentTime+t)};
 
-        // RENDERER
-        const cvs = document.getElementById('gameCanvas');
+        // --- GAME ENGINE ---
+        const cvs = document.getElementById('game');
         const ctx = cvs.getContext('2d');
+        
+        const game = {
+            active: false, frames: 0, speed: 6, score: 0, sessionCoins: 0,
+            shake: 0, godMode: 0,
+            player: { x:100, y:300, w:30, h:30, dy:0, ground:false },
+            pet: { x:60, y:300 },
+            camY: 0,
+            entities: [],
+            particles: [],
+            texts: [],
 
-        function shade(c, p) {
-            if(!c || c.length < 7) return c || '#888888';
-            let f=parseInt(c.slice(1),16), t=p<0?0:255, P=p<0?p*-1:p, R=f>>16, G=f>>8&0x00FF, B=f&0x0000FF;
-            return "#"+(0x1000000+(Math.round((t-R)*P)+R)*0x10000+(Math.round((t-G)*P)+G)*0x100+(Math.round((t-B)*P)+B)).toString(16).slice(1);
-        }
+            start: function() {
+                this.active = true; this.frames = 0; this.speed = 6; this.score = 0; this.sessionCoins = 0;
+                this.godMode = 0; this.entities = []; this.particles = []; this.texts = [];
+                this.player.y = 350; this.player.dy = 0;
+                ui.hideAll();
+                loop();
+            },
 
-        function drawBlock(c, x, y, w, h, col, studs=true) {
-            c.fillStyle=col; c.fillRect(x,y,w,h);
-            c.fillStyle=shade(col,0.3); c.fillRect(x,y,w,4);
-            c.fillStyle=shade(col,-0.2); c.fillRect(x+w-4,y,4,h); c.fillRect(x,y+h-4,w,4);
-            if(studs){ c.fillStyle=shade(col,0.1); for(let i=6;i<w-6;i+=12){c.beginPath();c.arc(x+i+3,y+3,3,0,6.28);c.fill()} }
-        }
+            reset: function() { this.start(); },
 
-        // --- NEW UNIFIED RENDERER (Game & Shop) ---
-        function renderEntity(c, x, y, scale, type, key, frame=0) {
-            c.save();
-            c.translate(x, y);
-            c.scale(scale, scale);
+            update: function() {
+                this.frames++; this.score += 0.1; this.speed += 0.002;
+                if(this.godMode > 0) this.godMode--;
 
-            if(type === 'avatar') {
-                const s = SKINS[key] || SKINS['noob'];
-                const t = s.type || 'basic';
-                const col = s.c || ['#fff','#888','#444'];
-                let anim = Math.sin(frame*0.3)*2;
+                // Physics
+                const p = this.player;
+                p.dy += 0.8; p.y += p.dy;
+                if(p.y > 400 - p.h) { p.y = 400 - p.h; p.dy = 0; p.ground = true; } else { p.ground = false; }
 
-                // Base Body Parts
-                if(t==='iron') {
-                    drawBlock(c,4,0,22,18,'#c0392b'); // Head
-                    c.fillStyle='#f1c40f'; c.fillRect(8,4,14,14); // Face
-                    c.fillStyle='#fff'; c.fillRect(10,8,4,2); c.fillRect(16,8,4,2); // Eyes
-                    drawBlock(c,0,18,30,18,'#c0392b'); // Body
-                    c.fillStyle='#3498db'; c.beginPath(); c.arc(15,27,4,0,6.28); c.fill(); // Arc
-                    drawBlock(c,2,36,12,12+anim,'#c0392b'); drawBlock(c,16,36,12,12-anim,'#c0392b'); // Legs
-                } else if(t==='spider') {
-                    drawBlock(c,4,0,22,18,'#e74c3c'); // Head
-                    c.fillStyle='#fff'; c.beginPath(); c.moveTo(6,6); c.lineTo(15,10); c.lineTo(6,6); c.fill(); c.fillRect(6,6,8,3); c.fillRect(16,6,8,3);
-                    c.fillStyle='#3498db'; c.fillRect(0,18,30,18); c.fillStyle='#e74c3c'; c.fillRect(10,18,10,18); // Body
-                    c.fillStyle='#2c3e50'; c.fillRect(13,25,4,4); // Logo
-                    drawBlock(c,2,36,12,12+anim,'#3498db'); drawBlock(c,16,36,12,12-anim,'#3498db');
-                    c.fillStyle='#e74c3c'; c.fillRect(2,44+anim,12,4); c.fillRect(16,44-anim,12,4); // Boots
-                } else if(t==='hulk') {
-                    drawBlock(c,2,-4,26,22,'#2ecc71'); c.fillStyle='#000'; c.fillRect(2,-4,26,6); // Head
-                    drawBlock(c,-2,18,34,22,'#27ae60'); // Big Body
-                    drawBlock(c,2,40,12,10+anim,'#8e44ad'); drawBlock(c,16,40,12,10-anim,'#8e44ad'); // Pants
-                } else {
-                    // Noob / Cap / Guest
-                    let cols = col;
-                    if(t==='cap') cols = ['#2980b9', '#2980b9', '#2980b9']; // Cap override
-                    drawBlock(c,4,0,22,18, cols[0]);
-                    drawBlock(c,0,18,30,18, cols[1]);
-                    if(t==='cap') {
-                        c.fillStyle='#fff'; c.font="bold 10px Arial"; c.fillText("A",11,12); c.beginPath(); c.arc(15,27,5,0,6.28); c.fill(); c.fillStyle='#c0392b'; c.beginPath(); c.arc(15,27,3,0,6.28); c.fill();
+                // Pet Follow
+                this.pet.x += ((p.x - 40) - this.pet.x) * 0.1;
+                this.pet.y += ((p.y - 20) - this.pet.y) * 0.1;
+
+                // Spawning (Simplified & Smart)
+                if(this.frames % Math.floor(1000/this.speed) === 0) {
+                    let r = Math.random();
+                    // ELEPHANT LOGIC: Solo in alto, raramente
+                    if(r < 0.05) this.spawn(900, 100, 30, 30, 'coin_ele'); 
+                    else if(r < 0.3) this.spawn(900, 350, 15, 15, 'coin'); // Monete basse
+                    else if(r < 0.6) this.spawn(900, 360, 40, 40, 'crate'); // Casse
+                    else if(r < 0.8) this.spawn(900, 370, 30, 30, 'spike'); // Spine
+                    else this.spawn(900, 250, 40, 10, 'plat'); // Piattaforme aeree
+                }
+
+                // Entity Loop
+                this.entities.forEach(e => {
+                    e.x -= this.speed;
+                    
+                    // MAGNET (God Mode)
+                    if(this.godMode > 0 && (e.t.includes('coin'))) {
+                        e.x += (p.x - e.x) * 0.2; e.y += (p.y - e.y) * 0.2;
                     }
-                    drawBlock(c,2,36,12,12+anim, cols[2]); 
-                    drawBlock(c,16,36,12,12-anim, cols[2]);
-                }
-            } 
-            else if (type === 'pet') {
-                if(key==='cube') {
-                    drawBlock(c,0,0,20,20,'#3498db'); c.fillStyle='#fff'; c.globalAlpha=0.5; c.fillRect(6,6,8,8); c.globalAlpha=1;
-                } else if(key==='doge') {
-                    c.fillStyle='#f1c40f'; c.fillRect(0,0,24,20); c.fillStyle='#000'; c.fillRect(4,6,3,3); c.fillRect(16,6,3,3); c.fillStyle='#fff'; c.fillRect(8,10,8,5); c.fillStyle='#000'; c.fillRect(11,10,2,2);
-                } else if(key==='ufo') {
-                    c.fillStyle='#95a5a6'; c.beginPath(); c.ellipse(12,12,14,5,0,0,6.28); c.fill(); c.fillStyle='rgba(52,152,219,0.7)'; c.beginPath(); c.arc(12,9,6,0,6.28); c.fill();
-                } else {
-                    // Fallback
-                    c.fillStyle='rgba(255,255,255,0.1)'; c.beginPath(); c.arc(12,12,5,0,6.28); c.fill();
-                }
-            }
-            c.restore();
-        }
 
-        // GAME LOGIC
-        let gameState='MENU', frames=0, speed=6, score=0, coins=0;
-        let player={x:100,y:200,w:30,h:48,dy:0,ground:false, inv:0, mag:0}, pet={x:50,y:200};
-        let entities=[], effects=[], screenFlash=0;
-
-        function update() {
-            if(gameState!=='PLAY') return;
-            frames++; score+=0.05; speed+=0.0005;
-            
-            // Player Physics
-            player.dy += 0.65; player.y += player.dy;
-            if(player.y+player.h > 440) { player.y=440-player.h; player.dy=0; player.ground=true; } else { player.ground=false; }
-
-            // ELEPHANT MODE TIMERS
-            if(player.inv>0) { player.inv--; screenFlash = (Math.sin(frames*0.5)+1)*0.2; } else { screenFlash=0; }
-            if(player.mag>0) player.mag--;
-
-            // Spawn
-            if(frames%Math.floor(100-speed*2)===0) spawn();
-            
-            // Entities Update
-            entities.forEach(e => {
-                e.x -= speed;
-                
-                // Magnet Logic
-                if(player.mag>0 && e.type==='coin') {
-                    e.x += (player.x - e.x)*0.15; e.y += (player.y - e.y)*0.15;
-                }
-
-                // Collision
-                if(rectIntersect(player.x,player.y,player.w,player.h, e.x,e.y,e.w,e.h)) {
-                    if(e.type==='coin') {
-                        e.dead=true; sfx(e.val>10?'epic':'coin'); coins+=e.val; score+=e.score;
-                        if(e.val>10) activateElephantMode(); // ELEPHANT COIN TRIGGER
-                        effects.push({x:e.x,y:e.y,txt:`+${e.val}`,l:1});
-                    } else {
-                        // OBSTACLE COLLISION
-                        if(player.inv>0) {
-                            // GOD MODE SMASH
-                            e.dead=true; sfx('break'); score+=500;
-                            effects.push({x:e.x,y:e.y,txt:"SMASH!",l:1,c:'#ffd700'});
-                            spawnDebris(e.x,e.y,e.c);
-                        } else {
-                            // Normal Physics / Death
-                            if(e.id==='crate' && player.dy>0 && player.y<e.y) { // Stomp
-                                e.dead=true; player.dy=-12; sfx('break'); score+=100;
-                                spawnDebris(e.x,e.y,e.c);
-                            } else if(e.id==='spring') {
-                                player.dy=-28; sfx('spring');
+                    // Collision
+                    if(p.x < e.x + e.w && p.x + p.w > e.x && p.y < e.y + e.h && p.y + p.h > e.y) {
+                        if(e.t === 'coin') {
+                            e.dead = true; this.sessionCoins += 10; this.score += 100;
+                            this.text("+10", e.x, e.y, '#ffd700'); beep(1200, 'sine', 0.1);
+                        } 
+                        else if(e.t === 'coin_ele') {
+                            e.dead = true; this.sessionCoins += 100; this.score += 1000;
+                            this.godMode = 300; // 5 SECONDS GOD MODE
+                            this.text("ELEPHANT POWER!", 400, 200, '#00ffff'); beep(400, 'square', 0.5);
+                        }
+                        else if(e.t === 'plat') {
+                            // Land on platform
+                            if(p.dy > 0 && p.y + p.h < e.y + 15) {
+                                p.y = e.y - p.h; p.dy = 0; p.ground = true;
+                            }
+                        }
+                        else {
+                            // Bad things (Crate, Spike)
+                            if(this.godMode > 0) {
+                                // GOD SMASH
+                                e.dead = true; this.score += 500;
+                                this.text("SMASH!", e.x, e.y, '#fff'); this.explode(e.x, e.y, e.c); beep(100, 'sawtooth', 0.2);
                             } else {
-                                gameOver();
+                                // Break Crate from top/bottom
+                                if(e.t === 'crate' && (p.dy > 0 || p.dy < 0)) {
+                                    e.dead = true; this.score += 100; p.dy = -10;
+                                    this.explode(e.x, e.y, e.c); beep(100, 'sawtooth', 0.1);
+                                } else {
+                                    this.over();
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
 
-            entities = entities.filter(e => !e.dead && e.x > -100);
-            effects.forEach(f => { f.y-=2; f.l-=0.02; }); effects=effects.filter(f=>f.l>0);
-        }
+                // Updates
+                this.entities = this.entities.filter(e => !e.dead && e.x > -100);
+                this.texts.forEach(t => { t.y--; t.life-=0.02; });
+                this.texts = this.texts.filter(t => t.life > 0);
+                this.particles.forEach(pt => { pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.5; pt.life-=0.05; });
+                this.particles = this.particles.filter(pt => pt.life > 0);
 
-        function activateElephantMode() {
-            player.inv = 300; // 5 Seconds Invincibility
-            player.mag = 300; // 5 Seconds Magnet
-            document.getElementById('powerupMsg').style.display = 'block';
-            document.getElementById('gameCanvas').classList.add('god-mode');
-            setTimeout(() => {
-                document.getElementById('powerupMsg').style.display = 'none';
-                document.getElementById('gameCanvas').classList.remove('god-mode');
-            }, 5000);
-        }
+                if(this.shake > 0) { ctx.translate((Math.random()-.5)*this.shake, (Math.random()-.5)*this.shake); this.shake*=0.9; }
+                
+                // UI Sync
+                document.getElementById('hudScore').innerText = Math.floor(this.score);
+                document.getElementById('hudCoins').innerText = user.coins + this.sessionCoins;
+                document.getElementById('godModeText').style.display = this.godMode > 0 ? 'block' : 'none';
+            },
 
-        function spawn() {
-            let r=Math.random();
-            if(r<0.02) { // Elephant Event
-                entities.push({x:900,y:50,w:30,h:30,type:'coin',val:50,score:500,c:'#54a0ff'}); 
-            } else if(r<0.3) { // Coin Pattern
-                entities.push({x:900,y:350,w:20,h:20,type:'coin',val:1,score:50,c:'#f1c40f'});
-            } else if(r<0.5) { // Crate
-                entities.push({x:900,y:400,w:40,h:40,type:'obs',id:'crate',c:'#e67e22'});
-            } else if(r<0.7) { // Kill
-                entities.push({x:900,y:400,w:40,h:40,type:'obs',id:'kill',c:'#ff4757'});
-            } else { // Spring
-                entities.push({x:900,y:425,w:40,h:15,type:'obs',id:'spring',c:'#a55eea'});
-            }
-        }
+            draw: function() {
+                // Clear
+                ctx.fillStyle = this.godMode > 0 ? '#220022' : '#1a1a1a'; // Purple BG in God Mode
+                ctx.fillRect(0, 0, 800, 450);
+                
+                // Reset Matrix for Shake
+                ctx.setTransform(1,0,0,1,0,0);
+                if(this.godMode > 0) ctx.translate(Math.random()*4-2, Math.random()*4-2);
 
-        function draw() {
-            // BG
-            let grd=ctx.createLinearGradient(0,0,0,500); grd.addColorStop(0, WORLDS[1].top); grd.addColorStop(1, WORLDS[1].bot);
-            ctx.fillStyle=grd; ctx.fillRect(0,0,900,500);
+                // Ground
+                ctx.fillStyle = '#333'; ctx.fillRect(0, 400, 800, 50);
+                ctx.fillStyle = '#444'; for(let i=-(this.frames*this.speed)%50; i<800; i+=50) ctx.fillRect(i, 400, 40, 5);
 
-            // Screen Flash (God Mode)
-            if(screenFlash > 0) {
-                ctx.fillStyle = `rgba(255, 215, 0, ${screenFlash})`;
-                ctx.fillRect(0,0,900,500);
-            }
-
-            // Ground
-            ctx.fillStyle=WORLDS[1].ground; ctx.fillRect(0,440,900,60);
-            ctx.fillStyle=WORLDS[1].stud; 
-            for(let i=-(frames*speed)%40; i<900; i+=40) ctx.fillRect(i,440,36,6);
-
-            // Entities
-            entities.forEach(e => {
-                if(e.type==='coin') {
-                    if(e.val>10) { // Elephant
-                        ctx.fillStyle=e.c; ctx.beginPath(); ctx.arc(e.x+15,e.y+15,15,0,6.28); ctx.fill();
-                        ctx.fillStyle='#fff'; ctx.font="bold 12px Arial"; ctx.fillText("E",e.x+11,e.y+20);
+                // Entities
+                this.entities.forEach(e => {
+                    ctx.fillStyle = e.c;
+                    if(e.t.includes('coin')) {
+                        ctx.beginPath(); ctx.arc(e.x+e.w/2, e.y+e.h/2, e.w/2, 0, Math.PI*2); ctx.fill();
+                        if(e.t==='coin_ele') { ctx.strokeStyle='#fff'; ctx.lineWidth=3; ctx.stroke(); }
                     } else {
-                        ctx.fillStyle=e.c; ctx.beginPath(); ctx.arc(e.x+10,e.y+10,10,0,6.28); ctx.fill();
+                        ctx.fillRect(e.x, e.y, e.w, e.h);
+                        // Detail for crate
+                        if(e.t==='crate') { ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.fillRect(e.x+5, e.y+5, e.w-10, e.h-10); }
                     }
-                } else {
-                    drawBlock(ctx,e.x,e.y,e.w,e.h,e.c);
-                    if(e.id==='spring') { ctx.fillStyle='#fff'; ctx.fillRect(e.x+5,e.y+2,e.w-10,4); }
+                });
+
+                // Particles
+                this.particles.forEach(p => { ctx.fillStyle=p.c; ctx.fillRect(p.x, p.y, 6, 6); });
+
+                // Pet
+                if(user.curPet !== 'none') {
+                    let pData = PETS[user.curPet];
+                    ctx.fillStyle = pData.c; ctx.fillRect(this.pet.x, this.pet.y, 20, 20);
                 }
-            });
 
-            // Player & Pet
-            if(gameState==='PLAY') {
-                // Pet follows with lerp
-                pet.x += ((player.x-40)-pet.x)*0.1; pet.y += ((player.y-20)-pet.y)*0.1;
-                if(user.pet!=='none') renderEntity(ctx, pet.x, pet.y, 1, 'pet', user.pet);
-                renderEntity(ctx, player.x, player.y, 1, 'avatar', user.skin, frames);
+                // Player
+                let skin = SKINS[user.curSkin] || SKINS['noob'];
+                ctx.fillStyle = skin.c; ctx.fillRect(this.player.x, this.player.y, 30, 30);
+                if(skin.detail) { 
+                    ctx.fillStyle = skin.detail; 
+                    ctx.fillRect(this.player.x+10, this.player.y+5, 10, 5); // Visor/Detail
+                }
+
+                // Texts
+                this.texts.forEach(t => {
+                    ctx.fillStyle = t.c; ctx.font = "bold 20px 'Fredoka'"; ctx.fillText(t.str, t.x, t.y);
+                });
+            },
+
+            spawn: function(x, y, w, h, t) {
+                let c = '#fff';
+                if(t==='coin') c='#ffd700';
+                if(t==='coin_ele') c='#00ffff';
+                if(t==='crate') c='#ff8800';
+                if(t==='spike') c='#ff0000';
+                if(t==='plat') c='#00ff00';
+                this.entities.push({x, y, w, h, t, c, dead:false});
+            },
+
+            jump: function() {
+                if(this.active && this.player.ground) {
+                    this.player.dy = -15; this.player.ground = false; beep(300, 'sine', 0.1);
+                }
+            },
+
+            explode: function(x, y, c) {
+                for(let i=0; i<8; i++) this.particles.push({x, y, vx:(Math.random()-0.5)*10, vy:(Math.random()-1)*10, c, life:1});
+                this.shake = 10;
+            },
+
+            text: function(str, x, y, c) {
+                this.texts.push({str, x, y, c, life:1});
+            },
+
+            over: function() {
+                this.active = false; beep(100, 'sawtooth', 0.5);
+                auth.save();
+                document.getElementById('endScore').innerText = Math.floor(this.score);
+                document.getElementById('endCoins').innerText = this.sessionCoins;
+                ui.showOver();
             }
+        };
 
-            // Effects
-            effects.forEach(f => {
-                ctx.fillStyle=f.c||'#fff'; ctx.font="900 20px Fredoka"; ctx.globalAlpha=f.l;
-                ctx.fillText(f.txt, f.x, f.y); ctx.globalAlpha=1;
-            });
-
-            // HUD
-            document.getElementById('uiScore').innerText=Math.floor(score);
-            document.getElementById('uiCoins').innerText=user.coins+coins;
-            
-            if(gameState==='PLAY') requestAnimationFrame(function(){update();draw()});
-        }
-
-        // --- SHOP FIX ---
-        let shopTab='skins';
-        function switchShop(t) { shopTab=t; renderShop(); }
-        function renderShop() {
-            const g=document.getElementById('shopGrid'); g.innerHTML=''; 
-            const isS=shopTab==='skins', DB=isS?SKINS:PETS, inv=isS?user.inventory:user.pets, eq=isS?user.skin:user.pet;
-            document.getElementById('shopBalance').innerText = user.coins;
-
-            for(let k in DB) {
-                let i=DB[k], has=inv.includes(k), isEq=eq===k;
-                let d=document.createElement('div'); d.className=`shop-item ${has?'owned':''} ${isEq?'equipped':''}`;
-                
-                // CREATE PREVIEW CANVAS
-                let c=document.createElement('canvas'); c.width=80; c.height=80; c.className='preview-canvas';
-                let x=c.getContext('2d');
-                
-                // RENDER PREVIEW (CENTERED)
-                if(isS) renderEntity(x, 25, 10, 1.2, 'avatar', k); // Avatar centered
-                else renderEntity(x, 28, 28, 1.2, 'pet', k);       // Pet centered
-
-                let bTxt=isEq?"EQUIPPED":(has?"SELECT":i.price), bCls=isEq?"btn-green":(has?"btn-blue":"btn-orange");
-                d.innerHTML=`<div style="font-weight:bold;color:#fff;margin-bottom:5px">${i.name}</div>`; d.appendChild(c);
-                d.innerHTML+=`<button class="btn ${bCls}" style="padding:8px;font-size:10px;width:100%" onclick="buy('${k}')">${bTxt}</button>`;
-                g.appendChild(d);
+        function loop() {
+            if(game.active) {
+                game.update();
+                game.draw();
+                requestAnimationFrame(loop);
             }
         }
 
-        async function buy(k) {
-            sfx('coin'); const isS=shopTab==='skins', DB=isS?SKINS:PETS, i=DB[k];
-            let inv=isS?user.inventory:user.pets;
-            if(inv.includes(k)) { if(isS)user.skin=k; else user.pet=k; }
-            else { if(user.coins>=i.price){user.coins-=i.price; if(isS)user.inventory.push(k); else user.pets.push(k); if(isS)user.skin=k;else user.pet=k;} else { alert("Soldi insufficienti!"); return; } }
-            renderShop();
-            if(user.id!=='guest'&&sb) { let p={coins:user.coins}; if(isS){p.inventory=user.inventory.join(',');p.current_skin=user.skin}else{p.pets=user.pets.join(',');p.current_pet=user.pet} await sb.from('leo_players').update(p).eq('id',user.id); }
-        }
+        // --- SHOP & UI SYSTEM ---
+        const ui = {
+            hideAll: () => document.querySelectorAll('.modal').forEach(e => e.style.display = 'none'),
+            showGame: () => { ui.hideAll(); },
+            showShop: () => { document.getElementById('menuOver').style.display='none'; document.getElementById('menuShop').style.display='flex'; shop.render('skins'); },
+            showOver: () => { document.getElementById('menuOver').style.display='flex'; }
+        };
 
-        // UTILS
-        function spawnDebris(x,y,c){for(let i=0;i<5;i++)effects.push({x:x,y:y,txt:'▪',c:c,l:1});}
-        function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) { return x2 > w1 + x1 || x1 > w2 + x2 || y2 > h1 + y1 || y1 > h2 + y2 ? false : true; }
-        function openShop(){document.getElementById('gameOverMenu').style.display='none';document.getElementById('shopMenu').style.display='flex';renderShop()}
-        function closeShop(){document.getElementById('shopMenu').style.display='none';document.getElementById('gameOverMenu').style.display='flex'}
-        function inputStart(e){if(gameState!=='PLAY')return; if(e.type==='keydown'&&e.code!=='Space'&&e.code!=='ArrowUp')return;e.preventDefault(); if(player.ground){player.dy=-13;player.ground=false;sfx('jump');}}
-        window.addEventListener('keydown',inputStart);
+        const shop = {
+            tab: 'skins',
+            render: function(type) {
+                this.tab = type;
+                const list = document.getElementById('shopGrid'); list.innerHTML = '';
+                const db = type === 'skins' ? SKINS : PETS;
+                const owned = type === 'skins' ? user.skins : user.pets;
+                const curr = type === 'skins' ? user.curSkin : user.curPet;
+                document.getElementById('shopMoney').innerText = user.coins;
 
-        // STATE MNG
-        function gameOver(){gameState='END';sfx('die');document.getElementById('gameOverMenu').style.display='flex';document.getElementById('finalScore').innerText=Math.floor(score);document.getElementById('finalCoins').innerText=coins;saveData();}
-        function resetGame(){entities=[];effects=[];score=0;coins=0;speed=6;frames=0;player.y=200;player.dy=0;player.inv=0;player.mag=0;gameState='PLAY';document.querySelectorAll('.overlay').forEach(e=>e.style.display='none');document.getElementById('jumpBtn').style.display='flex';update();draw();}
-        
-        // AUTH
-        async function doLogin(){const u=document.getElementById('loginUser').value,p=document.getElementById('loginPass').value;if(!sb)return playGuest();try{let{data}=await sb.from('leo_players').select('*').eq('username',u).eq('password',p).single();if(!data)throw 0;user=data;user.inventory=(data.inventory||'noob').split(',');user.pets=(data.pets||'none').split(',');startGame()}catch(e){playGuest()}}
-        async function doRegister(){const u=document.getElementById('loginUser').value,p=document.getElementById('loginPass').value;if(sb)await sb.from('leo_players').insert([{username:u,password:p,coins:0,inventory:'noob',pets:'none'}]);alert("OK");}
-        function playGuest(){user.username="Guest"+Math.floor(Math.random()*99);startGame()}
-        function startGame(){document.getElementById('uiName').innerText=user.username;document.getElementById('uiCoins').innerText=user.coins;loadLeaderboard();resetGame();}
-        async function saveData(){if(user.id!=='guest'&&sb)await sb.from('leo_players').update({coins:user.coins+coins,best_score:Math.max(user.highscore,Math.floor(score))}).eq('id',user.id);loadLeaderboard();}
-        async function loadLeaderboard(){if(!sb)return;let{data}=await sb.from('leo_players').select('username,best_score').order('best_score',{ascending:false}).limit(5);if(data)document.getElementById('leaderList').innerHTML=data.map((p,i)=>`<div>${i+1}.${p.username} <span style="color:#ff4757">${p.best_score}</span></div>`).join('');}
+                for(let k in db) {
+                    let item = db[k];
+                    let isOwned = owned.includes(k);
+                    let isEq = curr === k;
+                    
+                    let div = document.createElement('div');
+                    div.className = `item ${isOwned?'owned':''} ${isEq?'equipped':''}`;
+                    
+                    // Simple Box Preview using Canvas
+                    let cvs = document.createElement('canvas');
+                    cvs.width=40; cvs.height=40; 
+                    let cx = cvs.getContext('2d');
+                    cx.fillStyle = item.c || '#fff';
+                    cx.fillRect(0,0,40,40);
+                    if(item.detail) { cx.fillStyle=item.detail; cx.fillRect(10,10,20,10); }
 
-        window.onload=()=>{
-            let grd=ctx.createLinearGradient(0,0,0,500); grd.addColorStop(0, WORLDS[1].top); grd.addColorStop(1, WORLDS[1].bot);
-            ctx.fillStyle=grd; ctx.fillRect(0,0,900,500); loadLeaderboard();
-        }
+                    div.innerHTML = `<div style="font-size:10px; color:#fff; margin-bottom:5px;">${item.name}</div>`;
+                    div.appendChild(cvs);
+                    
+                    let btnText = isEq ? "USATO" : (isOwned ? "USA" : item.price);
+                    let btnStyle = isEq ? "background:#0f0" : (isOwned ? "background:#00f" : "background:#f90");
+                    
+                    div.innerHTML += `<button style="padding:5px; margin:0; font-size:8px; ${btnStyle}" onclick="shop.buy('${k}')">${btnText}</button>`;
+                    list.appendChild(div);
+                }
+            },
+            buy: function(k) {
+                const db = this.tab === 'skins' ? SKINS : PETS;
+                const item = db[k];
+                let isSkin = this.tab === 'skins';
+                let owned = isSkin ? user.skins : user.pets;
+
+                if(owned.includes(k)) {
+                    if(isSkin) user.curSkin = k; else user.curPet = k;
+                } else {
+                    if(user.coins >= item.price) {
+                        user.coins -= item.price;
+                        if(isSkin) user.skins.push(k); else user.pets.push(k);
+                        if(isSkin) user.curSkin = k; else user.curPet = k;
+                        beep(1000, 'square', 0.1);
+                    } else { alert("Soldi insufficienti!"); return; }
+                }
+                this.render(this.tab);
+                auth.save();
+            }
+        };
+
+        // --- AUTH & DB ---
+        const auth = {
+            login: async () => {
+                let u = document.getElementById('inpUser').value;
+                let p = document.getElementById('inpPass').value;
+                if(!sb || !u) return auth.guest();
+                try {
+                    let {data} = await sb.from('leo_players').select('*').eq('username',u).eq('password',p).single();
+                    if(!data) throw 0;
+                    user = {
+                        id: data.id, name: data.username, coins: data.coins, high: data.best_score,
+                        skins: (data.inventory||'noob').split(','), curSkin: SKINS[data.current_skin]?data.current_skin:'noob',
+                        pets: (data.pets||'none').split(','), curPet: PETS[data.current_pet]?data.current_pet:'none'
+                    };
+                    auth.start();
+                } catch(e) { alert("Errore login"); }
+            },
+            register: async () => {
+                let u = document.getElementById('inpUser').value;
+                let p = document.getElementById('inpPass').value;
+                if(sb && u) await sb.from('leo_players').insert([{username:u, password:p, coins:0, best_score:0, inventory:'noob', pets:'none'}]);
+                alert("Registrato!");
+            },
+            guest: () => { user.name = "GUEST_"+Math.floor(Math.random()*999); auth.start(); },
+            start: () => {
+                document.getElementById('hudName').innerText = user.name;
+                document.getElementById('hudCoins').innerText = user.coins;
+                auth.loadLeader();
+                game.start();
+            },
+            save: async () => {
+                if(user.id === 'guest') return;
+                user.coins += game.sessionCoins;
+                user.high = Math.max(user.high, Math.floor(game.score));
+                document.getElementById('hudCoins').innerText = user.coins;
+                if(sb) await sb.from('leo_players').update({
+                    coins: user.coins, best_score: user.high,
+                    inventory: user.skins.join(','), current_skin: user.curSkin,
+                    pets: user.pets.join(','), current_pet: user.curPet
+                }).eq('id', user.id);
+                auth.loadLeader();
+            },
+            loadLeader: async () => {
+                let html = "Offline";
+                if(sb) {
+                    let {data} = await sb.from('leo_players').select('username,best_score').order('best_score',{ascending:false}).limit(5);
+                    if(data) html = data.map((p,i)=>`<div>${i+1}. ${p.username} - ${p.best_score}</div>`).join('');
+                }
+                document.getElementById('leaderboard').innerHTML = html;
+            }
+        };
+
+        // --- INIT ---
+        window.onload = () => {
+            // Draw initial BG
+            ctx.fillStyle = '#111'; ctx.fillRect(0,0,800,450);
+            ctx.fillStyle = '#fff'; ctx.font = "20px 'Press Start 2P'"; ctx.fillText("READY?", 350, 220);
+            auth.loadLeader();
+        };
     </script>
 </body>
 </html>
