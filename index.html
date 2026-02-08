@@ -123,8 +123,8 @@
         </div>
         <div class="hud-right">
             <div class="stat-box">SCORE: <span id="score">0</span></div>
-            <div class="stat-box">❤️ <span id="livesDisplay">1</span></div>
-            <div class="stat-box">💎 <span id="coinsDisplay">0</span></div>
+            <div class="stat-box">❤️ x <span id="livesDisplay">1</span></div>
+            <div class="stat-box">💎 x <span id="coinsDisplay">0</span></div>
         </div>
     </div>
 
@@ -186,12 +186,12 @@
     <script>
         // --- CONFIGURAZIONE SUPABASE ---
         // INSERISCI QUI LE TUE CHIAVI!
-        const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
+        const SUPABASE_URL = 'INSERISCI_QUI_LA_TUA_URL_SUPABASE';
+        const SUPABASE_KEY = 'INSERISCI_QUI_LA_TUA_ANON_KEY';
 
         let sb = null;
         try { 
-            if(!SUPABASE_URL.includes('https://jcylyutlybmbjrgghpzm.supabase.co')) {
+            if(!SUPABASE_URL.includes('INSERISCI')) {
                 sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             }
         } catch(e){ console.error("Supabase Init Error:", e); }
@@ -252,13 +252,14 @@
             if(!sb) return alert("DB non configurato!");
             const u = document.getElementById('loginUser').value.trim();
             const p = document.getElementById('loginPass').value.trim();
-            const msg = document.getElementById('loginMsg'); msg.innerText = "Verifica...";
+            const msg = document.getElementById('loginMsg'); msg.innerText = "Attendere...";
             
             try {
                 const { data, error } = await sb.from('leo_players').select('*').eq('username', u).eq('password', p).single();
-                if(error || !data) { msg.innerText = "Credenziali errate"; msg.style.color = "red"; }
+                if(error || !data) { msg.innerText = "Dati errati"; msg.style.color = "red"; }
                 else {
                     currentUser = data;
+                    // Fix null values
                     if(!currentUser.inventory) currentUser.inventory = "default";
                     if(!currentUser.current_skin) currentUser.current_skin = "default";
                     if(currentUser.coins === null) currentUser.coins = 0;
@@ -269,7 +270,7 @@
                     document.getElementById('jumpButton').style.display = 'flex';
                     resetGame();
                 }
-            } catch(err) { msg.innerText = "Errore connessione"; msg.style.color="red"; }
+            } catch(err) { msg.innerText = "Errore rete"; }
         }
 
         async function saveGameData(scoreToAdd, coinsToAdd) {
@@ -294,13 +295,13 @@
             if(data) {
                 const html = data.map((u, i) => {
                     let skinKey = u.current_skin || 'default';
-                    let skinStyle = SKINS[skinKey] ? SKINS[skinKey].css : SKINS['default'].css;
+                    let skinColor = SKINS[skinKey] ? SKINS[skinKey].front : '#00ff00';
                     let rankColor = i === 0 ? "#ffd700" : (i === 1 ? "#c0c0c0" : "#cd7f32");
                     return `
                     <li class="ranking-item">
                         <div class="leader-rank-area">
                             <span style="color:${rankColor}; width:15px;">${i+1}.</span>
-                            <div class="leader-skin-icon" style="background:${skinStyle}"></div>
+                            <div class="leader-skin-icon" style="background:${skinColor}"></div>
                             <span style="color:${rankColor}">${u.username}</span>
                         </div>
                         <span>${u.best_score}</span>
@@ -333,7 +334,7 @@
                              isOwned ? `<button class="buy-btn" style="background:#00ff00;color:#000" onclick="equipSkin('${key}')">EQUIPAGGIA</button>` :
                              `<button class="buy-btn" style="background:#ffd700;color:#000" onclick="buySkin('${key}')">${skin.price}$</button>`;
                 
-                grid.innerHTML += `<div class="skin-card ${isOwned?'owned':''} ${isEquipped?'equipped':''}"><div class="skin-preview" style="background:${skin.css};box-shadow:0 0 10px rgba(255,255,255,0.2)"></div><span class="skin-name">${skin.name}</span>${btnHtml}</div>`;
+                grid.innerHTML += `<div class="skin-card ${isOwned?'owned':''} ${isEquipped?'equipped':''}"><div class="skin-preview" style="background:${skin.front}; border-top:5px solid ${skin.top}; border-right:5px solid ${skin.side}"></div><span class="skin-name">${skin.name}</span>${btnHtml}</div>`;
             }
         }
 
@@ -708,11 +709,6 @@
             requestAnimationFrame(loop);
         }
         function loop() { if(!gameRunning) return; updateGame(); drawGame(); frames++; score+=0.1; if(frames%600===0) gameSpeed+=0.5; requestAnimationFrame(loop); }
-    
-        // Initialize Stars
-        let stars = [];
-        function initStars() { stars=[]; for(let i=0; i<60; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, size:Math.random()*2, speed:Math.random()*0.5+0.1}); }
-        function drawStars() { ctx.fillStyle="#fff"; stars.forEach(s=>{ s.x-=s.speed; if(s.x<0) s.x=canvas.width; ctx.fillRect(s.x,s.y,s.size,s.size); }); }
     </script>
 </body>
 </html>
