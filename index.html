@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO WORLD: ULTIMATE MARVEL</title>
+    <title>LEO WORLD: ULTIMATE EDITION</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;800&display=swap" rel="stylesheet">
@@ -13,15 +13,16 @@
             margin: 0; padding: 0;
             display: flex; justify-content: center; align-items: center;
             height: 100vh;
-            background: #111;
+            background: #050505;
             font-family: 'Fredoka', sans-serif;
             overflow: hidden; user-select: none; touch-action: none;
         }
 
         canvas {
-            display: block; border-radius: 4px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            display: block; border-radius: 8px;
+            box-shadow: 0 0 60px rgba(0,0,0,0.9);
             max-width: 100%; max-height: 100%;
+            border: 2px solid #333;
         }
 
         /* UI LAYER */
@@ -35,94 +36,100 @@
         .gui-top { display: flex; justify-content: space-between; align-items: flex-start; }
         
         .badge {
-            background: linear-gradient(180deg, rgba(40,40,40,0.95) 0%, rgba(20,20,20,0.95) 100%);
-            color: white; padding: 10px 18px; 
-            border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(4px); font-weight: 800; font-size: 16px;
+            background: rgba(30, 30, 30, 0.95); color: white; padding: 12px 20px; 
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px); font-weight: 800; font-size: 16px;
             display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
             text-transform: uppercase; letter-spacing: 1px;
         }
 
         .leaderboard-box {
-            background: rgba(20, 20, 20, 0.9); border-radius: 8px; padding: 15px;
-            min-width: 200px; color: #fff; font-size: 12px; pointer-events: auto;
+            background: rgba(30, 30, 30, 0.95); border-radius: 12px; padding: 15px;
+            min-width: 220px; color: #fff; font-size: 12px; pointer-events: auto;
             border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
         }
 
         /* MENU STYLES */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); backdrop-filter: blur(12px);
+            background: rgba(0,0,0,0.92); backdrop-filter: blur(15px);
             display: flex; justify-content: center; align-items: center; z-index: 100;
         }
         
         .card {
-            background: #1e272e; padding: 30px; border-radius: 16px;
-            width: 380px; text-align: center; border: 1px solid #485460;
-            box-shadow: 0 20px 80px rgba(0,0,0,0.8); color: white;
+            background: #1e272e; padding: 35px; border-radius: 24px;
+            width: 420px; text-align: center; border: 1px solid #485460;
+            box-shadow: 0 30px 90px rgba(0,0,0,1); color: white;
             position: relative; overflow: hidden;
         }
         
-        /* Effetto luce card */
+        /* Neon Strip */
         .card::before {
-            content:''; position: absolute; top:0; left:0; width:100%; height:5px;
-            background: linear-gradient(90deg, #e74c3c, #f1c40f, #3498db);
+            content:''; position: absolute; top:0; left:0; width:100%; height:6px;
+            background: linear-gradient(90deg, #ff4757, #ffa502, #2ed573, #1e90ff);
         }
 
-        h1 { margin: 10px 0 5px 0; color: #fff; font-weight: 900; font-size: 36px; letter-spacing: -1px; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        h2 { color: #e74c3c; margin-top: 0; font-size: 14px; letter-spacing: 3px; font-weight: 600; }
+        h1 { margin: 10px 0 5px 0; color: #fff; font-weight: 900; font-size: 40px; letter-spacing: -2px; text-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        h2 { color: #ffa502; margin-top: 0; font-size: 14px; letter-spacing: 4px; font-weight: 600; margin-bottom: 20px; }
         
         input { 
-            width: 100%; padding: 14px; margin: 10px 0; 
+            width: 100%; padding: 16px; margin: 10px 0; 
             background: #000; border: 2px solid #485460; color: white;
-            border-radius: 8px; box-sizing: border-box; font-family: inherit; font-weight: bold;
+            border-radius: 12px; box-sizing: border-box; font-family: inherit; font-weight: bold; font-size: 14px;
         }
-        input:focus { border-color: #e74c3c; outline: none; }
+        input:focus { border-color: #ffa502; outline: none; }
         
         .btn {
-            width: 100%; padding: 16px; border: none; border-radius: 8px;
+            width: 100%; padding: 18px; border: none; border-radius: 12px;
             font-family: 'Fredoka', sans-serif; font-weight: 900; font-size: 16px; cursor: pointer;
             margin-top: 10px; color: #fff; transition: all 0.2s;
             text-transform: uppercase; letter-spacing: 1px;
             position: relative; overflow: hidden;
         }
-        .btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        .btn:hover { transform: translateY(-3px); filter: brightness(1.1); }
         .btn:active { transform: translateY(2px); filter: brightness(0.9); }
         
-        .btn-green { background: linear-gradient(to bottom, #2ecc71, #27ae60); box-shadow: 0 4px 0 #1e8449; }
-        .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); box-shadow: 0 4px 0 #1c5980; }
-        .btn-orange { background: linear-gradient(to bottom, #f1c40f, #f39c12); box-shadow: 0 4px 0 #d35400; color: #000; }
+        .btn-green { background: linear-gradient(to bottom, #2ecc71, #27ae60); box-shadow: 0 5px 0 #1e8449; }
+        .btn-blue { background: linear-gradient(to bottom, #3498db, #2980b9); box-shadow: 0 5px 0 #1c5980; }
+        .btn-orange { background: linear-gradient(to bottom, #ffa502, #ff7f50); box-shadow: 0 5px 0 #d35400; color: #000; text-shadow: 0 1px 0 rgba(255,255,255,0.4); }
         
         /* SHOP GRID */
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; max-height: 260px; overflow-y: auto; padding-right: 5px; }
-        .shop-item { 
-            background: #2f3640; border-radius: 8px; padding: 12px; 
-            border: 2px solid #485460; cursor: pointer; position: relative;
-            transition: all 0.2s;
+        .shop-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; 
+            margin-top: 25px; max-height: 300px; overflow-y: auto; padding-right: 8px; 
         }
-        .shop-item:hover { transform: scale(1.02); border-color: #fff; }
+        .shop-item { 
+            background: #2f3640; border-radius: 12px; padding: 15px; 
+            border: 2px solid #485460; cursor: pointer; position: relative;
+            transition: all 0.2s; display: flex; flex-direction: column; align-items: center;
+        }
+        .shop-item:hover { transform: scale(1.03); border-color: #fff; background: #353b48; }
         .shop-item.owned { border-color: #3498db; }
-        .shop-item.equipped { border-color: #e74c3c; background: linear-gradient(135deg, rgba(231,76,60,0.1), rgba(231,76,60,0.2)); box-shadow: 0 0 15px rgba(231, 76, 60, 0.4); }
+        .shop-item.equipped { border-color: #2ed573; background: linear-gradient(135deg, rgba(46, 213, 115, 0.1), rgba(46, 213, 115, 0.2)); box-shadow: 0 0 20px rgba(46, 213, 115, 0.2); }
         
-        .preview-canvas { width: 60px; height: 60px; margin: 5px auto; display: block; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); }
+        .preview-canvas { 
+            width: 70px; height: 70px; margin: 10px auto; display: block; 
+            filter: drop-shadow(0 8px 8px rgba(0,0,0,0.5)); 
+        }
 
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-track { background: #111; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
 
         /* CONTROLS */
         #jumpBtn {
             position: absolute; bottom: 40px; right: 40px;
-            width: 100px; height: 100px; 
-            background: linear-gradient(135deg, rgba(231, 76, 60, 0.4), rgba(192, 57, 43, 0.6));
+            width: 110px; height: 110px; 
+            background: linear-gradient(135deg, rgba(255, 71, 87, 0.4), rgba(255, 107, 129, 0.6));
             border: 2px solid rgba(255,255,255,0.4); border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             pointer-events: auto; backdrop-filter: blur(10px); cursor: pointer;
-            transition: transform 0.1s; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.1s; box-shadow: 0 15px 40px rgba(0,0,0,0.4);
         }
-        #jumpBtn:active { transform: scale(0.9); background: rgba(231, 76, 60, 0.8); }
+        #jumpBtn:active { transform: scale(0.9); background: rgba(255, 71, 87, 0.8); }
     </style>
 </head>
 <body>
@@ -130,18 +137,18 @@
     <div id="uiLayer">
         <div class="gui-top">
             <div>
-                <div class="badge" style="border-left: 4px solid #3498db;">👤 <span id="uiName">...</span></div>
-                <div class="badge" style="border-left: 4px solid #f1c40f; color:#f1c40f;">⬢ <span id="uiCoins">0</span></div>
+                <div class="badge" style="border-left: 5px solid #3498db;">👤 <span id="uiName">...</span></div>
+                <div class="badge" style="border-left: 5px solid #ffa502; color:#ffa502;">⬢ <span id="uiCoins">0</span></div>
             </div>
             <div class="leaderboard-box">
-                <div style="border-bottom:1px solid #ffffff20; margin-bottom:8px; padding-bottom:5px; font-weight:900; letter-spacing:1px; color:#e74c3c; display:flex; justify-content:space-between;">
+                <div style="border-bottom:2px solid #ffffff20; margin-bottom:10px; padding-bottom:5px; font-weight:900; letter-spacing:1px; color:#ff4757; display:flex; justify-content:space-between;">
                     <span>TOP HEROES</span> <span>🏆</span>
                 </div>
-                <div id="leaderList">Connecting...</div>
+                <div id="leaderList" style="opacity:0.8;">Connecting...</div>
             </div>
         </div>
-        <div class="badge" style="align-self: flex-end; font-size:28px; background: linear-gradient(45deg, #e74c3c, #c0392b); border:none; box-shadow:0 10px 25px rgba(231, 76, 60, 0.5);">
-            <span style="font-size:14px; opacity:0.8; margin-right:5px;">SCORE</span> <span id="uiScore">0</span>
+        <div class="badge" style="align-self: flex-end; font-size:32px; background: linear-gradient(45deg, #ff4757, #ff6b81); border:none; box-shadow:0 10px 30px rgba(255, 71, 87, 0.4);">
+            <span style="font-size:14px; opacity:0.8; margin-right:8px; font-weight:600;">SCORE</span> <span id="uiScore">0</span>
         </div>
     </div>
 
@@ -154,43 +161,43 @@
     <div id="mainMenu" class="overlay">
         <div class="card">
             <h1>LEO WORLD</h1>
-            <h2>ULTIMATE HEROES</h2>
+            <h2>ULTIMATE EDITION</h2>
             <input type="text" id="loginUser" placeholder="NOME UTENTE">
             <input type="password" id="loginPass" placeholder="PASSWORD">
             <button class="btn btn-green" onclick="doLogin()">ENTRA E GIOCA</button>
-            <button class="btn btn-blue" onclick="playGuest()">MODALITÀ OSPITE</button>
+            <button class="btn btn-blue" onclick="playGuest()">GIOCA COME OSPITE</button>
             <div style="margin-top:20px; font-size:12px; opacity:0.6; cursor:pointer; text-decoration:underline;" onclick="doRegister()">Crea un nuovo account</div>
         </div>
     </div>
 
     <div id="shopMenu" class="overlay" style="display:none;">
-        <div class="card" style="width: 450px;">
-            <h1 style="color:#f1c40f">SHOP</h1>
+        <div class="card" style="width: 500px;">
+            <h1 style="color:#ffa502">SHOP</h1>
             <h2>POTENZIA IL TUO EROE</h2>
-            <div class="badge" style="justify-content:center; margin:10px auto; background:#2f3640; width: fit-content;">SALDO: ⬢ <span id="shopBalance">0</span></div>
-            <div style="display:flex; gap:10px; margin:20px 0; justify-content:center;">
-                <button class="btn btn-blue" style="width:auto; padding:10px 30px; margin:0;" onclick="switchShop('skins')">SKINS</button>
-                <button class="btn btn-orange" style="width:auto; padding:10px 30px; margin:0;" onclick="switchShop('pets')">PETS</button>
+            <div class="badge" style="justify-content:center; margin:10px auto; background:#2f3640; width: fit-content; border:1px solid #485460;">SALDO DISPONIBILE: ⬢ <span id="shopBalance" style="color:#ffa502">0</span></div>
+            <div style="display:flex; gap:15px; margin:25px 0; justify-content:center;">
+                <button class="btn btn-blue" style="width:auto; padding:12px 40px; margin:0;" onclick="switchShop('skins')">EROI</button>
+                <button class="btn btn-orange" style="width:auto; padding:12px 40px; margin:0;" onclick="switchShop('pets')">PETS</button>
             </div>
             <div class="shop-grid" id="shopGrid"></div>
-            <button class="btn btn-green" style="margin-top:20px;" onclick="closeShop()">TORNA AL GIOCO</button>
+            <button class="btn btn-green" style="margin-top:25px;" onclick="closeShop()">TORNA AL GIOCO</button>
         </div>
     </div>
 
     <div id="gameOverMenu" class="overlay" style="display:none;">
         <div class="card">
-            <h1 style="color:#e74c3c; font-size: 50px;">CRASH!</h1>
-            <p style="opacity:0.7; letter-spacing:1px; margin-bottom:20px;">MISSIONE FALLITA</p>
+            <h1 style="color:#ff4757; font-size: 50px;">GAME OVER</h1>
+            <p style="opacity:0.7; letter-spacing:2px; margin-bottom:25px;">MISSIONE FALLITA</p>
             
-            <div style="background:#111; padding:15px; border-radius:12px; border:1px solid #333;">
-                <div style="font-size:20px; color:#aaa;">PUNTEGGIO</div>
-                <div style="font-size:32px; font-weight:900; color:#fff;" id="finalScore">0</div>
-                <div style="margin-top:10px; font-size:16px; color:#f1c40f; display:flex; align-items:center; justify-content:center; gap:5px;">
-                    <span>+</span><span id="finalCoins" style="font-weight:800; font-size:24px;">0</span> <span>⬢</span>
+            <div style="background:#111; padding:20px; border-radius:16px; border:2px solid #333;">
+                <div style="font-size:14px; color:#aaa; margin-bottom:5px;">PUNTEGGIO TOTALE</div>
+                <div style="font-size:42px; font-weight:900; color:#fff;" id="finalScore">0</div>
+                <div style="margin-top:15px; padding-top:15px; border-top:1px solid #333; font-size:18px; color:#ffa502; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <span>GUADAGNO:</span> <span style="font-weight:800; font-size:28px;">+</span><span id="finalCoins" style="font-weight:800; font-size:28px;">0</span> <span>⬢</span>
                 </div>
             </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:25px;">
                 <button class="btn btn-green" style="margin:0;" onclick="resetGame()">RIPROVA</button>
                 <button class="btn btn-orange" style="margin:0;" onclick="openShop()">SHOP</button>
             </div>
@@ -198,37 +205,38 @@
     </div>
 
     <script>
-        // --- CONFIGURAZIONE MONDI ---
+        // --- 1. SUPABASE & CONFIGURAZIONE ---
+        const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
+        
+        let sb = null;
+        try { if(typeof supabase !== 'undefined') sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } 
+        catch(e) { console.warn("Modalità Offline attivata"); }
+
         const WORLDS = {
             1: { name: "Sky Kingdom", skyTop: '#48dbfb', skyBot: '#c8d6e5', ground: '#1dd1a1', studs: '#10ac84' }
         };
         let currentWorldId = 1;
 
-        // --- SUPABASE CONFIG ---
-        const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
-        let sb = null;
-        try { if(typeof supabase !== 'undefined') sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
-
-        // --- ASSETS: MARVEL SKIN PACK & PETS ---
+        // --- 2. ASSETS & DATABASE OGGETTI ---
         const SKINS = {
-            'noob': { name: 'NOOB', price: 0, type: 'basic' },
-            'iron': { name: 'IRON MAN', price: 2500, type: 'ironman' },
-            'spider': { name: 'SPIDER-MAN', price: 5000, type: 'spiderman' },
-            'cap': { name: 'CAP AMERICA', price: 7500, type: 'cap' },
-            'hulk': { name: 'HULK', price: 10000, type: 'hulk' }
+            'noob': { name: 'NOOB', price: 0, type: 'basic', colors: ['#ffeaa7', '#0984e3', '#55efc4'] },
+            'iron': { name: 'IRON MAN', price: 2500, type: 'ironman', colors: ['#c0392b', '#c0392b', '#f1c40f'] },
+            'spider': { name: 'SPIDER-MAN', price: 5000, type: 'spiderman', colors: ['#e74c3c', '#3498db', '#c0392b'] },
+            'cap': { name: 'CAP AMERICA', price: 7500, type: 'cap', colors: ['#3498db', '#3498db', '#c0392b'] },
+            'hulk': { name: 'HULK', price: 10000, type: 'hulk', colors: ['#2ecc71', '#2ecc71', '#8e44ad'] }
         };
 
         const PETS = {
-            'none': { name: 'NESSUNO', price: 0, type: 'none' },
-            'cube': { name: 'TESSERACT', price: 1000, type: 'cube' },
-            'doge': { name: 'DOGE STARK', price: 3000, type: 'doge' },
-            'ufo': { name: 'QUINJET', price: 6000, type: 'ufo' }
+            'none': { name: 'NESSUNO', price: 0, type: 'none', color: null },
+            'cube': { name: 'TESSERACT', price: 1000, type: 'cube', color: '#3498db' },
+            'doge': { name: 'DOGE', price: 3000, type: 'doge', color: '#f1c40f' },
+            'ufo': { name: 'UFO', price: 6000, type: 'ufo', color: '#95a5a6' }
         };
 
         let user = { username: 'Guest', id: 'guest', coins: 0, highscore: 0, inventory: ['noob'], skin: 'noob', pets: ['none'], pet: 'none' };
 
-        // --- AUDIO ENGINE ---
+        // --- 3. AUDIO ENGINE (Synthesized) ---
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         const audio = AudioCtx ? new AudioCtx() : null;
 
@@ -239,165 +247,124 @@
             osc.connect(gain); gain.connect(audio.destination);
             const t = audio.currentTime;
 
-            const sounds = {
-                'jump': () => {
-                    osc.type='sine'; osc.frequency.setValueAtTime(300, t); osc.frequency.linearRampToValueAtTime(600, t+0.1);
-                    gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t+0.15);
-                    osc.start(t); osc.stop(t+0.15);
-                },
-                'coin': () => {
-                    osc.type='triangle'; osc.frequency.setValueAtTime(1500, t); osc.frequency.setValueAtTime(2000, t+0.05);
-                    gain.gain.setValueAtTime(0.05, t); gain.gain.linearRampToValueAtTime(0, t+0.1);
-                    osc.start(t); osc.stop(t+0.1);
-                },
-                'coin_ele': () => { 
-                    osc.type='square'; osc.frequency.setValueAtTime(400, t); osc.frequency.linearRampToValueAtTime(1200, t+0.4);
-                    gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t+0.4);
-                    osc.start(t); osc.stop(t+0.4);
-                },
-                'break': () => { 
-                    osc.type='sawtooth'; osc.frequency.setValueAtTime(100, t); osc.frequency.exponentialRampToValueAtTime(10, t+0.2);
-                    gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0, t+0.2);
-                    osc.start(t); osc.stop(t+0.2);
-                },
-                'spring': () => { 
-                    osc.type='sine'; osc.frequency.setValueAtTime(200, t); osc.frequency.linearRampToValueAtTime(800, t+0.3);
-                    gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0, t+0.3);
-                    osc.start(t); osc.stop(t+0.3);
-                },
-                'die': () => {
-                    osc.type='triangle'; osc.frequency.setValueAtTime(300, t); osc.frequency.exponentialRampToValueAtTime(50, t+0.5);
-                    gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t+0.5);
-                    osc.start(t); osc.stop(t+0.5);
-                }
-            };
-            if(sounds[name]) sounds[name]();
+            if (name === 'jump') { 
+                osc.type = 'sine'; osc.frequency.setValueAtTime(300, t); osc.frequency.linearRampToValueAtTime(600, t+0.1);
+                gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t+0.15);
+                osc.start(t); osc.stop(t+0.15);
+            } else if (name === 'coin') { 
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(1500, t); osc.frequency.setValueAtTime(2500, t+0.05);
+                gain.gain.setValueAtTime(0.05, t); gain.gain.linearRampToValueAtTime(0, t+0.1);
+                osc.start(t); osc.stop(t+0.1);
+            } else if (name === 'coin_ele') { 
+                osc.type = 'square'; osc.frequency.setValueAtTime(400, t); osc.frequency.linearRampToValueAtTime(1200, t+0.4);
+                gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t+0.4);
+                osc.start(t); osc.stop(t+0.4);
+            } else if (name === 'break') { 
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, t); osc.frequency.exponentialRampToValueAtTime(10, t+0.2);
+                gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0, t+0.2);
+                osc.start(t); osc.stop(t+0.2);
+            } else if (name === 'spring') { 
+                osc.type = 'sine'; osc.frequency.setValueAtTime(200, t); osc.frequency.linearRampToValueAtTime(800, t+0.3);
+                gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0, t+0.3);
+                osc.start(t); osc.stop(t+0.3);
+            } else if (name === 'die') { 
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, t); osc.frequency.exponentialRampToValueAtTime(50, t+0.5);
+                gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t+0.5);
+                osc.start(t); osc.stop(t+0.5);
+            }
         }
 
-        // --- GRAPHICS ENGINE & RENDERING ---
+        // --- 4. ENGINE GRAFICO: RENDERING AVANZATO ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
         function shade(hex, percent) {
-            if(!hex) return '#000';
+            if(!hex) return '#000000';
             let f=parseInt(hex.slice(1),16),t=percent<0?0:255,p=percent<0?percent*-1:percent,R=f>>16,G=f>>8&0x00FF,B=f&0x0000FF;
             return "#"+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
         }
 
         function drawVoxel(targetCtx, x, y, w, h, color, studs=true) {
             targetCtx.fillStyle = color; targetCtx.fillRect(x, y, w, h);
-            targetCtx.fillStyle = shade(color, 0.3); targetCtx.fillRect(x, y, w, 4);
-            targetCtx.fillStyle = shade(color, -0.2); targetCtx.fillRect(x+w-5, y, 5, h); targetCtx.fillRect(x, y+h-5, w, 5);
+            targetCtx.fillStyle = shade(color, 0.3); targetCtx.fillRect(x, y, w, 4); // Highlight
+            targetCtx.fillStyle = shade(color, -0.2); targetCtx.fillRect(x+w-5, y, 5, h); targetCtx.fillRect(x, y+h-5, w, 5); // Shadow
             if(studs) {
                 targetCtx.fillStyle = shade(color, 0.15);
-                for(let i=6; i<w-6; i+=12) { targetCtx.beginPath(); targetCtx.arc(x+i+3, y+3, 3, 0, Math.PI*2); targetCtx.fill(); }
+                for(let i=6; i<w-6; i+=12) {
+                    targetCtx.beginPath(); targetCtx.arc(x+i+3, y+3, 3, 0, Math.PI*2); targetCtx.fill();
+                }
             }
         }
 
-        // --- SISTEMA DI RENDERING REALISTICO (SKINS & PETS) ---
+        // --- RENDERER PERSONAGGI DETTAGLIATO ---
         function drawAvatarDetailed(c, x, y, skinKey, isGrounded, animFrame) {
-            const type = SKINS[skinKey] ? SKINS[skinKey].type : 'basic';
-            let legAnim = !isGrounded ? -4 : Math.sin(animFrame*0.3)*4;
+            const skinData = SKINS[skinKey] || SKINS['noob'];
+            const type = skinData.type || 'basic';
+            const cols = skinData.colors;
+            
+            // Animation state
+            let legAnim = 0;
+            if(animFrame !== null) { // If animating
+                legAnim = !isGrounded ? -4 : Math.sin(animFrame*0.3)*4;
+            }
 
             c.save();
             
             if(type === 'ironman') {
-                // IRON MAN: Metal Gradient
-                let goldGrad = c.createLinearGradient(x, y, x+30, y+40);
-                goldGrad.addColorStop(0, '#f1c40f'); goldGrad.addColorStop(1, '#d35400');
-                let redGrad = c.createLinearGradient(x, y, x+30, y+40);
-                redGrad.addColorStop(0, '#e74c3c'); redGrad.addColorStop(1, '#c0392b');
+                let gold = c.createLinearGradient(x, y, x+30, y+40); gold.addColorStop(0, '#f1c40f'); gold.addColorStop(1, '#d35400');
+                let red = c.createLinearGradient(x, y, x+30, y+40); red.addColorStop(0, '#e74c3c'); red.addColorStop(1, '#c0392b');
 
-                // Head
-                c.fillStyle = redGrad; c.fillRect(x+4, y, 22, 18);
-                c.fillStyle = goldGrad; c.fillRect(x+8, y+4, 14, 14); // Faceplate
+                c.fillStyle = red; c.fillRect(x+4, y, 22, 18); // Head
+                c.fillStyle = gold; c.fillRect(x+8, y+4, 14, 14); // Face
                 c.fillStyle = "#fff"; c.fillRect(x+10, y+8, 4, 2); c.fillRect(x+16, y+8, 4, 2); // Eyes
 
-                // Body
-                c.fillStyle = redGrad; c.fillRect(x, y+18, 30, 18);
-                // Arc Reactor
-                c.fillStyle = "#3498db"; c.shadowColor = "#3498db"; c.shadowBlur = 10;
-                c.beginPath(); c.arc(x+15, y+27, 4, 0, Math.PI*2); c.fill(); c.shadowBlur = 0;
+                c.fillStyle = red; c.fillRect(x, y+18, 30, 18); // Body
+                c.fillStyle = "#3498db"; c.shadowColor="#3498db"; c.shadowBlur=8; c.beginPath(); c.arc(x+15, y+27, 4, 0, Math.PI*2); c.fill(); c.shadowBlur=0; // Arc
 
-                // Legs
-                c.fillStyle = redGrad; 
-                c.fillRect(x+2, y+36, 12, 12+legAnim); c.fillRect(x+16, y+36, 12, 12-legAnim);
-                c.fillStyle = goldGrad;
-                c.fillRect(x+2, y+44+legAnim, 12, 4); c.fillRect(x+16, y+44-legAnim, 12, 4); // Boots
+                c.fillStyle = red; c.fillRect(x+2, y+36, 12, 12+legAnim); c.fillRect(x+16, y+36, 12, 12-legAnim);
+                c.fillStyle = gold; c.fillRect(x+2, y+44+legAnim, 12, 4); c.fillRect(x+16, y+44-legAnim, 12, 4); // Boots
             } 
             else if (type === 'spiderman') {
-                // SPIDER-MAN: Web details
-                let suitRed = '#e74c3c'; let suitBlue = '#3498db';
-
-                // Head
-                c.fillStyle = suitRed; c.fillRect(x+4, y, 22, 18);
-                // Eyes
-                c.fillStyle = "#fff"; c.beginPath(); 
-                c.moveTo(x+6, y+6); c.quadraticCurveTo(x+10, y, x+15, y+6); c.lineTo(x+15, y+10); c.lineTo(x+6, y+6); c.fill();
-                c.beginPath(); 
-                c.moveTo(x+24, y+6); c.quadraticCurveTo(x+20, y, x+15, y+6); c.lineTo(x+15, y+10); c.lineTo(x+24, y+6); c.fill();
+                let r = '#e74c3c'; let b = '#3498db';
+                c.fillStyle = r; c.fillRect(x+4, y, 22, 18); // Head
+                c.fillStyle = "#fff"; // Eyes
+                c.beginPath(); c.moveTo(x+6, y+6); c.quadraticCurveTo(x+10, y, x+15, y+6); c.lineTo(x+15, y+10); c.lineTo(x+6, y+6); c.fill();
+                c.beginPath(); c.moveTo(x+24, y+6); c.quadraticCurveTo(x+20, y, x+15, y+6); c.lineTo(x+15, y+10); c.lineTo(x+24, y+6); c.fill();
                 
-                // Body
-                c.fillStyle = suitBlue; c.fillRect(x, y+18, 30, 18); // Sides
-                c.fillStyle = suitRed; c.fillRect(x+8, y+18, 14, 18); // Center
-                // Spider Logo
-                c.fillStyle = "#2c3e50"; 
-                c.beginPath(); c.arc(x+15, y+27, 2, 0, Math.PI*2); c.fill();
-                c.fillRect(x+11, y+25, 8, 1); c.fillRect(x+11, y+29, 8, 1);
+                c.fillStyle = b; c.fillRect(x, y+18, 30, 18); // Body Base
+                c.fillStyle = r; c.fillRect(x+8, y+18, 14, 18); // Body Stripe
+                c.fillStyle = "#2c3e50"; c.fillRect(x+13, y+25, 4, 5); // Spider logo
 
-                // Legs
-                c.fillStyle = suitBlue;
-                c.fillRect(x+2, y+36, 12, 12+legAnim); c.fillRect(x+16, y+36, 12, 12-legAnim);
-                c.fillStyle = suitRed; // Boots
-                c.fillRect(x+2, y+42+legAnim, 12, 6); c.fillRect(x+16, y+42-legAnim, 12, 6);
+                c.fillStyle = b; c.fillRect(x+2, y+36, 12, 12+legAnim); c.fillRect(x+16, y+36, 12, 12-legAnim);
+                c.fillStyle = r; c.fillRect(x+2, y+42+legAnim, 12, 6); c.fillRect(x+16, y+42-legAnim, 12, 6);
             }
             else if (type === 'cap') {
-                // CAPTAIN AMERICA
-                let blue = '#2980b9'; let white = '#ecf0f1'; let red = '#c0392b';
+                let b = '#2980b9'; let w = '#ecf0f1'; let r = '#c0392b';
+                c.fillStyle = b; c.fillRect(x+4, y, 22, 18); c.fillStyle = w; c.font = "bold 10px Arial"; c.fillText("A", x+12, y+10); // Head
+                c.fillStyle = b; c.fillRect(x, y+18, 30, 18); // Body
+                c.fillStyle = w; c.beginPath(); c.arc(x+15, y+25, 4, 0, Math.PI*2); c.fill(); // Star
+                c.fillStyle = w; c.fillRect(x+5, y+30, 20, 6); c.fillStyle = r; c.fillRect(x+8, y+30, 4, 6); c.fillRect(x+18, y+30, 4, 6); // Stripes
 
-                // Head
-                c.fillStyle = blue; c.fillRect(x+4, y, 22, 18);
-                c.fillStyle = white; c.font = "bold 10px Arial"; c.fillText("A", x+12, y+10); // 'A'
-
-                // Body
-                c.fillStyle = blue; c.fillRect(x, y+18, 30, 18);
-                // Star
-                c.fillStyle = white; c.beginPath(); c.arc(x+15, y+25, 4, 0, Math.PI*2); c.fill();
-                // Stripes
-                c.fillStyle = white; c.fillRect(x+5, y+30, 20, 6);
-                c.fillStyle = red; c.fillRect(x+8, y+30, 4, 6); c.fillRect(x+18, y+30, 4, 6);
-
-                // Legs
-                c.fillStyle = blue;
-                c.fillRect(x+2, y+36, 12, 12+legAnim); c.fillRect(x+16, y+36, 12, 12-legAnim);
-                c.fillStyle = "#e74c3c"; // Boots
-                c.fillRect(x+2, y+44+legAnim, 12, 4); c.fillRect(x+16, y+44-legAnim, 12, 4);
+                c.fillStyle = b; c.fillRect(x+2, y+36, 12, 12+legAnim); c.fillRect(x+16, y+36, 12, 12-legAnim);
+                c.fillStyle = "#e74c3c"; c.fillRect(x+2, y+44+legAnim, 12, 4); c.fillRect(x+16, y+44-legAnim, 12, 4);
             }
             else if (type === 'hulk') {
-                // HULK: Big & Green
-                let green = '#27ae60'; let purple = '#8e44ad';
-                
-                // Head (Bigger)
-                c.fillStyle = "#2ecc71"; c.fillRect(x+2, y-2, 26, 20); // Bright green skin
+                c.fillStyle = "#2ecc71"; c.fillRect(x+2, y-2, 26, 20); // Head
                 c.fillStyle = "#000"; c.fillRect(x+2, y-2, 26, 6); // Hair
-
-                // Body (Huge)
-                c.fillStyle = green; c.fillRect(x-2, y+18, 34, 20); // Muscles
-                // Abs shadow
-                c.fillStyle = "rgba(0,0,0,0.1)"; c.fillRect(x+14, y+20, 2, 18);
-
-                // Legs (Ripped pants)
-                c.fillStyle = purple;
+                c.fillStyle = "#27ae60"; c.fillRect(x-2, y+18, 34, 20); // Big Body
+                c.fillStyle = "rgba(0,0,0,0.1)"; c.fillRect(x+14, y+20, 2, 18); // Abs
+                
+                c.fillStyle = "#8e44ad"; // Pants
                 c.fillRect(x+2, y+38, 12, 6+legAnim); c.fillRect(x+16, y+38, 12, 6-legAnim);
-                c.fillStyle = green; // Feet
+                c.fillStyle = "#2ecc71"; // Feet
                 c.fillRect(x+2, y+44+legAnim, 12, 6); c.fillRect(x+16, y+44-legAnim, 12, 6);
             }
             else {
-                // NOOB (Classic)
-                drawVoxel(c, x+4, y, 22, 18, '#f1c40f'); // Head Yellow
-                drawVoxel(c, x, y+18, 30, 18, '#3498db'); // Body Blue
-                drawVoxel(c, x+2, y+36, 12, 12+legAnim, '#2ecc71'); // Leg Left Green
-                drawVoxel(c, x+16, y+36, 12, 12-legAnim, '#2ecc71'); // Leg Right Green
+                // Classic Noob
+                drawVoxel(c, x+4, y, 22, 18, cols[0]);
+                drawVoxel(c, x, y+18, 30, 18, cols[1]);
+                drawVoxel(c, x+2, y+36, 12, 12+legAnim, cols[2]);
+                drawVoxel(c, x+16, y+36, 12, 12-legAnim, cols[2]);
             }
             c.restore();
         }
@@ -405,27 +372,23 @@
         function drawPetDetailed(c, x, y, type) {
             c.save();
             if(type === 'cube') {
-                c.fillStyle = "#3498db"; c.shadowColor="#3498db"; c.shadowBlur=15;
-                c.fillRect(x, y, 16, 16);
-                c.fillStyle = "#fff"; c.globalAlpha=0.5;
-                c.fillRect(x+4, y+4, 8, 8);
+                c.fillStyle="#3498db"; c.shadowColor="#3498db"; c.shadowBlur=15; c.fillRect(x, y, 20, 20);
+                c.fillStyle="#fff"; c.globalAlpha=0.5; c.fillRect(x+5, y+5, 10, 10);
             }
             else if(type === 'doge') {
-                c.fillStyle = "#f1c40f"; c.fillRect(x, y, 18, 16); // Head
-                c.fillStyle = "#000"; c.fillRect(x+4, y+6, 2, 2); c.fillRect(x+12, y+6, 2, 2); // Eyes
-                c.fillStyle = "#fff"; c.fillRect(x+6, y+10, 6, 4); // Snout
-                c.fillStyle = "#000"; c.fillRect(x+8, y+10, 2, 2); // Nose
+                c.fillStyle="#f1c40f"; c.fillRect(x, y, 22, 18); // Head
+                c.fillStyle="#000"; c.fillRect(x+4, y+6, 2, 2); c.fillRect(x+16, y+6, 2, 2); // Eyes
+                c.fillStyle="#fff"; c.fillRect(x+7, y+10, 8, 4); // Snout
+                c.fillStyle="#000"; c.fillRect(x+10, y+10, 2, 2); // Nose
             }
             else if(type === 'ufo') {
-                c.fillStyle = "#95a5a6";
-                c.beginPath(); c.ellipse(x+10, y+10, 12, 4, 0, 0, Math.PI*2); c.fill(); // Saucer
-                c.fillStyle = "rgba(52, 152, 219, 0.6)";
-                c.beginPath(); c.arc(x+10, y+8, 6, 0, Math.PI*2); c.fill(); // Glass
+                c.fillStyle="#95a5a6"; c.beginPath(); c.ellipse(x+12, y+12, 14, 5, 0, 0, Math.PI*2); c.fill();
+                c.fillStyle="rgba(52, 152, 219, 0.6)"; c.beginPath(); c.arc(x+12, y+10, 7, 0, Math.PI*2); c.fill();
             }
             c.restore();
         }
 
-
+        // --- SISTEMA PARTICELLE ---
         class Debris {
             constructor(x, y, color) {
                 this.x = x; this.y = y; this.w = Math.random()*8+4; this.h = this.w;
@@ -433,64 +396,52 @@
                 this.color = color; this.life = 1.0; this.gravity = 0.8;
             }
             update() { this.vy += this.gravity; this.x += this.vx; this.y += this.vy; this.life -= 0.02; }
-            draw(targetCtx) {
-                targetCtx.globalAlpha = Math.max(0, this.life);
-                drawVoxel(targetCtx, this.x, this.y, this.w, this.h, this.color, false);
-                targetCtx.globalAlpha = 1.0;
+            draw(ctx) {
+                ctx.globalAlpha = Math.max(0, this.life);
+                drawVoxel(ctx, this.x, this.y, this.w, this.h, this.color, false);
+                ctx.globalAlpha = 1.0;
             }
         }
 
         class FloatingText {
-            constructor(text, x, y, color, size=20) {
+            constructor(text, x, y, color, size=24) {
                 this.text = text; this.x = x; this.y = y; this.color = color; this.size = size; this.life = 1.0; this.vy = -3;
             }
-            update() { this.y += this.vy; this.life -= 0.02; }
-            draw(targetCtx) {
-                targetCtx.save(); targetCtx.globalAlpha = Math.max(0, this.life); targetCtx.font = `900 ${this.size}px 'Fredoka'`;
-                targetCtx.fillStyle = this.color; targetCtx.shadowColor = 'black'; targetCtx.shadowBlur = 0; targetCtx.shadowOffsetX = 2; targetCtx.shadowOffsetY = 2;
-                targetCtx.textAlign = "center"; targetCtx.fillText(this.text, this.x, this.y); targetCtx.restore();
+            update() { this.y += this.vy; this.life -= 0.015; }
+            draw(ctx) {
+                ctx.save(); ctx.globalAlpha = Math.max(0, this.life); ctx.font = `900 ${this.size}px 'Fredoka'`;
+                ctx.fillStyle = this.color; ctx.strokeStyle = "black"; ctx.lineWidth = 3;
+                ctx.strokeText(this.text, this.x, this.y); ctx.fillText(this.text, this.x, this.y);
+                ctx.restore();
             }
         }
 
-        // --- GAME LOGIC ---
+        // --- GAME VARIABLES ---
         let gameState = 'MENU';
-        let frames = 0;
-        let gameSpeed = 6;
-        let score = 0;
-        let sessionCoins = 0;
-        let shake = 0;
-        let spawnTimer = 0; 
-        let safeZoneTimer = 0;
+        let frames = 0; let gameSpeed = 6; let score = 0; let sessionCoins = 0;
+        let shake = 0; let spawnTimer = 0; let safeZoneTimer = 0;
 
         let player = { x: 100, y: 200, w: 30, h: 48, dy: 0, grounded: false };
         let pet = { x: 50, y: 200 };
         
-        let obstacles = [];
-        let coins = [];
-        let debrisList = [];
-        let textsList = [];
-        let clouds = [];
+        let obstacles = []; let coins = []; let debrisList = []; let textsList = []; let clouds = [];
 
+        // --- GAME LOOP ---
         function update() {
             if(gameState !== 'PLAY') return;
             frames++; score += 0.05; gameSpeed += 0.0005;
 
-            // Fisica Player
+            // Physics
             player.dy += 0.65; player.y += player.dy;
             let groundY = canvas.height - 60;
-            if(player.y + player.h > groundY) {
-                player.y = groundY - player.h; player.dy = 0; player.grounded = true;
-            } else { player.grounded = false; }
+            if(player.y + player.h > groundY) { player.y = groundY - player.h; player.dy = 0; player.grounded = true; } else { player.grounded = false; }
 
-            // SPAWN LOGIC COORDINATA
+            // Spawning Logic
             if(spawnTimer > 0) spawnTimer--;
             if(safeZoneTimer > 0) safeZoneTimer--;
+            if(spawnTimer <= 0) spawnObstaclePattern();
 
-            if(spawnTimer <= 0) {
-                spawnObstaclePattern();
-            }
-
-            // Move Entities
+            // Entities Update
             clouds.forEach(c => c.x -= gameSpeed * 0.4);
             obstacles.forEach(o => o.x -= gameSpeed);
             coins.forEach(c => c.x -= gameSpeed);
@@ -503,23 +454,27 @@
                 let o = obstacles[i];
                 let oy = groundY - o.h;
                 
-                if (player.x < o.x + o.w && player.x + player.w > o.x &&
-                    player.y < oy + o.h && player.y + player.h > oy) {
+                // AABB Collision
+                if (player.x < o.x + o.w && player.x + player.w > o.x && player.y < oy + o.h && player.y + player.h > oy) {
                     
                     if(o.type === 'crate') {
+                        // Distruzione (Top/Bottom)
                         let hitTop = player.dy > 0 && (player.y + player.h) < (oy + 25);
                         let hitBot = player.dy < 0 && player.y > (oy + o.h - 25);
+                        
                         if(hitTop || hitBot) {
                             o.dead = true;
-                            if(hitTop) player.dy = -12; if(hitBot) player.dy = 5;
+                            if(hitTop) player.dy = -12; // Bounce
+                            if(hitBot) player.dy = 5;
                             score += 100; playSound('break');
                             textsList.push(new FloatingText("+100", o.x, oy, '#fff'));
                             for(let k=0; k<6; k++) debrisList.push(new Debris(o.x+o.w/2, oy+o.h/2, o.color));
-                        } else gameOver();
+                        } else {
+                            gameOver();
+                        }
                     } else if(o.type === 'spring') {
-                        // CATAPULTA: Super Salto Sincronizzato
-                        player.dy = -28; 
-                        shake = 5; playSound('spring');
+                        // Catapulta Sincronizzata
+                        player.dy = -28; shake = 8; playSound('spring');
                         textsList.push(new FloatingText("BOING!", player.x, player.y, '#a55eea', 30));
                     } else {
                         gameOver();
@@ -535,7 +490,7 @@
                     c.dead = true;
                     if(c.type === 'elephant') {
                         sessionCoins += 5; score += 500; playSound('coin_ele');
-                        textsList.push(new FloatingText("ELEPHANT! +5", c.x, c.y, '#00d2d3', 24));
+                        textsList.push(new FloatingText("EPIC! +5", c.x, c.y, '#00d2d3', 24));
                     } else {
                         sessionCoins += 1; score += 50; playSound('coin');
                         textsList.push(new FloatingText("+50", c.x, c.y, '#feca57'));
@@ -543,7 +498,7 @@
                 }
             }
 
-            // Clean
+            // Cleanup
             clouds = clouds.filter(c => c.x > -100);
             obstacles = obstacles.filter(o => !o.dead && o.x > -100);
             coins = coins.filter(c => !c.dead && c.x > -50);
@@ -552,19 +507,22 @@
             if(shake > 0) shake *= 0.9;
         }
 
-        // --- SPAWN SYSTEM "INTELLIGENTE" ---
+        // --- SMART SPAWNER ---
         function spawnObstaclePattern() {
             let r = Math.random();
             let ox = canvas.width;
             
+            // Safe Zone Check
             if (safeZoneTimer > 0) {
                 if(Math.random() < 0.5) coins.push({x: ox, y: canvas.height - 90, type: 'normal'});
                 spawnTimer = 40; return;
             }
 
+            // Logica
             if(r < 0.25) {
-                // CATAPULTA EVENT (Sincronizzato)
+                // CATAPULTA SEQUENCE
                 obstacles.push({x:ox, y:0, w:50, h:15, type:'spring', color:'#a55eea'});
+                // Calcolo traiettoria
                 let peakOffset = 400; let peakHeight = 50;
                 for(let i=0; i<3; i++) {
                     let cx = ox + peakOffset + (i*60);
@@ -573,10 +531,13 @@
                 }
                 safeZoneTimer = 160; spawnTimer = 60;
             } else if(r < 0.55) {
+                // CASSE
                 obstacles.push({x:ox, y:0, w:45, h:45, type:'crate', color:'#e58e26'}); spawnTimer = 50;
             } else if(r < 0.75) {
+                // KILLBRICK
                 obstacles.push({x:ox, y:0, w:40, h:40, type:'kill', color:'#ff4757'}); spawnTimer = 60;
             } else {
+                // WALL
                 obstacles.push({x:ox, y:0, w:40, h:80, type:'truss', color:'#2f3542'}); spawnTimer = 70;
             }
         }
@@ -590,7 +551,7 @@
             ctx.save();
             if(shake > 0.5) ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake);
 
-            // Clouds
+            // Nuvole
             ctx.fillStyle = "rgba(255,255,255,0.7)";
             clouds.forEach(c => {
                 ctx.beginPath();
@@ -600,7 +561,7 @@
                 ctx.fill();
             });
 
-            // Ground
+            // Terreno
             let groundH = 60;
             ctx.fillStyle = theme.ground; ctx.fillRect(0, canvas.height - groundH, canvas.width, groundH);
             ctx.fillStyle = theme.studs;
@@ -609,7 +570,7 @@
 
             let groundY = canvas.height - groundH;
 
-            // Obstacles
+            // Ostacoli
             obstacles.forEach(o => {
                 let oy = groundY - o.h;
                 if(o.type === 'truss') {
@@ -622,20 +583,20 @@
                     drawVoxel(ctx, o.x, oy, o.w, o.h, o.color);
                     if(o.type === 'crate') {
                          ctx.fillStyle = "rgba(0,0,0,0.15)"; ctx.fillRect(o.x+5, oy+5, o.w-10, o.h-10);
-                         ctx.fillStyle = "rgba(255,255,255,0.2)"; ctx.beginPath(); ctx.moveTo(o.x+5, oy+5); ctx.lineTo(o.x+o.w-5, oy+o.h-5); ctx.stroke();
+                         ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth=2; ctx.strokeRect(o.x+5, oy+5, o.w-10, o.h-10);
                     }
                 }
             });
 
-            // Coins
+            // Monete
             coins.forEach(c => {
                 let cy = c.y + Math.sin(frames*0.15)*6;
                 if(c.type === 'elephant') {
                     ctx.fillStyle = "#54a0ff"; ctx.beginPath();
-                    for(let i=0; i<8; i++) ctx.lineTo(c.x + 20 * Math.cos(i*Math.PI/4), cy + 20 * Math.sin(i*Math.PI/4));
+                    for(let i=0; i<8; i++) ctx.lineTo(c.x + 22 * Math.cos(i*Math.PI/4), cy + 22 * Math.sin(i*Math.PI/4));
                     ctx.fill();
-                    ctx.fillStyle = "#fff"; ctx.font = "bold 12px Arial"; ctx.textAlign="center"; ctx.fillText("E", c.x, cy+4);
-                    ctx.shadowColor = "#54a0ff"; ctx.shadowBlur = 15; ctx.stroke(); ctx.shadowBlur = 0;
+                    ctx.fillStyle = "#fff"; ctx.font = "bold 14px Arial"; ctx.textAlign="center"; ctx.fillText("E", c.x, cy+5);
+                    ctx.strokeStyle = "#fff"; ctx.lineWidth=2; ctx.stroke();
                 } else {
                     ctx.fillStyle = "#feca57"; ctx.beginPath(); ctx.arc(c.x, cy, 12, 0, Math.PI*2); ctx.fill();
                     ctx.fillStyle = "#ff9f43"; ctx.beginPath(); ctx.arc(c.x, cy, 8, 0, Math.PI*2); ctx.fill();
@@ -651,7 +612,7 @@
                 drawPetDetailed(ctx, pet.x, pet.y, PETS[user.pet].type);
             }
 
-            // Player (USA IL NUOVO DISEGNO DETTAGLIATO)
+            // Player
             if(gameState === 'PLAY') {
                 drawAvatarDetailed(ctx, player.x, player.y, user.skin, player.grounded, frames);
             }
@@ -661,17 +622,9 @@
             
             document.getElementById('uiScore').innerText = Math.floor(score);
             document.getElementById('uiCoins').innerText = user.coins + sessionCoins;
-            if(gameState === 'PLAY') requestAnimationFrame(updateGame);
+            if(gameState === 'PLAY') requestAnimationFrame(function(){ update(); draw(); });
         }
 
-        function updateGame() { update(); draw(); }
-
-        // --- INPUT ---
-        function jump() { if(player.grounded) { player.dy = -14; player.grounded = false; playSound('jump'); } }
-        function handleInput(e) { if(gameState !== 'PLAY') return; if(e.type === 'keydown' && e.code !== 'Space' && e.code !== 'ArrowUp') return; e.preventDefault(); jump(); }
-        window.addEventListener('keydown', handleInput);
-
-        // --- CORE FUNCTIONS ---
         function gameOver() {
             gameState = 'GAMEOVER'; playSound('die'); shake = 20; draw();
             document.getElementById('gameOverMenu').style.display = 'flex';
@@ -689,10 +642,10 @@
             document.getElementById('mainMenu').style.display = 'none';
             document.getElementById('shopMenu').style.display = 'none';
             document.getElementById('jumpBtn').style.display = 'flex';
-            gameState = 'PLAY'; updateGame();
+            gameState = 'PLAY'; update(); draw();
         }
 
-        // --- SUPABASE/AUTH ---
+        // --- AUTH ---
         async function doLogin() {
             const u = document.getElementById('loginUser').value; const p = document.getElementById('loginPass').value;
             if(!sb || !u) return playGuest();
@@ -700,10 +653,9 @@
                 let { data, error } = await sb.from('leo_players').select('*').eq('username', u).eq('password', p).single();
                 if(error || !data) { alert("Credenziali Errate"); return; }
                 user.id = data.id; user.username = data.username; user.coins = data.coins || 0; user.highscore = data.best_score || 0;
-                // Safe parsing per evitare crash con skin vecchie
                 let s = data.current_skin || 'noob'; user.skin = SKINS[s] ? s : 'noob';
-                user.inventory = (data.inventory || 'noob').split(',');
                 let pt = data.current_pet || 'none'; user.pet = PETS[pt] ? pt : 'none';
+                user.inventory = (data.inventory || 'noob').split(',');
                 user.pets = (data.pets || 'none').split(',');
                 startGameSession();
             } catch(e) { console.error(e); playGuest(); }
@@ -724,50 +676,102 @@
             if(user.id === 'guest') return; user.coins += sessionCoins;
             if(score > user.highscore) user.highscore = Math.floor(score);
             document.getElementById('uiCoins').innerText = user.coins;
-            if(sb) { await sb.from('leo_players').update({ coins: user.coins, best_score: user.highscore }).eq('id', user.id); loadLeaderboard(); }
+            if(sb) await sb.from('leo_players').update({ coins: user.coins, best_score: user.highscore }).eq('id', user.id); loadLeaderboard();
         }
         async function loadLeaderboard() {
             const list = document.getElementById('leaderList'); if(!sb) { list.innerHTML = "Offline Mode"; return; }
             const { data } = await sb.from('leo_players').select('username, best_score').order('best_score', {ascending:false}).limit(5);
-            if(data) list.innerHTML = data.map((p,i) => `<div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:11px;"><span>${i+1}. ${p.username}</span><span style="color:#00d2d3">${p.best_score}</span></div>`).join('');
+            if(data) list.innerHTML = data.map((p,i) => `<div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:11px;"><span>${i+1}. ${p.username}</span><span style="color:#ffa502">${p.best_score}</span></div>`).join('');
         }
-        
-        // --- SHOP SYSTEM ---
+
+        // --- SHOP & PREVIEW SYSTEM FIX ---
         let currentShopTab = 'skins';
         function openShop() { document.getElementById('gameOverMenu').style.display='none'; document.getElementById('shopMenu').style.display='flex'; switchShop('skins'); }
         function closeShop() { document.getElementById('shopMenu').style.display='none'; document.getElementById('gameOverMenu').style.display='flex'; }
         function switchShop(tab) { currentShopTab = tab; renderShop(); }
+
         function renderShop() {
-            const grid = document.getElementById('shopGrid'); grid.innerHTML = ''; document.getElementById('shopBalance').innerText = user.coins;
-            const isSkin = currentShopTab === 'skins'; const DB = isSkin ? SKINS : PETS;
-            const owned = isSkin ? user.inventory : user.pets; const equipped = isSkin ? user.skin : user.pet;
+            const grid = document.getElementById('shopGrid'); grid.innerHTML = '';
+            document.getElementById('shopBalance').innerText = user.coins;
+            
+            const isSkin = currentShopTab === 'skins';
+            const DB = isSkin ? SKINS : PETS;
+            const owned = isSkin ? user.inventory : user.pets;
+            const equipped = isSkin ? user.skin : user.pet;
+
             for(let key in DB) {
-                let item = DB[key]; let isOwned = owned.includes(key); let isEquipped = equipped === key;
-                let div = document.createElement('div'); div.className = `shop-item ${isOwned?'owned':''} ${isEquipped?'equipped':''}`;
+                let item = DB[key];
+                let isOwned = owned.includes(key);
+                let isEquipped = equipped === key;
                 
-                // Mini Preview High Quality
-                let cvs = document.createElement('canvas'); cvs.width=50; cvs.height=50; cvs.className='preview-canvas'; let cx = cvs.getContext('2d');
-                if(isSkin) { drawAvatarDetailed(cx, 10, 5, key, true, 0); }
-                else { drawPetDetailed(cx, 15, 15, item.type); }
+                let div = document.createElement('div');
+                div.className = `shop-item ${isOwned?'owned':''} ${isEquipped?'equipped':''}`;
                 
-                let btnTxt = isEquipped ? "EQUIPPED" : (isOwned ? "SELECT" : item.price); let btnClass = isEquipped ? "btn-green" : (isOwned ? "btn-blue" : "btn-orange");
-                div.innerHTML = `<div style="font-weight:bold; font-size:12px; color:#fff">${item.name}</div>`; div.appendChild(cvs);
-                div.innerHTML += `<button class="btn ${btnClass}" style="padding:8px; font-size:10px; margin-top:5px;" onclick="buyItem('${key}')">${btnTxt}</button>`;
+                // CREAZIONE ANTEPRIMA CANVAS
+                let cvs = document.createElement('canvas');
+                cvs.width = 70; cvs.height = 70; 
+                cvs.className = 'preview-canvas';
+                let cx = cvs.getContext('2d');
+
+                // FIX RENDERIZZAZIONE ANTEPRIMA
+                if(isSkin) {
+                    // Disegna Avatar grande e centrato
+                    drawAvatarDetailed(cx, 20, 10, key, true, 0); 
+                } else {
+                    // Disegna Pet grande e centrato
+                    drawPetDetailed(cx, 25, 25, item.type);
+                }
+
+                let btnTxt = isEquipped ? "EQUIPPED" : (isOwned ? "SELECT" : item.price);
+                let btnCls = isEquipped ? "btn-green" : (isOwned ? "btn-blue" : "btn-orange");
+
+                div.innerHTML = `<div style="font-weight:bold; font-size:12px; color:#fff; margin-bottom:5px;">${item.name}</div>`;
+                div.appendChild(cvs);
+                div.innerHTML += `<button class="btn ${btnCls}" style="padding:8px; font-size:10px; margin-top:5px; width:100%;" onclick="buyItem('${key}')">${btnTxt}</button>`;
                 grid.appendChild(div);
             }
         }
+
         async function buyItem(k) {
-            playSound('coin'); const isSkin = currentShopTab === 'skins'; const DB = isSkin ? SKINS : PETS; let item = DB[k]; let inv = isSkin ? user.inventory : user.pets;
-            if(inv.includes(k)) { if(isSkin) user.skin = k; else user.pet = k; } 
-            else { if(user.coins >= item.price) { user.coins -= item.price; if(isSkin) user.inventory.push(k); else user.pets.push(k); if(isSkin) user.skin = k; else user.pet = k; } else { alert("Non hai abbastanza monete!"); return; } }
+            playSound('coin');
+            const isSkin = currentShopTab === 'skins';
+            const DB = isSkin ? SKINS : PETS;
+            let item = DB[k];
+            let inv = isSkin ? user.inventory : user.pets;
+
+            if(inv.includes(k)) {
+                if(isSkin) user.skin = k; else user.pet = k;
+            } else {
+                if(user.coins >= item.price) {
+                    user.coins -= item.price;
+                    if(isSkin) user.inventory.push(k); else user.pets.push(k);
+                    if(isSkin) user.skin = k; else user.pet = k;
+                } else { alert("Non hai abbastanza monete!"); return; }
+            }
             renderShop();
-            if(user.id !== 'guest' && sb) { let payload = { coins: user.coins }; if(isSkin) { payload.inventory = user.inventory.join(','); payload.current_skin = user.skin; } else { payload.pets = user.pets.join(','); payload.current_pet = user.pet; } await sb.from('leo_players').update(payload).eq('id', user.id); }
+            if(user.id !== 'guest' && sb) {
+                let payload = { coins: user.coins };
+                if(isSkin) { payload.inventory = user.inventory.join(','); payload.current_skin = user.skin; }
+                else { payload.pets = user.pets.join(','); payload.current_pet = user.pet; }
+                await sb.from('leo_players').update(payload).eq('id', user.id);
+            }
         }
 
+        // --- INPUT ---
+        function handleInput(e) {
+            if(gameState !== 'PLAY') return;
+            if(e.type === 'keydown' && e.code !== 'Space' && e.code !== 'ArrowUp') return;
+            e.preventDefault();
+            if(player.grounded) { player.dy = -14; player.grounded = false; playSound('jump'); }
+        }
+        window.addEventListener('keydown', handleInput);
+
         window.onload = () => {
-            const theme = WORLDS[1]; let grd = ctx.createLinearGradient(0,0,0,canvas.height);
+            const theme = WORLDS[1];
+            let grd = ctx.createLinearGradient(0, 0, 0, canvas.height);
             grd.addColorStop(0, theme.skyTop); grd.addColorStop(1, theme.skyBot);
-            ctx.fillStyle = grd; ctx.fillRect(0,0,canvas.width,canvas.height); loadLeaderboard();
+            ctx.fillStyle = grd; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            loadLeaderboard();
         };
     </script>
 </body>
