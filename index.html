@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO GAME - STABLE EDITION</title>
+    <title>LEO GAME - FINAL PRODUCTION</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -19,97 +19,104 @@
             user-select: none; -webkit-user-select: none; touch-action: none;
         }
 
-        /* Scanline Effect */
+        /* SFONDO E EFFETTI */
         body::after {
             content: " "; display: block; position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            background-size: 100% 4px; z-index: 2; pointer-events: none;
+            background: linear-gradient(rgba(10, 10, 20, 0.8), rgba(0, 0, 0, 0.9));
+            z-index: -1; pointer-events: none;
         }
 
         canvas {
-            border: 3px solid #333;
+            border: 4px solid #444;
             background: #111;
-            box-shadow: 0 0 40px rgba(0, 200, 255, 0.15); 
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.8); 
             max-width: 100%; max-height: 100%;
-            transition: background 1s ease, border-color 0.5s ease;
+            transition: all 0.3s ease;
         }
         
-        canvas.fire-sky { background: linear-gradient(to bottom, #ff3300, #4a0000) !important; border-color: #ff3300 !important; box-shadow: 0 0 60px #ff0000 !important; }
-        canvas.shield-sky { animation: strobe 0.2s infinite; border-color: #00ffff !important; box-shadow: 0 0 50px #00ffff !important; }
+        canvas.fire-sky { 
+            background: linear-gradient(to bottom, #880000, #220000) !important; 
+            border-color: #ff3300 !important; 
+            box-shadow: 0 0 50px #ff3300 !important; 
+        }
+        canvas.shield-sky {
+            animation: strobe 0.2s infinite;
+            border-color: #00ffff !important;
+            box-shadow: 0 0 50px #00ffff !important;
+        }
 
-        @keyframes strobe { 0% { background: #001133; } 50% { background: #003366; } 100% { background: #001133; } }
+        @keyframes strobe {
+            0% { background: #001133; filter: brightness(1.2); }
+            50% { background: #003366; filter: brightness(1.5); }
+            100% { background: #001133; filter: brightness(1.2); }
+        }
 
         .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake {
-            10%, 90% { transform: translate3d(-5px, 0, 0); }
-            20%, 80% { transform: translate3d(8px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-10px, 0, 0); }
-            40%, 60% { transform: translate3d(10px, 0, 0); }
+            10% { transform: translate3d(-4px, 0, 0); }
+            50% { transform: translate3d(4px, 0, 0); }
         }
 
-        #ui { position: absolute; top: 10px; width: 100%; pointer-events: none; z-index: 5; display:flex; justify-content:space-between; padding: 0 20px; box-sizing: border-box;}
+        /* UI */
+        #ui { position: absolute; top: 15px; width: 100%; pointer-events: none; z-index: 10; display:flex; justify-content:space-between; padding: 0 25px; box-sizing: border-box;}
         .hud-left, .hud-right { text-align: left; }
         .hud-right { text-align: right; }
 
-        h1 { font-family: 'Press Start 2P'; font-size: 20px; margin: 0; background: -webkit-linear-gradient(#00dbde, #fc00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .stat-box { font-family: 'Press Start 2P'; font-size: 12px; margin-top: 8px; color: #fff; text-shadow: 2px 2px 0 #000; }
+        h1 { font-family: 'Press Start 2P'; font-size: 22px; margin: 0; text-shadow: 4px 4px 0 #000; color:#fff; }
+        .stat-box { font-family: 'Press Start 2P'; font-size: 11px; margin-top: 10px; color: #eee; text-shadow: 2px 2px 0 #000; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; }
 
         #damageMsg, #powerMsg {
             display: none; position: absolute; left: 50%; transform: translate(-50%, -50%);
-            font-family: 'Press Start 2P'; z-index: 15; text-shadow: 3px 3px 0 #000; pointer-events: none; text-align: center; width: 100%;
+            font-family: 'Press Start 2P'; z-index: 20; text-shadow: 4px 4px 0 #000; pointer-events: none; text-align: center; width: 100%;
         }
-        #damageMsg { top: 30%; color: red; font-size: 20px; animation: fadeUp 1s forwards; }
-        #powerMsg { top: 40%; font-size: 25px; animation: pulse 0.3s infinite alternate; }
+        #damageMsg { top: 30%; color: #ff0000; font-size: 24px; animation: fadeUp 0.8s forwards; }
+        #powerMsg { top: 40%; font-size: 30px; animation: pulse 0.3s infinite alternate; }
 
         @keyframes fadeUp { from { opacity: 1; top: 30%; } to { opacity: 0; top: 20%; } }
         @keyframes pulse { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); } }
 
+        /* MODALI */
         #loginOverlay, #shopOverlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(8px);
         }
         #shopOverlay { display: none; z-index: 110; }
 
         .login-box, .shop-box {
-            background: #151515; padding: 25px; border: 2px solid #00dbde; border-radius: 10px; text-align: center; width: 350px; box-shadow: 0 0 40px rgba(0, 219, 222, 0.2);
+            background: #1a1a1a; padding: 30px; border: 4px solid #fff; border-radius: 0; text-align: center; width: 360px; box-shadow: 10px 10px 0 rgba(0,0,0,0.5);
             max-height: 90vh; overflow-y: auto;
         }
 
-        input { width: 85%; padding: 10px; margin: 10px 0; border: 1px solid #444; background: #000; color: #00dbde; font-family: 'Verdana'; font-weight: bold; text-align: center; outline: none; }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 2px solid #555; background: #000; color: #fff; font-family: 'Verdana'; font-weight: bold; text-align: center; outline: none; }
         
         button.main-btn {
-            width: 100%; padding: 12px; background: linear-gradient(90deg, #00dbde, #fc00ff);
-            color: white; font-family: 'Press Start 2P'; font-size: 12px; border: none; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(252, 0, 255, 0.4);
+            width: 100%; padding: 15px; background: #00aa00; color: white; font-family: 'Press Start 2P'; font-size: 12px; border: none; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 0 #005500; transition: transform 0.1s;
         }
-        button.main-btn:active { transform: scale(0.95); }
-        button.shop-btn { background: #ffd700; color: black; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+        button.main-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #005500; }
+        button.shop-btn { background: #ffaa00; box-shadow: 0 4px 0 #cc8800; color:black; }
+        button.shop-btn:active { box-shadow: 0 0 0 #cc8800; }
 
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .skin-card { background: #222; border: 1px solid #444; padding: 10px; border-radius: 5px; }
-        .skin-card.owned { border-color: #00ff00; }
-        .skin-card.equipped { border-color: #ffd700; box-shadow: 0 0 10px #ffd700; }
-        
-        .skin-preview { width: 40px; height: 40px; margin: 0 auto 10px auto; display: block; border-radius: 4px; }
-        .skin-name { font-size: 10px; color: #fff; font-weight: bold; display: block; }
-        .buy-btn { width: 100%; padding: 5px; margin-top: 5px; font-size: 10px; cursor: pointer; border: none; font-weight: bold; }
-
-        /* CLASSIFICA STYLES */
-        .leaderboard-container { margin-top: 15px; border-top: 1px dashed #444; padding-top: 10px; width: 100%; }
-        .leaderboard-container h4 { color: #ffd700; font-size: 12px; margin-bottom: 10px; font-family: 'Press Start 2P'; }
-        
-        ul.ranking-list { list-style: none; padding: 0; margin: 0; } 
-        li.ranking-item { 
-            padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color:white; 
-        }
+        /* CLASSIFICA */
+        .leaderboard-container { margin-top: 20px; border-top: 2px dashed #444; padding-top: 15px; width: 100%; }
+        .leaderboard-container h4 { color: #ffaa00; font-size: 12px; margin-bottom: 15px; font-family: 'Press Start 2P'; }
+        ul.ranking-list { list-style: none; padding: 0; margin: 0; text-align: left; } 
+        li.ranking-item { padding: 10px 5px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color:#ccc; }
         .leader-rank-area { display: flex; align-items: center; }
-        .leader-skin-icon {
-            width: 12px; height: 12px; display: inline-block; margin-right: 8px; margin-left: 8px;
-            border: 1px solid rgba(255,255,255,0.3); border-radius: 2px;
-        }
+        .leader-skin-icon { width: 14px; height: 14px; display: inline-block; margin: 0 10px; border: 1px solid #fff; }
 
-        #gameOver { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 15, 15, 0.98); padding: 30px; border: 2px solid #ff0055; border-radius: 15px; text-align: center; z-index: 10; min-width: 350px; }
-        #jumpButton { display: none; position: absolute; bottom: 30px; right: 30px; width: 90px; height: 90px; background: rgba(255, 255, 255, 0.1); border: 2px solid #00dbde; border-radius: 50%; color: #00dbde; display: flex; justify-content: center; align-items: center; font-family: 'Press Start 2P'; font-size: 10px; cursor: pointer; z-index: 20; }
+        /* SHOP GRID */
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .skin-card { background: #222; border: 2px solid #444; padding: 10px; position: relative; }
+        .skin-card.owned { border-color: #0f0; }
+        .skin-card.equipped { border-color: #ffaa00; box-shadow: 0 0 15px rgba(255, 170, 0, 0.3); }
+        .skin-preview { width: 50px; height: 50px; margin: 0 auto 10px auto; display: block; border: 2px solid rgba(255,255,255,0.1); }
+        .skin-name { font-size: 9px; color: #aaa; font-weight: bold; display: block; margin-bottom: 5px; }
+        .buy-btn { width: 100%; padding: 8px; font-size: 9px; cursor: pointer; border: none; font-weight: bold; font-family: 'Verdana'; }
+
+        #gameOver { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20, 20, 20, 0.98); padding: 40px; border: 4px solid #ff3333; text-align: center; z-index: 10; min-width: 380px; box-shadow: 0 0 50px rgba(255,0,0,0.3); }
+        #jumpButton { display: none; position: absolute; bottom: 30px; right: 30px; width: 100px; height: 100px; background: rgba(255, 255, 255, 0.1); border: 4px solid #fff; border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; font-family: 'Press Start 2P'; font-size: 12px; cursor: pointer; z-index: 20; -webkit-tap-highlight-color: transparent; }
+        #jumpButton:active { background: rgba(255, 255, 255, 0.3); transform: scale(0.95); }
 
     </style>
 </head>
@@ -117,7 +124,7 @@
 
     <div id="ui">
         <div class="hud-left">
-            <h1>LEO GAME</h1>
+            <h1>LEO GAME 3D</h1>
             <div class="stat-box">PLAYER: <span id="currentPlayerDisplay" style="color:#00dbde;">---</span></div>
             <div class="stat-box" style="color:#ffd700;">BANK: <span id="bankDisplay">0</span> $</div>
         </div>
@@ -128,15 +135,15 @@
         </div>
     </div>
 
-    <div id="damageMsg">-1 VITA!</div>
-    <div id="powerMsg">POWER UP!</div>
+    <div id="damageMsg">HIT!</div>
+    <div id="powerMsg" style="color:#ffd700;">POWER UP!</div>
 
     <canvas id="gameCanvas" width="800" height="400"></canvas>
     <div id="jumpButton" onmousedown="handleInput(event)" ontouchstart="handleInput(event)">JUMP</div>
 
     <div id="loginOverlay">
         <div class="login-box">
-            <h2 style="color: #fff; font-family:'Press Start 2P'; font-size:16px;">LOGIN</h2>
+            <h2 style="color: #fff; font-family:'Press Start 2P'; font-size:20px; margin-bottom: 20px;">LOGIN</h2>
             
             <input type="text" id="loginUser" placeholder="NOME UTENTE">
             <input type="password" id="loginPass" placeholder="PASSWORD">
@@ -145,8 +152,8 @@
             
             <p id="loginMsg" style="color:#ff0055; font-size:10px; height:15px; margin-top:5px;"></p>
             
-            <div style="margin-top:10px; padding-top:5px;">
-                <button class="main-btn" style="background:#333; box-shadow:none; font-size:10px; padding:8px;" onclick="registerUser()">REGISTRATI NEL DB</button>
+            <div style="margin-top:15px; padding-top:5px; border-top:1px solid #333;">
+                <button class="main-btn" style="background:#444; font-size:10px; padding:10px;" onclick="registerUser()">REGISTRATI (NUOVO)</button>
             </div>
 
             <div class="leaderboard-container">
@@ -160,19 +167,19 @@
 
     <div id="shopOverlay">
         <div class="shop-box">
-            <h2 style="color: #ffd700; font-family:'Press Start 2P'; font-size:16px;">SKIN STORE</h2>
-            <div class="stat-box">I TUOI SOLDI: <span id="shopBankDisplay">0</span> $</div>
+            <h2 style="color: #ffd700; font-family:'Press Start 2P'; font-size:18px;">SKIN STORE</h2>
+            <div class="stat-box" style="background:none;">I TUOI SOLDI: <span id="shopBankDisplay" style="color:#fff;">0</span> $</div>
             <div class="shop-grid" id="skinGrid"></div>
-            <button class="main-btn" onclick="closeShop()">CHIUDI NEGOZIO</button>
+            <button class="main-btn" style="background:#555;" onclick="closeShop()">TORNA AL MENU</button>
         </div>
     </div>
 
     <div id="gameOver">
-        <h1 style="color:#ff0055; font-size: 24px;">GAME OVER</h1>
-        <p style="font-size: 16px;">SCORE: <strong id="finalScore" style="color:#fff">0</strong></p>
-        <p style="font-size: 12px; color:#ffd700;">GUADAGNATO: +<span id="earnedCoins">0</span> $</p>
+        <h1 style="color:#ff3333; font-size: 30px; margin-bottom:20px;">GAME OVER</h1>
+        <p style="font-size: 18px; margin-bottom:10px;">SCORE: <strong id="finalScore" style="color:#fff">0</strong></p>
+        <p style="font-size: 14px; color:#ffd700; margin-bottom:20px;">GUADAGNATO: +<span id="earnedCoins">0</span> $</p>
         
-        <div class="leaderboard-container" style="background:#111; padding:10px; border-radius:5px;">
+        <div class="leaderboard-container" style="background:#111; padding:15px; border:1px solid #333;">
             <h4>TOP 5 GLOBAL</h4>
             <ul id="highScoresList" class="ranking-list">
                 <li class="ranking-item" style="color:#666; justify-content:center;">Caricamento...</li>
@@ -184,26 +191,26 @@
     </div>
 
     <script>
-        // --- CONFIGURAZIONE SUPABASE ---
-        // INSERISCI QUI LE TUE CHIAVI!
+        // --- SUPABASE CONFIGURATION ---
         const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
 
         let sb = null;
         try { 
-            if(!SUPABASE_URL.includes('INSERISCI')) {
+            if(typeof supabase !== 'undefined') {
                 sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            }
-        } catch(e){ console.error("Supabase Init Error:", e); }
+                console.log("DB Connesso");
+            } else { console.error("Libreria Supabase non caricata."); }
+        } catch(e){ console.error("Init Error:", e); }
 
-        // --- ASSETS & CONFIG ---
+        // --- ASSETS & 3D COLORS ---
         const SKINS = {
-            'default': { name: 'NEON CORE', price: 0, css: 'linear-gradient(135deg, #00ff00, #003300)', top: '#00ff00', side: '#005500', front: '#00aa00' },
-            'magma':   { name: 'MAGMA', price: 500, css: 'linear-gradient(135deg, #ffdd00, #ff0000)', top: '#ffcc00', side: '#990000', front: '#ff4400' },
-            'ice':     { name: 'FROST', price: 1500, css: 'linear-gradient(135deg, #ffffff, #00ffff)', top: '#ffffff', side: '#0088aa', front: '#00ccff' },
-            'ninja':   { name: 'STEALTH', price: 3000, css: 'linear-gradient(135deg, #333, #000)', top: '#333333', side: '#000000', front: '#1a1a1a' },
-            'gold':    { name: 'GOLD', price: 10000, css: 'linear-gradient(135deg, #fff700, #ffaa00)', top: '#ffffaa', side: '#cc8800', front: '#ffcc00' },
-            'matrix':  { name: 'HACKER', price: 50000, css: 'black; border:1px solid #0f0', top: '#003300', side: '#001100', front: '#00ff00' }
+            'default': { name: 'NEON CORE', price: 0, top: '#00ff00', side: '#005500', front: '#00aa00' },
+            'magma':   { name: 'MAGMA', price: 500, top: '#ffcc00', side: '#990000', front: '#ff4400' },
+            'ice':     { name: 'FROST', price: 1500, top: '#ffffff', side: '#0088aa', front: '#00ccff' },
+            'ninja':   { name: 'STEALTH', price: 3000, top: '#333333', side: '#000000', front: '#1a1a1a' },
+            'gold':    { name: 'GOLD', price: 10000, top: '#ffffaa', side: '#cc8800', front: '#ffcc00' },
+            'matrix':  { name: 'HACKER', price: 50000, top: '#003300', side: '#001100', front: '#00ff00' }
         };
 
         let currentUser = null; 
@@ -217,17 +224,16 @@
             osc.connect(gain); gain.connect(audioCtx.destination);
             const now = audioCtx.currentTime;
 
-            if (type === 'jump') { osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(300, now + 0.1); gain.gain.setValueAtTime(0.05, now); osc.start(now); osc.stop(now + 0.1); }
-            else if (type === 'coin') { osc.type = 'sine'; osc.frequency.setValueAtTime(1500, now); gain.gain.setValueAtTime(0.05, now); osc.start(now); osc.stop(now + 0.1); }
-            else if (type === 'coin_epic') { osc.type = 'triangle'; osc.frequency.setValueAtTime(2000, now); osc.frequency.linearRampToValueAtTime(3000, now + 0.3); gain.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.3); }
-            else if (type === 'break') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(80, now); gain.gain.setValueAtTime(0.15, now); osc.start(now); osc.stop(now + 0.2); }
-            else if (type === 'hit') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(50, now + 0.3); gain.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.3); }
-            else if (type === 'buy') { osc.type = 'square'; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(800, now + 0.2); gain.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.2); }
-            else if (type === 'splash') { osc.type = 'noise'; gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 0.4); osc.start(now); osc.stop(now + 0.4); } 
-            else if (type === 'powerup') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(800, now + 0.5); gain.gain.setValueAtTime(0.2, now); osc.start(now); osc.stop(now + 0.5); }
+            if (type === 'jump') { osc.type='square'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(300, now + 0.1); gain.gain.setValueAtTime(0.05, now); osc.start(now); osc.stop(now + 0.1); }
+            else if (type === 'coin') { osc.type='sine'; osc.frequency.setValueAtTime(1200, now); gain.gain.setValueAtTime(0.05, now); osc.start(now); osc.stop(now + 0.1); }
+            else if (type === 'coin_epic') { osc.type='triangle'; osc.frequency.setValueAtTime(1500, now); osc.frequency.linearRampToValueAtTime(2500, now + 0.3); gain.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.3); }
+            else if (type === 'break') { osc.type='sawtooth'; osc.frequency.setValueAtTime(60, now); gain.gain.setValueAtTime(0.2, now); osc.start(now); osc.stop(now + 0.15); }
+            else if (type === 'hit') { osc.type='sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(20, now + 0.3); gain.gain.setValueAtTime(0.2, now); osc.start(now); osc.stop(now + 0.3); }
+            else if (type === 'buy') { osc.type='square'; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(800, now + 0.2); gain.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.2); }
+            else if (type === 'powerup') { osc.type='sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(1000, now + 0.5); gain.gain.setValueAtTime(0.2, now); osc.start(now); osc.stop(now + 0.5); }
         }
 
-        // --- DATABASE SAFEGUARD ---
+        // --- ACCOUNT LOGIC ---
         function playOffline() {
             currentUser = { username: "OSPITE", coins: 0, best_score: 0, inventory: 'default', current_skin: 'default', id: 'offline' };
             document.getElementById('loginOverlay').style.display = 'none';
@@ -237,19 +243,18 @@
         }
 
         async function registerUser() {
-            if(!sb) return alert("DB non configurato!");
+            if(!sb) return alert("DB non connesso! Ricarica la pagina.");
             const u = document.getElementById('regUser').value.trim();
             const p = document.getElementById('regPass').value.trim();
-            const msg = document.getElementById('regMsg');
-            if(!u || !p) { msg.innerText = "Dati mancanti"; msg.style.color = "red"; return; }
+            if(!u || !p) return alert("Dati mancanti");
             
             const { error } = await sb.from('leo_players').insert([{ username: u, password: p, coins: 0, inventory: 'default', current_skin: 'default' }]);
-            if(error) { msg.innerText = "Nome occupato!"; msg.style.color = "red"; }
-            else { msg.innerText = "OK! Ora fai il Login"; msg.style.color = "#0f0"; document.getElementById('loginUser').value = u; }
+            if(error) alert("Nome già preso o errore DB!"); 
+            else { alert("Registrato! Ora fai Login."); document.getElementById('loginUser').value = u; }
         }
 
         async function attemptLogin() {
-            if(!sb) return alert("DB non configurato!");
+            if(!sb) return alert("DB non connesso! Ricarica la pagina.");
             const u = document.getElementById('loginUser').value.trim();
             const p = document.getElementById('loginPass').value.trim();
             const msg = document.getElementById('loginMsg'); msg.innerText = "Attendere...";
@@ -261,8 +266,6 @@
                     currentUser = data;
                     if(!currentUser.inventory) currentUser.inventory = "default";
                     if(!currentUser.current_skin) currentUser.current_skin = "default";
-                    if(currentUser.coins === null) currentUser.coins = 0;
-                    
                     document.getElementById('loginOverlay').style.display = 'none';
                     document.getElementById('currentPlayerDisplay').innerText = currentUser.username.toUpperCase();
                     updateBankUI();
@@ -274,7 +277,6 @@
 
         async function saveGameData(scoreToAdd, coinsToAdd) {
             if(!currentUser) return;
-            // Se ospite, salva solo in locale (volatile)
             currentUser.coins = (currentUser.coins || 0) + coinsToAdd;
             const newBest = Math.max(currentUser.best_score || 0, Math.floor(scoreToAdd));
             currentUser.best_score = newBest;
@@ -284,13 +286,13 @@
                 try {
                     await sb.from('leo_players').update({ coins: currentUser.coins, best_score: newBest }).eq('id', currentUser.id);
                     renderLeaderboard();
-                } catch(e) { console.error("Save Error", e); }
+                } catch(e) { console.error("Save failed", e); }
             }
         }
 
         async function renderLeaderboard() {
             const lists = [document.getElementById('highScoresList'), document.getElementById('preGameLeaderboard')];
-            if(!sb) { lists.forEach(l => l.innerHTML = "<li class='ranking-item' style='color:#666'>Gioca Offline</li>"); return; }
+            if(!sb) { lists.forEach(l => l.innerHTML = "<li class='ranking-item'>Offline Mode</li>"); return; }
 
             const { data, error } = await sb.from('leo_players').select('username, best_score, current_skin').order('best_score', { ascending: false }).limit(5);
             
@@ -360,7 +362,7 @@
         // --- GAME ENGINE ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const FLOOR_HEIGHT = 40; // Altezza visiva del pavimento
+        const FLOOR_HEIGHT = 40; 
         const HITBOX_PADDING = 14; 
         
         let gameRunning = false;
@@ -380,21 +382,34 @@
         let stars = []; 
         const GRAVITY = 0.65;
 
-        let powerMode = false; // Elephant/Red Mode
-        let shieldMode = false; // Blue/Magnet Mode
+        let powerMode = false; // Red Elephant
+        let shieldMode = false; // Blue Magnet
         let powerTimer = 0;
 
         const player = { x: 60, y: 300, width: 30, height: 30, dy: 0, jumpForce: 13, grounded: false, angle: 0, spinSpeed: 0, invincible: false, invTimer: 0 };
 
-        // 3D DRAWING HELPER
+        // 3D DRAWING HELPERS
         function drawCube3D(ctx, x, y, size, colorFront, colorTop, colorSide) {
             let depth = size/4;
-            // Side
             ctx.fillStyle = colorSide; ctx.beginPath(); ctx.moveTo(x+size, y); ctx.lineTo(x+size+depth, y-depth); ctx.lineTo(x+size+depth, y+size-depth); ctx.lineTo(x+size, y+size); ctx.fill();
-            // Top
             ctx.fillStyle = colorTop; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+depth, y-depth); ctx.lineTo(x+size+depth, y-depth); ctx.lineTo(x+size, y); ctx.fill();
-            // Front
             ctx.fillStyle = colorFront; ctx.fillRect(x, y, size, size);
+        }
+
+        function drawGround3D(ctx) {
+            ctx.fillStyle = "#ff0055"; ctx.fillRect(0, canvas.height - FLOOR_HEIGHT, canvas.width, 10);
+            let grd = ctx.createLinearGradient(0, canvas.height - FLOOR_HEIGHT + 10, 0, canvas.height);
+            grd.addColorStop(0, "#aa0033"); grd.addColorStop(1, "#330011");
+            ctx.fillStyle = grd; ctx.fillRect(0, canvas.height - FLOOR_HEIGHT + 10, canvas.width, FLOOR_HEIGHT - 10);
+        }
+
+        function initStars() { stars=[]; for(let i=0; i<50; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*2}); }
+        function drawStars() {
+            ctx.fillStyle = "#fff";
+            stars.forEach(s => {
+                s.x -= gameSpeed * 0.1; if(s.x < 0) s.x = canvas.width;
+                ctx.fillRect(s.x, s.y, s.size, s.size);
+            });
         }
 
         class FloatingText {
@@ -414,84 +429,11 @@
             draw() { ctx.globalAlpha=Math.max(0, this.life); ctx.fillStyle=this.color; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.globalAlpha=1.0; }
         }
 
-        class Obstacle {
-            constructor(score) {
-                this.x = canvas.width; this.markedForDeletion = false;
-                const r = Math.random();
-                // FIX Y POSITION based on new Floor
-                let groundY = canvas.height - FLOOR_HEIGHT;
-                
-                if(score > 1000 && r > 0.85) { this.type='water'; this.width=120; this.height=20; this.y=groundY+20; this.color='#0088ff'; } // Water is low
-                else if(score > 500 && r > 0.7) { this.type='spike'; this.width=30; this.height=30; this.y=groundY-30; this.color='#aaaaaa'; }
-                else if(r < 0.5) { this.type='ground'; this.width=40; this.height=40; this.y=groundY-40; this.color='#ff0055'; }
-                else { this.type='air'; this.width=40; this.height=40; this.y=groundY-100; this.color='#fc00ff'; }
-            }
-            update() { this.x -= gameSpeed; if(this.x < -100) this.markedForDeletion=true; }
-            draw() {
-                if(this.type==='water') { ctx.fillStyle=this.color; ctx.fillRect(this.x, canvas.height-FLOOR_HEIGHT, this.width, FLOOR_HEIGHT); }
-                else if(this.type==='spike') { 
-                    ctx.fillStyle=this.color; ctx.beginPath(); ctx.moveTo(this.x,this.y+this.height); ctx.lineTo(this.x+this.width/2,this.y); ctx.lineTo(this.x+this.width,this.y+this.height); ctx.fill();
-                    ctx.fillStyle="#666"; ctx.beginPath(); ctx.moveTo(this.x+this.width/2, this.y); ctx.lineTo(this.x+this.width, this.y+this.height); ctx.lineTo(this.x+this.width+5, this.y+this.height-5); ctx.fill(); 
-                }
-                else { drawCube3D(ctx, this.x, this.y, this.width, this.color, '#ff99cc', '#aa0033'); }
-            }
-        }
-
-        class DestructibleBlock {
-            constructor() { this.width=60; this.height=20; this.x=canvas.width; this.y=canvas.height-170; this.color='#ffaa00'; }
-            update() { this.x -= gameSpeed; if(this.x < -100) this.markedForDeletion=true; }
-            draw() { 
-                drawCube3D(ctx, this.x, this.y, 20, this.color, '#ffff00', '#cc8800'); 
-                drawCube3D(ctx, this.x+20, this.y, 20, this.color, '#ffff00', '#cc8800');
-                drawCube3D(ctx, this.x+40, this.y, 20, this.color, '#ffff00', '#cc8800');
-            }
-        }
-
-        class Gem {
-            constructor(tier, sx, sy) {
-                this.x = sx || canvas.width; this.tier = tier; this.rot = 0;
-                let groundY = canvas.height - FLOOR_HEIGHT;
-                
-                if(tier===6) { this.y=groundY-180; this.color='#00ffff'; this.points=500; this.size=24; } // SHIELD ELEPHANT
-                else if(tier===5) { this.y=groundY-160; this.color='#ff0000'; this.points=2000; this.size=22; } // RED ELEPHANT
-                else if(tier===4) { this.y=sy; this.color='#ffffff'; this.points=1000; this.size=16; } // DIAMOND
-                else { this.y=groundY-60-Math.random()*60; this.color=tier===2?'#00dbde':'#00ff00'; this.points=tier===2?150:50; this.size=12; }
-            }
-            update() { 
-                this.x -= gameSpeed; this.rot+=0.05; if(this.x<-50) this.markedForDeletion=true; 
-                if(shieldMode) { this.x += (player.x - this.x) * 0.1; this.y += (player.y - this.y) * 0.1; }
-            }
-            draw() {
-                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rot);
-                if(this.tier===5 || this.tier===6) { 
-                    ctx.fillStyle=this.color; ctx.shadowBlur=20; ctx.shadowColor=this.color;
-                    ctx.fillRect(-10,-8,20,16); ctx.fillRect(-16,-6,6,12); ctx.fillRect(10,-6,6,12); ctx.fillRect(-2,4,4,10); 
-                } else {
-                    ctx.fillStyle=this.color; ctx.shadowBlur=15; ctx.shadowColor=this.color;
-                    ctx.beginPath(); ctx.moveTo(0,-this.size); ctx.lineTo(this.size,0); ctx.lineTo(0,this.size); ctx.lineTo(-this.size,0); ctx.fill();
-                }
-                ctx.restore();
-            }
-        }
-
-        function initStars() { stars=[]; for(let i=0; i<50; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*2}); }
-        function drawStars() {
-            ctx.fillStyle = "#fff";
-            stars.forEach(s => {
-                s.x -= gameSpeed * 0.1; 
-                if(s.x < 0) s.x = canvas.width;
-                ctx.fillRect(s.x, s.y, s.size, s.size);
-            });
-        }
-
         function createExplosion(x, y, color) { playSound('break'); for(let i=0;i<15;i++) particles.push(new Particle(x, y, 'explosion', color)); }
         
         function activatePower(type) {
-            powerTimer = 300; 
-            playSound('powerup');
-            let msg = document.getElementById('powerMsg');
-            let txt = document.getElementById('elephantMsg'); 
-            txt.style.display = 'block';
+            powerTimer = 300; playSound('powerup');
+            let txt = document.getElementById('powerMsg'); txt.style.display = 'block';
             
             if(type === 'red') {
                 powerMode = true; shieldMode = false;
@@ -523,16 +465,14 @@
 
             player.dy += GRAVITY; player.y += player.dy;
 
-            // FIX: GROUND COLLISION MATCHES VISUAL FLOOR (40px)
+            // FLOOR FIX
             let groundLevel = canvas.height - FLOOR_HEIGHT;
-            
             if(player.y + player.height > groundLevel) { 
                 player.y = groundLevel - player.height; player.dy = 0; player.grounded=true; player.angle=0; player.spinSpeed=0; 
                 if(currentCombo > 1) floatingTexts.push(new FloatingText("COMBO END", player.x, player.y-50, "#aaa", 10));
                 currentCombo = 0;
             } else { player.grounded=false; }
 
-            // BLOCKS
             blocks.forEach(b => {
                 b.update();
                 if(player.x+HITBOX_PADDING < b.x+b.width && player.x+player.width-HITBOX_PADDING > b.x) {
@@ -542,10 +482,12 @@
                     }
                     else if(player.dy>=0 && player.y+player.height >= b.y && player.y+player.height <= b.y+25) { 
                         player.y=b.y-player.height; player.dy=0; player.grounded=true; currentCombo=0; 
+                        b.markedForDeletion=true; player.dy = -15; score+=100; createExplosion(b.x, b.y, '#ffaa00');
+                        floatingTexts.push(new FloatingText("CRUSH!", b.x, b.y, "#fff", 12));
                     }
                     else if(player.dy<0 && player.y <= b.y+b.height && player.y > b.y) { 
                         b.markedForDeletion=true; player.dy=-24; player.spinSpeed=0.8; createExplosion(b.x, b.y, '#ffaa00');
-                        floatingTexts.push(new FloatingText("BOOST!", b.x, b.y, "#fff", 12));
+                        floatingTexts.push(new FloatingText("BREAK!", b.x, b.y, "#fff", 12));
                     }
                     else if(player.y+player.height > b.y+HITBOX_PADDING && !player.invincible && !powerMode && !shieldMode) {
                         hitPlayer();
@@ -574,8 +516,8 @@
             }
             if(frames%80===0) {
                 let t=1; if(Math.random()>0.7) t=2;
-                if(frames%400===0 && Math.random()>0.4) t=5; // Red Elephant
-                if(frames%600===0 && Math.random()>0.5) t=6; // Blue Shield Elephant (Rare)
+                if(frames%400===0 && Math.random()>0.4) t=5; 
+                if(frames%600===0 && Math.random()>0.5) t=6; 
                 coins.push(new Gem(t));
             }
 
@@ -631,20 +573,20 @@
             document.getElementById('livesDisplay').innerText = lives;
         }
 
-        // FIX: Game Over Logic Order - Show UI FIRST
+        // GAME OVER SAFEGUARD
         function hitPlayer() {
             lives--; playSound('hit'); canvas.classList.add('shake'); setTimeout(()=>canvas.classList.remove('shake'), 500);
             currentCombo = 0;
             if(lives<=0) {
                 gameRunning = false;
-                // SHOW UI IMMEDIATELY
+                // UI FIRST
                 document.getElementById('finalScore').innerText = Math.floor(score);
                 document.getElementById('earnedCoins').innerText = sessionCoins;
                 document.getElementById('gameOver').style.display = 'block';
                 document.getElementById('jumpButton').style.display = 'none';
                 
-                // SAVE IN BACKGROUND
-                try { saveGameData(score, sessionCoins); } catch(e) { console.error("Save failed", e); }
+                // SAVE THEN
+                try { saveGameData(score, sessionCoins); } catch(e) {}
             } else {
                 player.invincible=true; player.invTimer=120; document.getElementById('damageMsg').style.display='block'; setTimeout(()=>document.getElementById('damageMsg').style.display='none', 1000);
             }
@@ -654,7 +596,6 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawStars();
 
-            // Player Drawing
             if(!player.invincible || frames%4===0) {
                 ctx.save(); ctx.translate(player.x+player.width/2, player.y+player.height/2); ctx.rotate(player.angle);
                 
@@ -662,7 +603,6 @@
                     let c1 = powerMode ? '#f00' : '#0ff';
                     let c2 = powerMode ? '#800' : '#008';
                     drawCube3D(ctx, -15, -15, 30, c1, '#fff', c2);
-                    // Ears
                     ctx.fillStyle=c1; ctx.fillRect(-20,-10,5,15); ctx.fillRect(15,-10,5,15);
                 } else {
                     let skinKey = (currentUser && currentUser.current_skin) ? currentUser.current_skin : 'default';
@@ -682,13 +622,10 @@
             blocks.forEach(b=>b.draw()); coins.forEach(c=>c.draw()); obstacles.forEach(o=>o.draw()); 
             particles.forEach(p=>p.draw()); floatingTexts.forEach(t=>t.draw());
             
-            // 3D FLOOR DRAWING (40px high)
-            ctx.fillStyle = "#333"; ctx.fillRect(0, canvas.height, canvas.width, -FLOOR_HEIGHT); // Side
-            ctx.fillStyle = "#ff0055"; ctx.fillRect(0, canvas.height-FLOOR_HEIGHT, canvas.width, 5); // Top Line
+            drawGround3D(ctx);
         }
 
         function resetGame() {
-            // FIX: Reset Y to new ground level
             player.y = canvas.height - FLOOR_HEIGHT - player.height; 
             player.dy=0; obstacles=[]; coins=[]; blocks=[]; particles=[]; floatingTexts=[];
             score=0; sessionCoins=0; lives=1; frames=0; powerMode=false; shieldMode=false; currentCombo=0; canvas.classList.remove('fire-sky'); canvas.classList.remove('shield-sky');
