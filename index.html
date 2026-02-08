@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO GAME - LEGENDARY EDITION</title>
+    <title>LEO GAME - ECONOMY UPDATE</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -131,11 +131,7 @@
     <div id="loginOverlay">
         <div class="login-box">
             <h2 style="color: #fff; font-family:'Press Start 2P'; font-size:16px;">LOGIN</h2>
-            <div class="diff-container">
-                <div class="diff-btn active-easy" onclick="setDiff('EASY', this)">EASY</div>
-                <div class="diff-btn" onclick="setDiff('MEDIUM', this)">MEDIUM</div>
-                <div class="diff-btn" onclick="setDiff('HARD', this)">HARD</div>
-            </div>
+            <div class="diff-container"></div>
             <input type="text" id="loginUser" placeholder="NOME UTENTE">
             <input type="password" id="loginPass" placeholder="PASSWORD">
             <button class="main-btn" onclick="attemptLogin()">GIOCA</button>
@@ -175,21 +171,21 @@
 
     <script>
         // --- CONFIGURAZIONE SUPABASE ---
-        // SOSTITUISCI QUESTE STRINGHE CON I TUOI DATI VERI!
+        // INSERISCI QUI LE TUE CHIAVI!
         const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
 
         let sb = null;
-        try { if(!SUPABASE_URL.includes('INSERISCI')) sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e){ console.error(e); }
+        try { if(!SUPABASE_URL.includes('INSERISCI')) sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e){ console.error("Supabase Error:", e); }
 
-        // --- ASSETS & CONFIG ---
+        // --- SKINS (PREZZI AUMENTATI) ---
         const SKINS = {
             'default': { name: 'NEON CORE', price: 0, css: 'linear-gradient(135deg, #00ff00, #003300)' },
-            'magma':   { name: 'MAGMA', price: 100, css: 'linear-gradient(135deg, #ffdd00, #ff0000)' },
-            'ice':     { name: 'FROST', price: 250, css: 'linear-gradient(135deg, #ffffff, #00ffff)' },
-            'ninja':   { name: 'STEALTH', price: 500, css: 'linear-gradient(135deg, #333, #000)' },
-            'gold':    { name: 'GOLD', price: 1000, css: 'linear-gradient(135deg, #fff700, #ffaa00)' },
-            'matrix':  { name: 'HACKER', price: 2000, css: 'black; border:1px solid #0f0' }
+            'magma':   { name: 'MAGMA', price: 500, css: 'linear-gradient(135deg, #ffdd00, #ff0000)' },
+            'ice':     { name: 'FROST', price: 1500, css: 'linear-gradient(135deg, #ffffff, #00ffff)' },
+            'ninja':   { name: 'STEALTH', price: 3000, css: 'linear-gradient(135deg, #333, #000)' },
+            'gold':    { name: 'GOLD', price: 10000, css: 'linear-gradient(135deg, #fff700, #ffaa00)' },
+            'matrix':  { name: 'HACKER', price: 50000, css: 'black; border:1px solid #0f0' }
         };
 
         let currentUser = null; 
@@ -228,52 +224,66 @@
             const u = document.getElementById('loginUser').value.trim();
             const p = document.getElementById('loginPass').value.trim();
             const msg = document.getElementById('loginMsg'); msg.innerText = "Verifica...";
-            const { data, error } = await sb.from('leo_players').select('*').eq('username', u).eq('password', p).single();
-            if(error || !data) { msg.innerText = "Credenziali errate"; msg.style.color = "red"; }
-            else {
-                currentUser = data;
-                if(!currentUser.inventory) currentUser.inventory = "default";
-                if(!currentUser.current_skin) currentUser.current_skin = "default";
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('currentPlayerDisplay').innerText = currentUser.username.toUpperCase();
-                updateBankUI();
-                document.getElementById('jumpButton').style.display = 'flex';
-                resetGame();
+            
+            try {
+                const { data, error } = await sb.from('leo_players').select('*').eq('username', u).eq('password', p).single();
+                if(error || !data) { msg.innerText = "Credenziali errate"; msg.style.color = "red"; }
+                else {
+                    currentUser = data;
+                    if(!currentUser.inventory) currentUser.inventory = "default";
+                    if(!currentUser.current_skin) currentUser.current_skin = "default";
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('currentPlayerDisplay').innerText = currentUser.username.toUpperCase();
+                    updateBankUI();
+                    document.getElementById('jumpButton').style.display = 'flex';
+                    resetGame();
+                }
+            } catch(err) {
+                msg.innerText = "Errore di connessione";
             }
         }
 
         async function saveGameData(scoreToAdd, coinsToAdd) {
             if(!currentUser || !sb) return;
+            
+            // LA LOGICA D'ORO:
+            // Prendo i soldi che avevo nel DB (currentUser.coins) e ci sommo quelli raccolti ora (coinsToAdd)
             currentUser.coins = (currentUser.coins || 0) + coinsToAdd;
+            
             const newBest = Math.max(currentUser.best_score || 0, Math.floor(scoreToAdd));
             currentUser.best_score = newBest;
             updateBankUI();
+            
             await sb.from('leo_players').update({ coins: currentUser.coins, best_score: newBest }).eq('id', currentUser.id);
             renderLeaderboard();
         }
 
-        // MODIFICATA: Ora recupera anche "current_skin" per mostrarla
         async function renderLeaderboard() {
             if(!sb) return;
-            const { data } = await sb.from('leo_players').select('username, best_score, current_skin').order('best_score', { ascending: false }).limit(5);
-            const list = document.getElementById('highScoresList'); list.innerHTML = "";
+            const list = document.getElementById('highScoresList');
             
-            if(data) data.forEach((u, i) => {
-                // Recupera stile skin dal config locale
-                let skinKey = u.current_skin || 'default';
-                let skinStyle = SKINS[skinKey] ? SKINS[skinKey].css : SKINS['default'].css;
-                let color = i === 0 ? "#ffd700" : (i === 1 ? "#c0c0c0" : "#cd7f32");
-                
-                list.innerHTML += `
-                <li>
-                    <div class="leader-rank-area">
-                        <span style="color:${i<3?color:'white'}; min-width:15px;">${i+1}.</span>
-                        <div class="leader-skin-icon" style="background:${skinStyle}"></div>
-                        <span style="color:${i<3?color:'white'}">${u.username}</span>
-                    </div>
-                    <span>${u.best_score}</span>
-                </li>`;
-            });
+            const { data, error } = await sb.from('leo_players').select('username, best_score, current_skin').order('best_score', { ascending: false }).limit(5);
+            
+            if(error) {
+                list.innerHTML = "<li style='color:red'>Errore caricamento</li>";
+            } else if(data) {
+                list.innerHTML = "";
+                data.forEach((u, i) => {
+                    let skinKey = u.current_skin || 'default';
+                    let skinStyle = SKINS[skinKey] ? SKINS[skinKey].css : SKINS['default'].css;
+                    let color = i === 0 ? "#ffd700" : (i === 1 ? "#c0c0c0" : "#cd7f32");
+                    
+                    list.innerHTML += `
+                    <li>
+                        <div class="leader-rank-area">
+                            <span style="color:${i<3?color:'white'}; min-width:15px;">${i+1}.</span>
+                            <div class="leader-skin-icon" style="background:${skinStyle}"></div>
+                            <span style="color:${i<3?color:'white'}">${u.username}</span>
+                        </div>
+                        <span>${u.best_score}</span>
+                    </li>`;
+                });
+            }
         }
 
         function updateBankUI() {
@@ -436,20 +446,26 @@
 
             player.dy += GRAVITY; player.y += player.dy;
 
+            // GROUND Check & Combo Reset
             if(player.y + player.height > canvas.height) { 
                 player.y = canvas.height - player.height; player.dy = 0; player.grounded=true; player.angle=0; player.spinSpeed=0; 
                 if(currentCombo > 1) floatingTexts.push(new FloatingText("COMBO END", player.x, player.y-50, "#aaa", 10));
                 currentCombo = 0;
             } else { player.grounded=false; }
 
+            // BLOCKS LOGIC (Fix: HITBOX PADDING ADDED)
             blocks.forEach(b => {
                 b.update();
                 if(player.x+HITBOX_PADDING < b.x+b.width && player.x+player.width-HITBOX_PADDING > b.x) {
+                    
                     if(elephantMode && player.y < b.y+b.height && player.y+player.height > b.y) {
                          b.markedForDeletion=true; score+=200; createExplosion(b.x, b.y, '#ffaa00');
                          floatingTexts.push(new FloatingText("SMASH!", b.x, b.y, "#ffd700", 15));
                     }
-                    else if(player.dy>=0 && player.y+player.height >= b.y && player.y+player.height <= b.y+20) { player.y=b.y-player.height; player.dy=0; player.grounded=true; currentCombo=0; }
+                    else if(player.dy>=0 && player.y+player.height >= b.y && player.y+player.height <= b.y+20) { 
+                        player.y=b.y-player.height; player.dy=0; player.grounded=true; currentCombo=0; 
+                    }
+                    // CATAPULT FIX: Check for upward velocity AND collision with bottom
                     else if(player.dy<0 && player.y <= b.y+b.height && player.y > b.y) { 
                         b.markedForDeletion=true; player.dy=-24; player.spinSpeed=0.8; createExplosion(b.x, b.y, '#ffaa00');
                         floatingTexts.push(new FloatingText("BOOST!", b.x, b.y, "#fff", 12));
@@ -463,7 +479,7 @@
             if(frames%3===0) {
                 let tColor = elephantMode ? '#888' : '#00ff00';
                 if(!elephantMode && currentUser && currentUser.current_skin && SKINS[currentUser.current_skin]) {
-                    // Extract color from gradient string roughly or hardcode
+                    // Extract color from gradient string roughly
                     if(currentUser.current_skin === 'magma') tColor = '#ff4500';
                     else if(currentUser.current_skin === 'ice') tColor = '#00ffff';
                     else if(currentUser.current_skin === 'gold') tColor = '#ffd700';
@@ -486,6 +502,7 @@
                 coins.push(new Gem(t));
             }
 
+            // ENTITIES COLLISION (Fixed with Padding)
             obstacles.forEach(o => {
                 o.update();
                 if(player.x+HITBOX_PADDING < o.x+o.width-HITBOX_PADDING && 
@@ -501,12 +518,15 @@
                     } else if(o.type === 'spike') {
                          if(!player.invincible) hitPlayer();
                     } else {
+                        // Stomp Logic (More forgiving)
                         let isStomp = player.dy > 0 && (player.y+player.height) < (o.y + o.height * 0.7);
                         let isHeadbutt = player.dy < 0 && player.y > o.y + o.height * 0.3;
                         
                         if(isStomp || isHeadbutt) {
-                            o.markedForDeletion=true; currentCombo++;
-                            let pts = 100 * currentCombo; score += pts;
+                            o.markedForDeletion=true; 
+                            currentCombo++;
+                            let pts = 100 * currentCombo;
+                            score += pts;
                             createExplosion(o.x, o.y, o.color);
                             floatingTexts.push(new FloatingText(`+${pts} x${currentCombo}`, o.x, o.y, currentCombo>2?"#ff0":"#fff", 12));
                             if(isStomp) player.dy = -10; else player.dy = 5;
