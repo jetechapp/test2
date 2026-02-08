@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO GAME - FINAL FIXED</title>
+    <title>LEO GAME - STABLE EDITION</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -123,8 +123,8 @@
         </div>
         <div class="hud-right">
             <div class="stat-box">SCORE: <span id="score">0</span></div>
-            <div class="stat-box">❤️ x <span id="livesDisplay">1</span></div>
-            <div class="stat-box">💎 x <span id="coinsDisplay">0</span></div>
+            <div class="stat-box">❤️ <span id="livesDisplay">1</span></div>
+            <div class="stat-box">💎 <span id="coinsDisplay">0</span></div>
         </div>
     </div>
 
@@ -259,7 +259,6 @@
                 if(error || !data) { msg.innerText = "Dati errati"; msg.style.color = "red"; }
                 else {
                     currentUser = data;
-                    // Fix null values
                     if(!currentUser.inventory) currentUser.inventory = "default";
                     if(!currentUser.current_skin) currentUser.current_skin = "default";
                     if(currentUser.coins === null) currentUser.coins = 0;
@@ -275,14 +274,17 @@
 
         async function saveGameData(scoreToAdd, coinsToAdd) {
             if(!currentUser) return;
+            // Se ospite, salva solo in locale (volatile)
             currentUser.coins = (currentUser.coins || 0) + coinsToAdd;
             const newBest = Math.max(currentUser.best_score || 0, Math.floor(scoreToAdd));
             currentUser.best_score = newBest;
             updateBankUI();
 
             if(sb && currentUser.id !== 'offline') {
-                await sb.from('leo_players').update({ coins: currentUser.coins, best_score: newBest }).eq('id', currentUser.id);
-                renderLeaderboard();
+                try {
+                    await sb.from('leo_players').update({ coins: currentUser.coins, best_score: newBest }).eq('id', currentUser.id);
+                    renderLeaderboard();
+                } catch(e) { console.error("Save Error", e); }
             }
         }
 
@@ -358,6 +360,7 @@
         // --- GAME ENGINE ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const FLOOR_HEIGHT = 40; // Altezza visiva del pavimento
         const HITBOX_PADDING = 14; 
         
         let gameRunning = false;
@@ -374,7 +377,7 @@
         let blocks = []; 
         let trail = [];
         let floatingTexts = [];
-        let stars = []; // Parallax stars
+        let stars = []; 
         const GRAVITY = 0.65;
 
         let powerMode = false; // Elephant/Red Mode
@@ -415,17 +418,19 @@
             constructor(score) {
                 this.x = canvas.width; this.markedForDeletion = false;
                 const r = Math.random();
-                if(score > 1000 && r > 0.85) { this.type='water'; this.width=120; this.height=20; this.y=canvas.height-10; this.color='#0088ff'; }
-                else if(score > 500 && r > 0.7) { this.type='spike'; this.width=30; this.height=30; this.y=canvas.height-30; this.color='#aaaaaa'; }
-                else if(r < 0.5) { this.type='ground'; this.width=40; this.height=40; this.y=canvas.height-40; this.color='#ff0055'; }
-                else { this.type='air'; this.width=40; this.height=40; this.y=canvas.height-90; this.color='#fc00ff'; }
+                // FIX Y POSITION based on new Floor
+                let groundY = canvas.height - FLOOR_HEIGHT;
+                
+                if(score > 1000 && r > 0.85) { this.type='water'; this.width=120; this.height=20; this.y=groundY+20; this.color='#0088ff'; } // Water is low
+                else if(score > 500 && r > 0.7) { this.type='spike'; this.width=30; this.height=30; this.y=groundY-30; this.color='#aaaaaa'; }
+                else if(r < 0.5) { this.type='ground'; this.width=40; this.height=40; this.y=groundY-40; this.color='#ff0055'; }
+                else { this.type='air'; this.width=40; this.height=40; this.y=groundY-100; this.color='#fc00ff'; }
             }
             update() { this.x -= gameSpeed; if(this.x < -100) this.markedForDeletion=true; }
             draw() {
-                if(this.type==='water') { ctx.fillStyle=this.color; ctx.fillRect(this.x,this.y,this.width,this.height); }
+                if(this.type==='water') { ctx.fillStyle=this.color; ctx.fillRect(this.x, canvas.height-FLOOR_HEIGHT, this.width, FLOOR_HEIGHT); }
                 else if(this.type==='spike') { 
                     ctx.fillStyle=this.color; ctx.beginPath(); ctx.moveTo(this.x,this.y+this.height); ctx.lineTo(this.x+this.width/2,this.y); ctx.lineTo(this.x+this.width,this.y+this.height); ctx.fill();
-                    // 3D side
                     ctx.fillStyle="#666"; ctx.beginPath(); ctx.moveTo(this.x+this.width/2, this.y); ctx.lineTo(this.x+this.width, this.y+this.height); ctx.lineTo(this.x+this.width+5, this.y+this.height-5); ctx.fill(); 
                 }
                 else { drawCube3D(ctx, this.x, this.y, this.width, this.color, '#ff99cc', '#aa0033'); }
@@ -433,7 +438,7 @@
         }
 
         class DestructibleBlock {
-            constructor() { this.width=60; this.height=20; this.x=canvas.width; this.y=canvas.height-130; this.color='#ffaa00'; }
+            constructor() { this.width=60; this.height=20; this.x=canvas.width; this.y=canvas.height-170; this.color='#ffaa00'; }
             update() { this.x -= gameSpeed; if(this.x < -100) this.markedForDeletion=true; }
             draw() { 
                 drawCube3D(ctx, this.x, this.y, 20, this.color, '#ffff00', '#cc8800'); 
@@ -445,23 +450,20 @@
         class Gem {
             constructor(tier, sx, sy) {
                 this.x = sx || canvas.width; this.tier = tier; this.rot = 0;
-                if(tier===6) { this.y=canvas.height-220; this.color='#00ffff'; this.points=500; this.size=24; } // SHIELD ELEPHANT
-                else if(tier===5) { this.y=canvas.height-200; this.color='#ff0000'; this.points=2000; this.size=22; } // RED ELEPHANT
+                let groundY = canvas.height - FLOOR_HEIGHT;
+                
+                if(tier===6) { this.y=groundY-180; this.color='#00ffff'; this.points=500; this.size=24; } // SHIELD ELEPHANT
+                else if(tier===5) { this.y=groundY-160; this.color='#ff0000'; this.points=2000; this.size=22; } // RED ELEPHANT
                 else if(tier===4) { this.y=sy; this.color='#ffffff'; this.points=1000; this.size=16; } // DIAMOND
-                else { this.y=canvas.height-60-Math.random()*60; this.color=tier===2?'#00dbde':'#00ff00'; this.points=tier===2?150:50; this.size=12; }
+                else { this.y=groundY-60-Math.random()*60; this.color=tier===2?'#00dbde':'#00ff00'; this.points=tier===2?150:50; this.size=12; }
             }
             update() { 
                 this.x -= gameSpeed; this.rot+=0.05; if(this.x<-50) this.markedForDeletion=true; 
-                // MAGNET EFFECT
-                if(shieldMode) {
-                    this.x += (player.x - this.x) * 0.1;
-                    this.y += (player.y - this.y) * 0.1;
-                }
+                if(shieldMode) { this.x += (player.x - this.x) * 0.1; this.y += (player.y - this.y) * 0.1; }
             }
             draw() {
                 ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rot);
                 if(this.tier===5 || this.tier===6) { 
-                    // Elephant Head
                     ctx.fillStyle=this.color; ctx.shadowBlur=20; ctx.shadowColor=this.color;
                     ctx.fillRect(-10,-8,20,16); ctx.fillRect(-16,-6,6,12); ctx.fillRect(10,-6,6,12); ctx.fillRect(-2,4,4,10); 
                 } else {
@@ -472,7 +474,6 @@
             }
         }
 
-        // BACKGROUND STARS
         function initStars() { stars=[]; for(let i=0; i<50; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*2}); }
         function drawStars() {
             ctx.fillStyle = "#fff";
@@ -486,10 +487,10 @@
         function createExplosion(x, y, color) { playSound('break'); for(let i=0;i<15;i++) particles.push(new Particle(x, y, 'explosion', color)); }
         
         function activatePower(type) {
-            powerTimer = 300; // 5 seconds
+            powerTimer = 300; 
             playSound('powerup');
             let msg = document.getElementById('powerMsg');
-            let txt = document.getElementById('elephantMsg'); // Reuse existing div
+            let txt = document.getElementById('elephantMsg'); 
             txt.style.display = 'block';
             
             if(type === 'red') {
@@ -522,43 +523,31 @@
 
             player.dy += GRAVITY; player.y += player.dy;
 
-            // GROUND Check
-            if(player.y + player.height > canvas.height) { 
-                player.y = canvas.height - player.height; player.dy = 0; player.grounded=true; player.angle=0; player.spinSpeed=0; 
+            // FIX: GROUND COLLISION MATCHES VISUAL FLOOR (40px)
+            let groundLevel = canvas.height - FLOOR_HEIGHT;
+            
+            if(player.y + player.height > groundLevel) { 
+                player.y = groundLevel - player.height; player.dy = 0; player.grounded=true; player.angle=0; player.spinSpeed=0; 
                 if(currentCombo > 1) floatingTexts.push(new FloatingText("COMBO END", player.x, player.y-50, "#aaa", 10));
                 currentCombo = 0;
             } else { player.grounded=false; }
 
-            // --- BLOCK INTERACTION ---
+            // BLOCKS
             blocks.forEach(b => {
                 b.update();
-                // Check if inside generic area
-                if(player.x + HITBOX_PADDING < b.x + b.width && player.x + player.width - HITBOX_PADDING > b.x) {
-                    
-                    // 1. RED ELEPHANT or SHIELD: Destroy everything
-                    if((powerMode || shieldMode) && player.y < b.y + b.height && player.y + player.height > b.y) {
+                if(player.x+HITBOX_PADDING < b.x+b.width && player.x+player.width-HITBOX_PADDING > b.x) {
+                    if((powerMode || shieldMode) && player.y < b.y+b.height && player.y+player.height > b.y) {
                         b.markedForDeletion=true; score+=200; createExplosion(b.x, b.y, '#ffaa00');
                         floatingTexts.push(new FloatingText("SMASH!", b.x, b.y, "#ffd700", 15));
                     }
-                    // 2. LANDING ON TOP
-                    else if (player.dy >= 0 && player.y + player.height >= b.y && player.y + player.height <= b.y + 25) {
-                        player.y = b.y - player.height; player.dy = 0; player.grounded = true; currentCombo = 0;
-                        // Jump on top to destroy? As requested:
-                        b.markedForDeletion=true; player.dy = -15; // Bounce
-                        score+=100; createExplosion(b.x, b.y, '#ffaa00');
-                        floatingTexts.push(new FloatingText("CRUSH!", b.x, b.y, "#fff", 12));
+                    else if(player.dy>=0 && player.y+player.height >= b.y && player.y+player.height <= b.y+25) { 
+                        player.y=b.y-player.height; player.dy=0; player.grounded=true; currentCombo=0; 
                     }
-                    // 3. HITTING FROM BOTTOM
-                    else if (player.dy < 0 && player.y <= b.y + b.height && player.y > b.y + b.height - 25) {
-                        b.markedForDeletion=true; 
-                        // If holding jump, catapult higher
-                        player.dy = -22; 
-                        score+=100; createExplosion(b.x, b.y, '#ffaa00');
-                        floatingTexts.push(new FloatingText("BREAK!", b.x, b.y, "#fff", 12));
+                    else if(player.dy<0 && player.y <= b.y+b.height && player.y > b.y) { 
+                        b.markedForDeletion=true; player.dy=-24; player.spinSpeed=0.8; createExplosion(b.x, b.y, '#ffaa00');
+                        floatingTexts.push(new FloatingText("BOOST!", b.x, b.y, "#fff", 12));
                     }
-                    // 4. SIDE COLLISION (Death)
-                    else if (player.y + player.height > b.y + HITBOX_PADDING && 
-                             !player.invincible && !powerMode && !shieldMode) {
+                    else if(player.y+player.height > b.y+HITBOX_PADDING && !player.invincible && !powerMode && !shieldMode) {
                         hitPlayer();
                     }
                 }
@@ -576,7 +565,6 @@
             }
             trail.forEach(t => t.x -= gameSpeed);
 
-            // Spawns
             let spawnRate = Math.max(50, 100 - Math.floor(gameSpeed*4));
             if(frames%spawnRate===0) obstacles.push(new Obstacle(score));
 
@@ -584,7 +572,6 @@
                 let b = new DestructibleBlock(); blocks.push(b);
                 for(let k=0; k<3; k++) coins.push(new Gem(4, b.x+100+(k*90), 40+(k*10))); 
             }
-            // Gems Spawn
             if(frames%80===0) {
                 let t=1; if(Math.random()>0.7) t=2;
                 if(frames%400===0 && Math.random()>0.4) t=5; // Red Elephant
@@ -592,7 +579,6 @@
                 coins.push(new Gem(t));
             }
 
-            // ENTITY COLLISION
             obstacles.forEach(o => {
                 o.update();
                 if(player.x+HITBOX_PADDING < o.x+o.width-HITBOX_PADDING && 
@@ -600,15 +586,13 @@
                    player.y+HITBOX_PADDING < o.y+o.height-HITBOX_PADDING &&
                    player.y+player.height-HITBOX_PADDING > o.y+HITBOX_PADDING) {
                     
-                    // POWER MODES DESTROY EVERYTHING
                     if(powerMode || shieldMode) {
                         o.markedForDeletion=true; score+=100; createExplosion(o.x, o.y, o.color);
                         floatingTexts.push(new FloatingText("BOOM!", o.x, o.y, powerMode?"#f00":"#0ff", 14));
                     }
-                    else if(o.type === 'water') { lives=0; hitPlayer(); } // Water always kills if not powered
+                    else if(o.type === 'water') { lives=0; hitPlayer(); } 
                     else if(o.type === 'spike') { if(!player.invincible) hitPlayer(); }
                     else {
-                        // Regular Enemy: Stomp or Headbutt
                         let isStomp = player.dy > 0 && (player.y+player.height) < (o.y + o.height * 0.8);
                         let isHeadbutt = player.dy < 0 && player.y > o.y + o.height * 0.2;
                         
@@ -625,14 +609,12 @@
 
             coins.forEach(c => {
                 c.update();
-                // Magnet distance check or normal collision
                 let dist = Math.hypot(player.x - c.x, player.y - c.y);
-                if (dist < 50 || (shieldMode && dist < 300)) { // Collect if close or if magnet active
-                     if(dist < 50) { // Actually collected
+                if (dist < 50 || (shieldMode && dist < 300)) { 
+                     if(dist < 50) { 
                         c.markedForDeletion=true; score+=c.points; sessionCoins++; 
                         playSound(c.points>=500?'coin_epic':'coin');
                         floatingTexts.push(new FloatingText(`+${c.points}`, c.x, c.y, c.color, 10));
-                        
                         if(c.tier===5) activatePower('red');
                         if(c.tier===6) { activatePower('blue'); score+=500; floatingTexts.push(new FloatingText("+500", c.x, c.y, "#0ff", 20)); }
                      }
@@ -649,16 +631,20 @@
             document.getElementById('livesDisplay').innerText = lives;
         }
 
+        // FIX: Game Over Logic Order - Show UI FIRST
         function hitPlayer() {
             lives--; playSound('hit'); canvas.classList.add('shake'); setTimeout(()=>canvas.classList.remove('shake'), 500);
             currentCombo = 0;
             if(lives<=0) {
                 gameRunning = false;
+                // SHOW UI IMMEDIATELY
                 document.getElementById('finalScore').innerText = Math.floor(score);
                 document.getElementById('earnedCoins').innerText = sessionCoins;
-                saveGameData(score, sessionCoins);
                 document.getElementById('gameOver').style.display = 'block';
                 document.getElementById('jumpButton').style.display = 'none';
+                
+                // SAVE IN BACKGROUND
+                try { saveGameData(score, sessionCoins); } catch(e) { console.error("Save failed", e); }
             } else {
                 player.invincible=true; player.invTimer=120; document.getElementById('damageMsg').style.display='block'; setTimeout(()=>document.getElementById('damageMsg').style.display='none', 1000);
             }
@@ -676,7 +662,7 @@
                     let c1 = powerMode ? '#f00' : '#0ff';
                     let c2 = powerMode ? '#800' : '#008';
                     drawCube3D(ctx, -15, -15, 30, c1, '#fff', c2);
-                    // Elephant ears
+                    // Ears
                     ctx.fillStyle=c1; ctx.fillRect(-20,-10,5,15); ctx.fillRect(15,-10,5,15);
                 } else {
                     let skinKey = (currentUser && currentUser.current_skin) ? currentUser.current_skin : 'default';
@@ -696,13 +682,15 @@
             blocks.forEach(b=>b.draw()); coins.forEach(c=>c.draw()); obstacles.forEach(o=>o.draw()); 
             particles.forEach(p=>p.draw()); floatingTexts.forEach(t=>t.draw());
             
-            // Ground 3D
-            ctx.fillStyle = "#333"; ctx.fillRect(0, canvas.height, canvas.width, -40); // Side
-            ctx.fillStyle = "#ff0055"; ctx.fillRect(0, canvas.height-40, canvas.width, 5); // Top Line
+            // 3D FLOOR DRAWING (40px high)
+            ctx.fillStyle = "#333"; ctx.fillRect(0, canvas.height, canvas.width, -FLOOR_HEIGHT); // Side
+            ctx.fillStyle = "#ff0055"; ctx.fillRect(0, canvas.height-FLOOR_HEIGHT, canvas.width, 5); // Top Line
         }
 
         function resetGame() {
-            player.y=300; player.dy=0; obstacles=[]; coins=[]; blocks=[]; particles=[]; floatingTexts=[];
+            // FIX: Reset Y to new ground level
+            player.y = canvas.height - FLOOR_HEIGHT - player.height; 
+            player.dy=0; obstacles=[]; coins=[]; blocks=[]; particles=[]; floatingTexts=[];
             score=0; sessionCoins=0; lives=1; frames=0; powerMode=false; shieldMode=false; currentCombo=0; canvas.classList.remove('fire-sky'); canvas.classList.remove('shield-sky');
             gameRunning=true; document.getElementById('gameOver').style.display='none'; document.getElementById('jumpButton').style.display='flex';
             initStars();
