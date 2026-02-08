@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO WORLD: ULTIMATE EDITION</title>
+    <title>LEO WORLD: FINAL PRO</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;800&display=swap" rel="stylesheet">
@@ -60,7 +60,7 @@
         
         .card {
             background: #1e272e; padding: 35px; border-radius: 24px;
-            width: 420px; text-align: center; border: 1px solid #485460;
+            width: 450px; text-align: center; border: 1px solid #485460;
             box-shadow: 0 30px 90px rgba(0,0,0,1); color: white;
             position: relative; overflow: hidden;
         }
@@ -110,7 +110,7 @@
         .shop-item.equipped { border-color: #2ed573; background: linear-gradient(135deg, rgba(46, 213, 115, 0.1), rgba(46, 213, 115, 0.2)); box-shadow: 0 0 20px rgba(46, 213, 115, 0.2); }
         
         .preview-canvas { 
-            width: 70px; height: 70px; margin: 10px auto; display: block; 
+            width: 80px; height: 80px; margin: 10px auto; display: block; 
             filter: drop-shadow(0 8px 8px rgba(0,0,0,0.5)); 
         }
 
@@ -230,7 +230,7 @@
         const PETS = {
             'none': { name: 'NESSUNO', price: 0, type: 'none', color: null },
             'cube': { name: 'TESSERACT', price: 1000, type: 'cube', color: '#3498db' },
-            'doge': { name: 'DOGE', price: 3000, type: 'doge', color: '#f1c40f' },
+            'doge': { name: 'DOGE STARK', price: 3000, type: 'doge', color: '#f1c40f' },
             'ufo': { name: 'UFO', price: 6000, type: 'ufo', color: '#95a5a6' }
         };
 
@@ -372,8 +372,8 @@
         function drawPetDetailed(c, x, y, type) {
             c.save();
             if(type === 'cube') {
-                c.fillStyle="#3498db"; c.shadowColor="#3498db"; c.shadowBlur=15; c.fillRect(x, y, 20, 20);
-                c.fillStyle="#fff"; c.globalAlpha=0.5; c.fillRect(x+5, y+5, 10, 10);
+                // Usa drawVoxel per dare tridimensionalità anche al cubo semplice
+                drawVoxel(c, x, y, 25, 25, '#3498db', true); 
             }
             else if(type === 'doge') {
                 c.fillStyle="#f1c40f"; c.fillRect(x, y, 22, 18); // Head
@@ -384,6 +384,10 @@
             else if(type === 'ufo') {
                 c.fillStyle="#95a5a6"; c.beginPath(); c.ellipse(x+12, y+12, 14, 5, 0, 0, Math.PI*2); c.fill();
                 c.fillStyle="rgba(52, 152, 219, 0.6)"; c.beginPath(); c.arc(x+12, y+10, 7, 0, Math.PI*2); c.fill();
+            }
+            else {
+                // Fallback for NONE
+                c.fillStyle = "rgba(255,255,255,0.1)"; c.beginPath(); c.arc(x+12, y+12, 10, 0, Math.PI*2); c.fill();
             }
             c.restore();
         }
@@ -410,9 +414,8 @@
             update() { this.y += this.vy; this.life -= 0.015; }
             draw(ctx) {
                 ctx.save(); ctx.globalAlpha = Math.max(0, this.life); ctx.font = `900 ${this.size}px 'Fredoka'`;
-                ctx.fillStyle = this.color; ctx.strokeStyle = "black"; ctx.lineWidth = 3;
-                ctx.strokeText(this.text, this.x, this.y); ctx.fillText(this.text, this.x, this.y);
-                ctx.restore();
+                ctx.fillStyle = this.color; ctx.shadowColor = 'black'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+                ctx.textAlign = "center"; ctx.fillText(this.text, this.x, this.y); ctx.restore();
             }
         }
 
@@ -570,7 +573,7 @@
 
             let groundY = canvas.height - groundH;
 
-            // Ostacoli
+            // Obstacles
             obstacles.forEach(o => {
                 let oy = groundY - o.h;
                 if(o.type === 'truss') {
@@ -709,17 +712,19 @@
                 
                 // CREAZIONE ANTEPRIMA CANVAS
                 let cvs = document.createElement('canvas');
-                cvs.width = 70; cvs.height = 70; 
+                cvs.width = 80; cvs.height = 80; // Aumentato per migliore risoluzione
                 cvs.className = 'preview-canvas';
                 let cx = cvs.getContext('2d');
 
                 // FIX RENDERIZZAZIONE ANTEPRIMA
                 if(isSkin) {
                     // Disegna Avatar grande e centrato
-                    drawAvatarDetailed(cx, 20, 10, key, true, 0); 
+                    // cx, x, y, skinKey, isGrounded, animFrame
+                    drawAvatarDetailed(cx, 25, 10, key, true, 0); 
                 } else {
                     // Disegna Pet grande e centrato
-                    drawPetDetailed(cx, 25, 25, item.type);
+                    // cx, x, y, type
+                    drawPetDetailed(cx, 30, 30, item.type);
                 }
 
                 let btnTxt = isEquipped ? "EQUIPPED" : (isOwned ? "SELECT" : item.price);
