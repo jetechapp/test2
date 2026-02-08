@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO GAME - 3D SHIELD EDITION</title>
+    <title>LEO GAME - SAFE MODE</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -55,10 +55,8 @@
 
         .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake {
-            10%, 90% { transform: translate3d(-6px, 0, 0); }
-            20%, 80% { transform: translate3d(8px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-12px, 0, 0); }
-            40%, 60% { transform: translate3d(12px, 0, 0); }
+            10% { transform: translate3d(-4px, 0, 0); }
+            50% { transform: translate3d(4px, 0, 0); }
         }
 
         /* UI */
@@ -155,7 +153,9 @@
             
             <input type="text" id="loginUser" placeholder="NOME UTENTE">
             <input type="password" id="loginPass" placeholder="PASSWORD">
-            <button class="main-btn" onclick="attemptLogin()">GIOCA</button>
+            <button class="main-btn" onclick="attemptLogin()">GIOCA ONLINE</button>
+            <button class="main-btn" style="background:#555; margin-top:5px;" onclick="playOffline()">GIOCA OFFLINE (OSPITE)</button>
+            
             <p id="loginMsg" style="color:#ff0055; font-size:10px; height:15px; margin-top:5px;"></p>
             
             <div style="margin-top:15px; padding-top:5px; border-top:1px solid #333;">
@@ -199,8 +199,8 @@
     <script>
         // --- SUPABASE CONFIG ---
         // INSERISCI QUI LE TUE CHIAVI!
-        const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
+        const SUPABASE_URL = 'INSERISCI_QUI_LA_TUA_URL_SUPABASE';
+        const SUPABASE_KEY = 'INSERISCI_QUI_LA_TUA_ANON_KEY';
 
         let sb = null;
         try { 
@@ -239,9 +239,17 @@
             else if (type === 'powerup') { osc.type='sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(1000, now + 0.5); gain.gain.setValueAtTime(0.2, now); osc.start(now); osc.stop(now + 0.5); }
         }
 
-        // --- DATABASE LOGIC ---
+        // --- DATABASE LOGIC SAFEGUARD ---
+        function playOffline() {
+            currentUser = { username: "OSPITE", coins: 0, best_score: 0, inventory: 'default', current_skin: 'default', id: 'offline' };
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('currentPlayerDisplay').innerText = "OSPITE";
+            document.getElementById('jumpButton').style.display = 'flex';
+            resetGame();
+        }
+
         async function registerUser() {
-            if(!sb) return alert("Configura Supabase nel codice!");
+            if(!sb) return alert("DB non configurato!");
             const u = document.getElementById('regUser').value.trim();
             const p = document.getElementById('regPass').value.trim();
             if(!u || !p) return alert("Inserisci dati");
@@ -251,7 +259,7 @@
         }
 
         async function attemptLogin() {
-            if(!sb) return alert("Configura Supabase nel codice!");
+            if(!sb) return alert("DB non configurato!");
             const u = document.getElementById('loginUser').value.trim();
             const p = document.getElementById('loginPass').value.trim();
             const msg = document.getElementById('loginMsg'); msg.innerText = "Attendere...";
@@ -261,8 +269,11 @@
                 if(error || !data) { msg.innerText = "Dati errati"; msg.style.color = "red"; }
                 else {
                     currentUser = data;
+                    // Fix null values
                     if(!currentUser.inventory) currentUser.inventory = "default";
                     if(!currentUser.current_skin) currentUser.current_skin = "default";
+                    if(currentUser.coins === null) currentUser.coins = 0;
+                    
                     document.getElementById('loginOverlay').style.display = 'none';
                     document.getElementById('currentPlayerDisplay').innerText = currentUser.username.toUpperCase();
                     updateBankUI();
@@ -273,18 +284,22 @@
         }
 
         async function saveGameData(scoreToAdd, coinsToAdd) {
-            if(!currentUser || !sb) return;
+            if(!currentUser) return;
+            // Se ospite, salva solo in locale (volatile)
             currentUser.coins = (currentUser.coins || 0) + coinsToAdd;
             const newBest = Math.max(currentUser.best_score || 0, Math.floor(scoreToAdd));
             currentUser.best_score = newBest;
             updateBankUI();
-            await sb.from('leo_players').update({ coins: currentUser.coins, best_score: newBest }).eq('id', currentUser.id);
-            renderLeaderboard();
+
+            if(sb && currentUser.id !== 'offline') {
+                await sb.from('leo_players').update({ coins: currentUser.coins, best_score: newBest }).eq('id', currentUser.id);
+                renderLeaderboard();
+            }
         }
 
         async function renderLeaderboard() {
             const lists = [document.getElementById('highScoresList'), document.getElementById('preGameLeaderboard')];
-            if(!sb) { lists.forEach(l => l.innerHTML = "<li class='ranking-item' style='color:red'>DB MISSING</li>"); return; }
+            if(!sb) { lists.forEach(l => l.innerHTML = "<li class='ranking-item' style='color:#666'>Gioca Offline</li>"); return; }
 
             const { data, error } = await sb.from('leo_players').select('username, best_score, current_skin').order('best_score', { ascending: false }).limit(5);
             
@@ -335,6 +350,7 @@
         }
 
         async function buySkin(key) {
+            if(currentUser.id === 'offline') return alert("Registrati per comprare skin!");
             const skin = SKINS[key];
             if (currentUser.coins >= skin.price) {
                 currentUser.coins -= skin.price; currentUser.inventory += "," + key; playSound('buy'); updateBankUI();
@@ -344,6 +360,7 @@
         }
 
         async function equipSkin(key) {
+            if(currentUser.id === 'offline') { currentUser.current_skin = key; renderShop(); return; }
             currentUser.current_skin = key;
             await sb.from('leo_players').update({ current_skin: key }).eq('id', currentUser.id);
             renderShop();
@@ -352,7 +369,7 @@
         // --- GAME ENGINE ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const HITBOX_PADDING = 16; // MOOOOLTO PIU' AMPIO
+        const HITBOX_PADDING = 16; 
         
         let gameRunning = false;
         let frames = 0;
@@ -430,7 +447,7 @@
             constructor() { this.width=60; this.height=20; this.x=canvas.width; this.y=canvas.height-130; this.color='#ffaa00'; }
             update() { this.x -= gameSpeed; if(this.x < -100) this.markedForDeletion=true; }
             draw() { 
-                drawCube3D(ctx, this.x, this.y, 20, this.color, '#ffff00', '#cc8800'); // Fake blocks row
+                drawCube3D(ctx, this.x, this.y, 20, this.color, '#ffff00', '#cc8800'); 
                 drawCube3D(ctx, this.x+20, this.y, 20, this.color, '#ffff00', '#cc8800');
                 drawCube3D(ctx, this.x+40, this.y, 20, this.color, '#ffff00', '#cc8800');
             }
@@ -471,7 +488,7 @@
         function drawStars() {
             ctx.fillStyle = "#fff";
             stars.forEach(s => {
-                s.x -= gameSpeed * 0.1; // Parallax slow
+                s.x -= gameSpeed * 0.1; 
                 if(s.x < 0) s.x = canvas.width;
                 ctx.fillRect(s.x, s.y, s.size, s.size);
             });
