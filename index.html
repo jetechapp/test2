@@ -3,640 +3,733 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEO GAME - FINAL FIXED</title>
+    <title>LEO WORLD: ROBLOX EDITION</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        /* FONT ROBLOX STYLE (Verdana/Gotham like) */
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
 
         body {
             margin: 0; padding: 0;
             display: flex; justify-content: center; align-items: center;
             height: 100vh;
-            background-color: #050505;
-            font-family: 'Verdana', sans-serif;
-            color: white;
+            background: linear-gradient(to bottom, #74b9ff, #dfe6e9); /* Skybox */
+            font-family: 'Fredoka', 'Verdana', sans-serif;
             overflow: hidden;
             user-select: none; -webkit-user-select: none; touch-action: none;
         }
 
-        body::after {
-            content: " "; display: block; position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(10, 10, 20, 0.8), rgba(0, 0, 0, 0.9));
-            z-index: -1; pointer-events: none;
-        }
-
+        /* CANVAS STILE ROBLOX */
         canvas {
-            border: 4px solid #444;
-            background: #111;
-            box-shadow: 0 0 60px rgba(0, 0, 0, 0.8); 
+            border: 6px solid rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            background: transparent; /* Il background è gestito dal body o dal draw */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             max-width: 100%; max-height: 100%;
-            transition: all 0.3s ease;
-        }
-        
-        canvas.fire-sky { 
-            background: linear-gradient(to bottom, #880000, #220000) !important; 
-            border-color: #ff3300 !important; 
-            box-shadow: 0 0 50px #ff3300 !important; 
-        }
-        canvas.shield-sky {
-            animation: strobe 0.2s infinite;
-            border-color: #00ffff !important;
-            box-shadow: 0 0 50px #00ffff !important;
         }
 
-        @keyframes strobe { 0% { background: #001133; } 50% { background: #003366; } 100% { background: #001133; } }
-
-        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake {
-            10% { transform: translate3d(-4px, 0, 0); }
-            50% { transform: translate3d(4px, 0, 0); }
-        }
-
-        #ui { position: absolute; top: 15px; width: 100%; pointer-events: none; z-index: 10; display:flex; justify-content:space-between; padding: 0 25px; box-sizing: border-box;}
-        .hud-left, .hud-right { text-align: left; }
-        .hud-right { text-align: right; }
-
-        h1 { font-family: 'Press Start 2P'; font-size: 22px; margin: 0; text-shadow: 4px 4px 0 #000; color:#fff; }
-        .stat-box { font-family: 'Press Start 2P'; font-size: 11px; margin-top: 10px; color: #eee; text-shadow: 2px 2px 0 #000; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; }
-
-        #damageMsg, #powerMsg {
-            display: none; position: absolute; left: 50%; transform: translate(-50%, -50%);
-            font-family: 'Press Start 2P'; z-index: 20; text-shadow: 4px 4px 0 #000; pointer-events: none; text-align: center; width: 100%;
-        }
-        #damageMsg { top: 30%; color: red; font-size: 24px; animation: fadeUp 0.8s forwards; }
-        #powerMsg { top: 40%; font-size: 30px; animation: pulse 0.3s infinite alternate; }
-
-        @keyframes fadeUp { from { opacity: 1; top: 30%; } to { opacity: 0; top: 20%; } }
-        @keyframes pulse { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); } }
-
-        #loginOverlay, #shopOverlay {
+        /* GUI INTERFACE */
+        #ui {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(8px);
-        }
-        #shopOverlay { display: none; z-index: 110; }
-
-        .login-box, .shop-box {
-            background: #1a1a1a; padding: 30px; border: 4px solid #fff; border-radius: 0; text-align: center; width: 360px; box-shadow: 10px 10px 0 rgba(0,0,0,0.5);
-            max-height: 90vh; overflow-y: auto;
+            pointer-events: none; z-index: 10;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 20px; box-sizing: border-box;
         }
 
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 2px solid #555; background: #000; color: #fff; font-family: 'Verdana'; font-weight: bold; text-align: center; outline: none; }
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: flex-start;
+        }
+
+        .player-list {
+            background: rgba(30, 30, 30, 0.6);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            padding: 10px;
+            color: white;
+            min-width: 180px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .player-list h4 { margin: 0 0 10px 0; font-size: 14px; color: #dfe6e9; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; }
+        .list-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; align-items: center; }
+        .avatar-head { width: 16px; height: 16px; border-radius: 50%; background: #ffd700; border: 2px solid #fff; margin-right: 8px; }
+
+        .stats-container {
+            display: flex; gap: 10px;
+        }
+
+        .gui-badge {
+            background: rgba(255, 255, 255, 0.9);
+            color: #2d3436;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        /* NOTIFICHE */
+        #notificationArea {
+            position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
+            text-align: center; width: 100%; pointer-events: none;
+        }
+        .notify-msg {
+            font-size: 24px; color: #fff; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            font-weight: 800;
+            animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 5px;
+        }
+        @keyframes popUp { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* OVERLAYS (Login/Shop) */
+        #overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center; z-index: 100;
+        }
         
-        button.main-btn {
-            width: 100%; padding: 15px; background: #00aa00; color: white; font-family: 'Press Start 2P'; font-size: 12px; border: none; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 0 #005500; transition: transform 0.1s;
+        .roblox-card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 24px;
+            text-align: center;
+            width: 320px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border: 4px solid #fff;
         }
-        button.main-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #005500; }
-        button.shop-btn { background: #ffaa00; box-shadow: 0 4px 0 #cc8800; color:black; }
-        button.shop-btn:active { box-shadow: 0 0 0 #cc8800; }
+        
+        input {
+            width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #dfe6e9; border-radius: 8px;
+            font-family: 'Fredoka', sans-serif; font-size: 14px; outline: none; box-sizing: border-box;
+            transition: 0.3s;
+        }
+        input:focus { border-color: #0984e3; }
 
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .skin-card { background: #222; border: 2px solid #444; padding: 10px; position: relative; }
-        .skin-card.owned { border-color: #0f0; }
-        .skin-card.equipped { border-color: #ffaa00; box-shadow: 0 0 15px rgba(255, 170, 0, 0.3); }
-        .skin-preview { width: 50px; height: 50px; margin: 0 auto 10px auto; display: block; border: 2px solid rgba(255,255,255,0.1); }
-        .skin-name { font-size: 9px; color: #aaa; font-weight: bold; display: block; margin-bottom: 5px; }
-        .buy-btn { width: 100%; padding: 8px; font-size: 9px; cursor: pointer; border: none; font-weight: bold; font-family: 'Verdana'; }
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            font-family: 'Fredoka', sans-serif; font-weight: bold; font-size: 16px;
+            cursor: pointer; margin-top: 10px; transition: transform 0.1s;
+            color: white; box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn-green { background: #00b894; } /* Play Green */
+        .btn-blue { background: #0984e3; }
+        .btn-shop { background: #fdcb6e; color: #d35400; }
 
-        .leaderboard-container { margin-top: 20px; border-top: 2px dashed #444; padding-top: 15px; width: 100%; }
-        .leaderboard-container h4 { color: #ffaa00; font-size: 12px; margin-bottom: 15px; font-family: 'Press Start 2P'; }
-        ul.ranking-list { list-style: none; padding: 0; margin: 0; text-align: left; } 
-        li.ranking-item { padding: 10px 5px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color:#ccc; }
-        .leader-rank-area { display: flex; align-items: center; }
-        .leader-skin-icon { width: 14px; height: 14px; display: inline-block; margin: 0 10px; border: 1px solid #fff; }
+        /* SHOP GRID */
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; max-height: 250px; overflow-y: auto; }
+        .shop-item { background: #f1f2f6; border-radius: 10px; padding: 10px; border: 2px solid transparent; cursor: pointer; }
+        .shop-item.selected { border-color: #00b894; background: #e6fffa; }
+        .shop-preview { width: 40px; height: 40px; margin: 0 auto 5px; border-radius: 6px; }
 
-        #gameOver { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20, 20, 20, 0.98); padding: 40px; border: 4px solid #ff3333; text-align: center; z-index: 10; min-width: 380px; box-shadow: 0 0 50px rgba(255,0,0,0.3); }
-        #jumpButton { display: none; position: absolute; bottom: 30px; right: 30px; width: 100px; height: 100px; background: rgba(255, 255, 255, 0.1); border: 4px solid #fff; border-radius: 50%; color: #fff; display: flex; justify-content: center; align-items: center; font-family: 'Press Start 2P'; font-size: 12px; cursor: pointer; z-index: 20; -webkit-tap-highlight-color: transparent; }
-        #jumpButton:active { background: rgba(255, 255, 255, 0.3); transform: scale(0.95); }
+        /* JUMP BUTTON MOBILE */
+        #jumpButton {
+            display: none; position: absolute; bottom: 40px; right: 40px;
+            width: 90px; height: 90px; background: rgba(255,255,255,0.3);
+            border-radius: 50%; border: 4px solid rgba(255,255,255,0.6);
+            backdrop-filter: blur(4px); pointer-events: auto;
+            align-items: center; justify-content: center;
+        }
+        #jumpButton svg { fill: white; width: 40px; height: 40px; }
+        #jumpButton:active { background: rgba(255,255,255,0.5); transform: scale(0.95); }
 
     </style>
 </head>
 <body>
 
     <div id="ui">
-        <div class="hud-left">
-            <h1>LEO GAME 3D</h1>
-            <div class="stat-box">PLAYER: <span id="currentPlayerDisplay" style="color:#00dbde;">---</span></div>
-            <div class="stat-box" style="color:#ffd700;">BANK: <span id="bankDisplay">0</span> $</div>
-        </div>
-        <div class="hud-right">
-            <div class="stat-box">SCORE: <span id="score">0</span></div>
-            <div class="stat-box">❤️ <span id="livesDisplay">1</span></div>
-            <div class="stat-box">💎 <span id="coinsDisplay">0</span></div>
-        </div>
-    </div>
-
-    <div id="damageMsg">HIT!</div>
-    <div id="powerMsg" style="color:#ffd700;">POWER UP!</div>
-
-    <canvas id="gameCanvas" width="800" height="400"></canvas>
-    <div id="jumpButton" onmousedown="handleInput(event)" ontouchstart="handleInput(event)">JUMP</div>
-
-    <div id="loginOverlay">
-        <div class="login-box">
-            <h2 style="color: #fff; font-family:'Press Start 2P'; font-size:20px; margin-bottom: 20px;">LOGIN</h2>
-            <input type="text" id="loginUser" placeholder="NOME UTENTE">
-            <input type="password" id="loginPass" placeholder="PASSWORD">
-            <button class="main-btn" onclick="attemptLogin()">GIOCA ONLINE</button>
-            <button class="main-btn" style="background:#555; margin-top:5px;" onclick="playOffline()">GIOCA OFFLINE (OSPITE)</button>
-            <p id="loginMsg" style="color:#ff0055; font-size:10px; height:15px; margin-top:5px;"></p>
-            <div style="margin-top:15px; padding-top:5px; border-top:1px solid #333;">
-                <button class="main-btn" style="background:#444; font-size:10px; padding:10px;" onclick="registerUser()">REGISTRATI (NUOVO)</button>
+        <div class="top-bar">
+            <div class="stats-container">
+                <div class="gui-badge">
+                    <span style="font-size:18px;">😐</span> <span id="nameDisplay">GUEST</span>
+                </div>
+                <div class="gui-badge" style="color:#00b894;">
+                    ⬢ <span id="coinDisplay">0</span>
+                </div>
             </div>
-            <div class="leaderboard-container">
-                <h4>TOP 5 GLOBAL</h4>
-                <ul id="preGameLeaderboard" class="ranking-list">
-                    <li class="ranking-item" style="color:#666; justify-content:center;">Caricamento...</li>
-                </ul>
+            
+            <div class="player-list">
+                <h4>PLAYERS</h4>
+                <div id="leaderboardList">
+                    <div class="list-item"><div class="avatar-head"></div> Loading...</div>
+                </div>
             </div>
         </div>
-    </div>
+        
+        <div id="notificationArea"></div>
 
-    <div id="shopOverlay">
-        <div class="shop-box">
-            <h2 style="color: #ffd700; font-family:'Press Start 2P'; font-size:18px;">SKIN STORE</h2>
-            <div class="stat-box" style="background:none;">I TUOI SOLDI: <span id="shopBankDisplay" style="color:#fff;">0</span> $</div>
-            <div class="shop-grid" id="skinGrid"></div>
-            <button class="main-btn" style="background:#555;" onclick="closeShop()">TORNA AL MENU</button>
+        <div class="stats-container" style="align-self: flex-end;">
+            <div class="gui-badge">🏆 SCORE: <span id="scoreDisplay">0</span></div>
         </div>
     </div>
 
-    <div id="gameOver">
-        <h1 style="color:#ff3333; font-size: 30px; margin-bottom:20px;">GAME OVER</h1>
-        <p style="font-size: 18px; margin-bottom:10px;">SCORE: <strong id="finalScore" style="color:#fff">0</strong></p>
-        <p style="font-size: 14px; color:#ffd700; margin-bottom:20px;">GUADAGNATO: +<span id="earnedCoins">0</span> $</p>
-        <div class="leaderboard-container" style="background:#111; padding:15px; border:1px solid #333;">
-            <h4>TOP 5 GLOBAL</h4>
-            <ul id="highScoresList" class="ranking-list">
-                <li class="ranking-item" style="color:#666; justify-content:center;">Caricamento...</li>
-            </ul>
+    <canvas id="gameCanvas" width="900" height="500"></canvas>
+    
+    <div id="jumpButton" onmousedown="handleInput(event)" ontouchstart="handleInput(event)">
+        <svg viewBox="0 0 24 24"><path d="M12 4l-8 8h6v8h4v-8h6z"/></svg>
+    </div>
+
+    <div id="overlay">
+        <div class="roblox-card" id="loginCard">
+            <h1 style="color:#2d3436; margin:0 0 5px 0;">LEO WORLD</h1>
+            <p style="color:#b2bec3; margin:0 0 20px 0; font-size:12px;">ROBLOX EDITION</p>
+            
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            
+            <button class="btn btn-green" onclick="login()">GIOCA (PLAY)</button>
+            <button class="btn btn-blue" style="margin-top:5px; font-size:12px; padding:10px;" onclick="playGuest()">ENTRA COME OSPITE</button>
+            <div style="margin-top:10px; font-size:10px; color:#636e72;">
+                <span onclick="register()" style="cursor:pointer; text-decoration:underline;">Non hai un account? Registrati</span>
+            </div>
         </div>
-        <button class="main-btn" onclick="resetGame()">RITENTA</button>
-        <button class="main-btn shop-btn" onclick="openShop()">NEGOZIO SKIN</button>
+
+        <div class="roblox-card" id="shopCard" style="display:none; width: 400px;">
+            <h2 style="margin-top:0;">AVATAR SHOP</h2>
+            <div class="gui-badge" style="justify-content:center; margin-bottom:10px;">Saldo: ⬢ <span id="shopBalance">0</span></div>
+            
+            <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
+                <button onclick="shopTab='skins'; renderShop()" class="btn btn-blue" style="padding:8px; font-size:12px; width:auto;">SKINS</button>
+                <button onclick="shopTab='pets'; renderShop()" class="btn btn-blue" style="padding:8px; font-size:12px; width:auto;">PETS</button>
+            </div>
+
+            <div class="shop-grid" id="shopGrid"></div>
+            
+            <button class="btn btn-green" onclick="closeShop()">TORNA AL GIOCO</button>
+        </div>
+
+        <div class="roblox-card" id="gameOverCard" style="display:none;">
+            <h1 style="color:#d63031;">OOOF!</h1>
+            <p>Sei stato eliminato.</p>
+            <h2 id="finalScore" style="color:#2d3436; font-size:30px;">0</h2>
+            <p>Guadagnati: <span id="finalCoins" style="color:#00b894; font-weight:bold;">+0</span> ⬢</p>
+            <button class="btn btn-green" onclick="resetGame()">RESPAWN</button>
+            <button class="btn btn-shop" onclick="openShop()">SHOP</button>
+        </div>
     </div>
 
     <script>
+        // --- CONFIG & SUPABASE ---
         const SUPABASE_URL = 'https://jcylyutlybmbjrgghpzm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjeWx5dXRseWJtYmpyZ2docHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTc4NTYsImV4cCI6MjA4NjAzMzg1Nn0.X9xwESmsRJurzGODAb6V0x4QA_YODtKbATooYcC39Ew';
-
+        
         let sb = null;
-        try { if(typeof supabase !== 'undefined') sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e){ console.error(e); }
+        if(typeof supabase !== 'undefined') sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // --- ASSETS & DATA ---
         const SKINS = {
-            'default': { name: 'NEON CORE', price: 0, top: '#00ff00', side: '#005500', front: '#00aa00' },
-            'magma':   { name: 'MAGMA', price: 500, top: '#ffcc00', side: '#990000', front: '#ff4400' },
-            'ice':     { name: 'FROST', price: 1500, top: '#ffffff', side: '#0088aa', front: '#00ccff' },
-            'ninja':   { name: 'STEALTH', price: 3000, top: '#333333', side: '#000000', front: '#1a1a1a' },
-            'gold':    { name: 'GOLD', price: 10000, top: '#ffffaa', side: '#cc8800', front: '#ffcc00' },
-            'matrix':  { name: 'HACKER', price: 50000, top: '#003300', side: '#001100', front: '#00ff00' }
+            'noob': { name: 'Classic Noob', price: 0, colors: ['#ffeaa7', '#0984e3', '#55efc4'] }, // Head, Body, Legs
+            'guest': { name: 'Guest 666', price: 500, colors: ['#dfe6e9', '#2d3436', '#2d3436'] },
+            'bacon': { name: 'Bacon Hair', price: 1000, colors: ['#fab1a0', '#74b9ff', '#636e72'] },
+            'gold': { name: 'Golden Blox', price: 5000, colors: ['#fdcb6e', '#ffeaa7', '#e17055'] },
+            'void': { name: 'Void Walker', price: 10000, colors: ['#000000', '#2d3436', '#636e72'] }
         };
 
-        let currentUser = null; 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const PETS = {
+            'none': { name: 'Nessuno', price: 0, color: null },
+            'cube': { name: 'Floating Cube', price: 1500, color: '#ff7675' },
+            'doge': { name: 'Doge Block', price: 3000, color: '#fdcb6e' },
+            'ghost': { name: 'Ghost', price: 6000, color: '#dfe6e9' }
+        };
 
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            const now = audioCtx.currentTime;
+        let user = { 
+            username: 'Guest', coins: 0, highscore: 0, 
+            inventory: ['noob'], skin: 'noob', 
+            pets: ['none'], pet: 'none',
+            id: 'guest' 
+        };
 
-            if (type === 'jump') { osc.type='square'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(300, now + 0.1); gain.gain.setValueAtTime(0.05, now); osc.start(now); osc.stop(now + 0.1); }
-            else if (type === 'coin') { osc.type='sine'; osc.frequency.setValueAtTime(1200, now); gain.gain.setValueAtTime(0.05, now); osc.start(now); osc.stop(now + 0.1); }
-            else if (type === 'coin_epic') { osc.type='triangle'; osc.frequency.setValueAtTime(1500, now); osc.frequency.linearRampToValueAtTime(2500, now + 0.3); gain.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.3); }
-            else if (type === 'break') { osc.type='sawtooth'; osc.frequency.setValueAtTime(60, now); gain.gain.setValueAtTime(0.2, now); osc.start(now); osc.stop(now + 0.15); }
-            else if (type === 'hit') { osc.type='sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(20, now + 0.3); gain.gain.setValueAtTime(0.2, now); osc.start(now); osc.stop(now + 0.3); }
-            else if (type === 'buy') { osc.type='square'; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(800, now + 0.2); gain.gain.setValueAtTime(0.1, now); osc.start(now); osc.stop(now + 0.2); }
-            else if (type === 'powerup') { osc.type='sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(1000, now + 0.5); gain.gain.setValueAtTime(0.2, now); osc.start(now); osc.stop(now + 0.5); }
-        }
-
-        function playOffline() {
-            currentUser = { username: "OSPITE", coins: 0, best_score: 0, inventory: 'default', current_skin: 'default', id: 'offline' };
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('currentPlayerDisplay').innerText = "OSPITE";
-            document.getElementById('jumpButton').style.display = 'flex';
-            resetGame();
-        }
-
-        async function registerUser() {
-            if(!sb) return alert("Errore DB");
-            const u = document.getElementById('regUser').value.trim();
-            const p = document.getElementById('regPass').value.trim();
-            if(!u || !p) return alert("Dati mancanti");
-            const { error } = await sb.from('leo_players').insert([{ username: u, password: p, coins: 0, inventory: 'default', current_skin: 'default' }]);
-            if(error) alert("Nome già preso!"); else { alert("Registrato! Fai Login"); document.getElementById('loginUser').value = u; }
-        }
-
-        async function attemptLogin() {
-            if(!sb) return alert("Errore DB");
-            const u = document.getElementById('loginUser').value.trim();
-            const p = document.getElementById('loginPass').value.trim();
-            const msg = document.getElementById('loginMsg'); msg.innerText = "Attendere...";
+        let shopTab = 'skins';
+        let gameActive = false;
+        
+        // --- AUDIO ENGINE (Synthesized) ---
+        const Audio = new (window.AudioContext || window.webkitAudioContext)();
+        function sfx(type) {
+            if(Audio.state === 'suspended') Audio.resume();
+            const o = Audio.createOscillator();
+            const g = Audio.createGain();
+            o.connect(g); g.connect(Audio.destination);
+            const t = Audio.currentTime;
             
-            try {
-                const { data, error } = await sb.from('leo_players').select('*').eq('username', u).eq('password', p).single();
-                if(error || !data) { msg.innerText = "Dati errati"; msg.style.color = "red"; }
-                else {
-                    currentUser = data;
-                    if(!currentUser.inventory) currentUser.inventory = "default";
-                    if(!currentUser.current_skin) currentUser.current_skin = "default";
-                    if(currentUser.coins === null) currentUser.coins = 0;
-                    document.getElementById('loginOverlay').style.display = 'none';
-                    document.getElementById('currentPlayerDisplay').innerText = currentUser.username.toUpperCase();
-                    updateBankUI();
-                    document.getElementById('jumpButton').style.display = 'flex';
-                    resetGame();
-                }
-            } catch(err) { msg.innerText = "Errore rete"; }
-        }
-
-        async function saveGameData(scoreToAdd, coinsToAdd) {
-            if(!currentUser) return;
-            currentUser.coins = (currentUser.coins || 0) + coinsToAdd;
-            const newBest = Math.max(currentUser.best_score || 0, Math.floor(scoreToAdd));
-            currentUser.best_score = newBest;
-            updateBankUI();
-            if(sb && currentUser.id !== 'offline') {
-                try { await sb.from('leo_players').update({ coins: currentUser.coins, best_score: newBest }).eq('id', currentUser.id); renderLeaderboard(); } catch(e){}
+            if(type === 'jump') { // "Hup" sound
+                o.type = 'sine'; o.frequency.setValueAtTime(300, t); o.frequency.linearRampToValueAtTime(500, t+0.1);
+                g.gain.setValueAtTime(0.1, t); g.gain.linearRampToValueAtTime(0, t+0.1);
+                o.start(t); o.stop(t+0.1);
+            }
+            if(type === 'coin') { // "Ching"
+                o.type = 'triangle'; o.frequency.setValueAtTime(1200, t); o.frequency.setValueAtTime(1600, t+0.1);
+                g.gain.setValueAtTime(0.05, t); g.gain.linearRampToValueAtTime(0, t+0.2);
+                o.start(t); o.stop(t+0.2);
+            }
+            if(type === 'die') { // "OOF" approx
+                o.type = 'sawtooth'; o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(50, t+0.3);
+                g.gain.setValueAtTime(0.2, t); g.gain.linearRampToValueAtTime(0, t+0.3);
+                o.start(t); o.stop(t+0.3);
+            }
+            if(type === 'click') {
+                o.type = 'square'; o.frequency.setValueAtTime(800, t);
+                g.gain.setValueAtTime(0.05, t); g.gain.linearRampToValueAtTime(0, t+0.05);
+                o.start(t); o.stop(t+0.05);
             }
         }
 
-        async function renderLeaderboard() {
-            const lists = [document.getElementById('highScoresList'), document.getElementById('preGameLeaderboard')];
-            if(!sb) { lists.forEach(l => l.innerHTML = "<li class='ranking-item'>Offline Mode</li>"); return; }
-            const { data, error } = await sb.from('leo_players').select('username, best_score, current_skin').order('best_score', { ascending: false }).limit(5);
-            if(data) {
-                const html = data.map((u, i) => {
-                    let skinKey = u.current_skin || 'default';
-                    let skinColor = SKINS[skinKey] ? SKINS[skinKey].front : '#00ff00';
-                    let rankColor = i === 0 ? "#ffd700" : (i === 1 ? "#c0c0c0" : "#cd7f32");
-                    return `<li class="ranking-item"><div class="leader-rank-area"><span style="color:${rankColor}; width:15px;">${i+1}.</span><div class="leader-skin-icon" style="background:${skinColor}"></div><span style="color:${rankColor}">${u.username}</span></div><span>${u.best_score}</span></li>`;
-                }).join('');
-                lists.forEach(l => l.innerHTML = html);
-            }
-        }
-
-        window.onload = function() { if(sb) renderLeaderboard(); };
-
-        function updateBankUI() {
-            if(currentUser) {
-                document.getElementById('bankDisplay').innerText = currentUser.coins;
-                document.getElementById('shopBankDisplay').innerText = currentUser.coins;
-            }
-        }
-
-        function openShop() { document.getElementById('shopOverlay').style.display='flex'; document.getElementById('gameOver').style.display='none'; renderShop(); }
-        function closeShop() { document.getElementById('shopOverlay').style.display='none'; document.getElementById('gameOver').style.display='block'; }
-
-        function renderShop() {
-            const grid = document.getElementById('skinGrid'); grid.innerHTML = "";
-            const owned = (currentUser.inventory || "").split(',');
-            for (const [key, skin] of Object.entries(SKINS)) {
-                const isOwned = owned.includes(key);
-                const isEquipped = currentUser.current_skin === key;
-                let btnHtml = isEquipped ? `<button class="buy-btn" style="background:#444;color:#fff">EQUIPAGGIATO</button>` : isOwned ? `<button class="buy-btn" style="background:#00ff00;color:#000" onclick="equipSkin('${key}')">EQUIPAGGIA</button>` : `<button class="buy-btn" style="background:#ffd700;color:#000" onclick="buySkin('${key}')">${skin.price}$</button>`;
-                grid.innerHTML += `<div class="skin-card ${isOwned?'owned':''} ${isEquipped?'equipped':''}"><div class="skin-preview" style="background:${skin.front}; border-top:5px solid ${skin.top}; border-right:5px solid ${skin.side}"></div><span class="skin-name">${skin.name}</span>${btnHtml}</div>`;
-            }
-        }
-
-        async function buySkin(key) {
-            if(currentUser.id === 'offline') return alert("Registrati prima!");
-            const skin = SKINS[key];
-            if (currentUser.coins >= skin.price) {
-                currentUser.coins -= skin.price; currentUser.inventory += "," + key; playSound('buy'); updateBankUI();
-                await sb.from('leo_players').update({ coins: currentUser.coins, inventory: currentUser.inventory }).eq('id', currentUser.id);
-                renderShop();
-            } else alert("Soldi insufficienti!");
-        }
-
-        async function equipSkin(key) {
-            if(currentUser.id === 'offline') { currentUser.current_skin = key; renderShop(); return; }
-            currentUser.current_skin = key;
-            await sb.from('leo_players').update({ current_skin: key }).eq('id', currentUser.id);
-            renderShop();
-        }
-
+        // --- GAME LOGIC ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const FLOOR_HEIGHT = 40; 
-        const HITBOX_PADDING = 14; 
         
-        let gameRunning = false;
         let frames = 0;
+        let speed = 6;
         let score = 0;
         let sessionCoins = 0;
-        let lives = 1;
-        let gameSpeed = 6;
-        let currentCombo = 0;
+        let gravity = 0.6;
 
+        // Entities
+        let player = { x: 80, y: 200, w: 30, h: 46, dy: 0, grounded: false, color: SKINS['noob'].colors };
+        let pet = { x: 40, y: 200, targetX: 0, targetY: 0 };
         let obstacles = [];
         let particles = [];
         let coins = [];
-        let blocks = []; 
-        let trail = [];
-        let floatingTexts = [];
-        let stars = []; 
-        const GRAVITY = 0.65;
+        let clouds = [];
 
-        let powerMode = false; 
-        let shieldMode = false; 
-        let powerTimer = 0;
+        // Camera Shake
+        let shake = 0;
 
-        const player = { x: 60, y: 300, width: 30, height: 30, dy: 0, jumpForce: 13, grounded: false, angle: 0, spinSpeed: 0, invincible: false, invTimer: 0 };
-
-        function drawCube3D(ctx, x, y, size, colorFront, colorTop, colorSide) {
-            let depth = size/4;
-            ctx.fillStyle = colorSide; ctx.beginPath(); ctx.moveTo(x+size, y); ctx.lineTo(x+size+depth, y-depth); ctx.lineTo(x+size+depth, y+size-depth); ctx.lineTo(x+size, y+size); ctx.fill();
-            ctx.fillStyle = colorTop; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+depth, y-depth); ctx.lineTo(x+size+depth, y-depth); ctx.lineTo(x+size, y); ctx.fill();
-            ctx.fillStyle = colorFront; ctx.fillRect(x, y, size, size);
-        }
-
-        function drawGround3D(ctx) {
-            ctx.fillStyle = "#ff0055"; ctx.fillRect(0, canvas.height - FLOOR_HEIGHT, canvas.width, 10);
-            let grd = ctx.createLinearGradient(0, canvas.height - FLOOR_HEIGHT + 10, 0, canvas.height);
-            grd.addColorStop(0, "#aa0033"); grd.addColorStop(1, "#330011");
-            ctx.fillStyle = grd; ctx.fillRect(0, canvas.height - FLOOR_HEIGHT + 10, canvas.width, FLOOR_HEIGHT - 10);
-        }
-
-        function initStars() { stars=[]; for(let i=0; i<50; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*2}); }
-        function drawStars() {
-            ctx.fillStyle = "#fff";
-            stars.forEach(s => { s.x -= gameSpeed * 0.1; if(s.x < 0) s.x = canvas.width; ctx.fillRect(s.x, s.y, s.size, s.size); });
-        }
-
-        class FloatingText {
-            constructor(text, x, y, color, size) { this.text = text; this.x = x; this.y = y; this.color = color || '#fff'; this.size = size || 15; this.life = 1.0; this.vy = -2; }
-            update() { this.y += this.vy; this.life -= 0.02; }
-            draw() { ctx.save(); ctx.globalAlpha = Math.max(0, this.life); ctx.fillStyle = this.color; ctx.font = `bold ${this.size}px "Press Start 2P"`; ctx.shadowColor = "black"; ctx.shadowBlur = 4; ctx.fillText(this.text, this.x, this.y); ctx.restore(); }
-        }
-
-        class Particle {
-            constructor(x, y, type, color) {
-                this.x = x; this.y = y; this.type = type; this.size = Math.random()*6+4;
-                let angle = Math.random()*Math.PI*2; let speed = Math.random()*5+2;
-                if(type==='explosion') { this.vx = Math.cos(angle)*speed; this.vy = Math.sin(angle)*speed; this.life=1.5; this.color=color; }
-                else { this.vx = Math.random()*6-3; this.vy = Math.random()*6-3; this.life=1.0; this.color=color||'#fff'; }
-            }
-            update() { this.x+=this.vx; this.y+=this.vy; this.life-=0.03; this.size*=0.95; }
-            draw() { ctx.globalAlpha=Math.max(0, this.life); ctx.fillStyle=this.color; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.globalAlpha=1.0; }
-        }
-
-        function createExplosion(x, y, color) { playSound('break'); for(let i=0;i<15;i++) particles.push(new Particle(x, y, 'explosion', color)); }
+        // --- RENDER FUNCTIONS (THE ROBLOX LOOK) ---
         
-        function activatePower(type) {
-            powerTimer = 300; playSound('powerup');
-            let txt = document.getElementById('powerMsg'); txt.style.display = 'block';
-            if(type === 'red') {
-                powerMode = true; shieldMode = false;
-                canvas.classList.add('fire-sky'); canvas.classList.remove('shield-sky');
-                txt.innerText = "RED ELEPHANT!"; txt.style.color = "#ff0000";
-            } else {
-                shieldMode = true; powerMode = false;
-                canvas.classList.add('shield-sky'); canvas.classList.remove('fire-sky');
-                txt.innerText = "SHIELD MAGNET!"; txt.style.color = "#00ffff";
-            }
-            setTimeout(()=> txt.style.display='none', 2000);
+        // Helper per scurire i colori (Shading)
+        function shade(hex, percent) {
+            let f=parseInt(hex.slice(1),16),t=percent<0?0:255,p=percent<0?percent*-1:percent,R=f>>16,G=f>>8&0x00FF,B=f&0x0000FF;
+            return "#"+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
         }
 
-        class Obstacle {
-            constructor(score) {
-                this.x = canvas.width; this.markedForDeletion = false;
-                const r = Math.random();
-                let groundY = canvas.height - FLOOR_HEIGHT;
-                if(score > 1000 && r > 0.85) { this.type='water'; this.width=120; this.height=20; this.y=groundY+15; this.color='#0088ff'; } 
-                else if(score > 500 && r > 0.7) { this.type='spike'; this.width=30; this.height=30; this.y=groundY-30; this.color='#aaaaaa'; }
-                else if(r < 0.5) { this.type='ground'; this.width=40; this.height=40; this.y=groundY-40; this.color='#ff0055'; }
-                else { this.type='air'; this.width=40; this.height=40; this.y=groundY-100; this.color='#fc00ff'; }
-            }
-            update() { this.x -= gameSpeed; if(this.x < -100) this.markedForDeletion=true; }
-            draw() {
-                if(this.type==='water') { ctx.fillStyle=this.color; ctx.fillRect(this.x, canvas.height-FLOOR_HEIGHT, this.width, FLOOR_HEIGHT); }
-                else if(this.type==='spike') { 
-                    ctx.fillStyle=this.color; ctx.beginPath(); ctx.moveTo(this.x,this.y+this.height); ctx.lineTo(this.x+this.width/2,this.y); ctx.lineTo(this.x+this.width,this.y+this.height); ctx.fill();
-                    ctx.fillStyle="#666"; ctx.beginPath(); ctx.moveTo(this.x+this.width/2, this.y); ctx.lineTo(this.x+this.width, this.y+this.height); ctx.lineTo(this.x+this.width+5, this.y+this.height-5); ctx.fill(); 
-                }
-                else { drawCube3D(ctx, this.x, this.y, this.width, this.color, '#ff99cc', '#aa0033'); }
+        function drawPlasticBlock(x, y, w, h, color) {
+            // Main Body
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+            
+            // Top Highlight (Lucido)
+            ctx.fillStyle = shade(color, 0.2);
+            ctx.fillRect(x, y, w, 4);
+            
+            // Side Shadow
+            ctx.fillStyle = shade(color, -0.2);
+            ctx.fillRect(x + w - 4, y, 4, h);
+            ctx.fillRect(x, y + h - 4, w, 4);
+            
+            // Studs (I pallini sopra i blocchi stile Lego)
+            ctx.fillStyle = shade(color, 0.1);
+            for(let i=4; i<w-4; i+=10) {
+                ctx.beginPath();
+                ctx.arc(x+i+3, y+2, 2, 0, Math.PI*2);
+                ctx.fill();
             }
         }
 
-        class DestructibleBlock {
-            constructor() { this.width=60; this.height=20; this.x=canvas.width; this.y=canvas.height-170; this.color='#ffaa00'; }
-            update() { this.x -= gameSpeed; if(this.x < -100) this.markedForDeletion=true; }
-            draw() { 
-                drawCube3D(ctx, this.x, this.y, 20, this.color, '#ffff00', '#cc8800'); 
-                drawCube3D(ctx, this.x+20, this.y, 20, this.color, '#ffff00', '#cc8800');
-                drawCube3D(ctx, this.x+40, this.y, 20, this.color, '#ffff00', '#cc8800');
+        function drawAvatar(x, y, colors) {
+            // Head
+            drawPlasticBlock(x+5, y, 20, 16, colors[0]);
+            // Torso
+            drawPlasticBlock(x, y+16, 30, 16, colors[1]);
+            // Legs (Split)
+            let legH = 14;
+            let legAnim = Math.sin(frames*0.2) * 4;
+            if(!player.grounded) legAnim = -5; // Jump pose
+            
+            drawPlasticBlock(x+2, y+32, 12, legH + legAnim, colors[2]); // Left
+            drawPlasticBlock(x+16, y+32, 12, legH - legAnim, colors[2]); // Right
+        }
+
+        function drawPet() {
+            if(user.pet === 'none' || !PETS[user.pet]) return;
+            const pColor = PETS[user.pet].color;
+            
+            // Smooth follow (Lerp)
+            pet.targetX = player.x - 40;
+            pet.targetY = player.y - 20 + Math.sin(frames*0.05)*10;
+            pet.x += (pet.targetX - pet.x) * 0.1;
+            pet.y += (pet.targetY - pet.y) * 0.1;
+
+            ctx.shadowBlur = 10; ctx.shadowColor = pColor;
+            drawPlasticBlock(pet.x, pet.y, 16, 16, pColor);
+            ctx.shadowBlur = 0;
+        }
+
+        function spawnCloud() {
+            if(Math.random() < 0.01) {
+                clouds.push({ x: canvas.width, y: Math.random()*150, s: Math.random()*0.5+0.5 });
             }
         }
 
-        class Gem {
-            constructor(tier, sx, sy) {
-                this.x = sx || canvas.width; this.tier = tier; this.rot = 0;
-                let groundY = canvas.height - FLOOR_HEIGHT;
-                if(tier===6) { this.y=groundY-180; this.color='#00ffff'; this.points=500; this.size=24; } 
-                else if(tier===5) { this.y=groundY-160; this.color='#ff0000'; this.points=2000; this.size=22; } 
-                else if(tier===4) { this.y=sy; this.color='#ffffff'; this.points=1000; this.size=16; } 
-                else { this.y=groundY-60-Math.random()*60; this.color=tier===2?'#00dbde':'#00ff00'; this.points=tier===2?150:50; this.size=12; }
+        function update() {
+            if(!gameActive) return;
+            frames++;
+            score += 0.05;
+            speed += 0.001;
+
+            // Player Physics
+            player.dy += gravity;
+            player.y += player.dy;
+            
+            let groundY = canvas.height - 50;
+            if(player.y + player.h > groundY) {
+                player.y = groundY - player.h;
+                player.dy = 0;
+                player.grounded = true;
+            } else player.grounded = false;
+
+            // Cloud logic
+            spawnCloud();
+            clouds.forEach(c => c.x -= speed * 0.5);
+            clouds = clouds.filter(c => c.x > -100);
+
+            // Obstacle Logic
+            if(frames % Math.floor(100 - speed*2) === 0) {
+                let type = Math.random();
+                if(type < 0.6) obstacles.push({x: canvas.width, w: 40, h: 40, type: 'block', col: '#636e72'}); // Stone
+                else if(type < 0.8) obstacles.push({x: canvas.width, w: 40, h: 40, type: 'killbrick', col: '#ff0000'}); // Killbrick
+                else obstacles.push({x: canvas.width, w: 40, h: 60, type: 'truss', col: '#2d3436'}); // Truss (Tall)
             }
-            update() { 
-                this.x -= gameSpeed; this.rot+=0.05; if(this.x<-50) this.markedForDeletion=true; 
-                if(shieldMode) { this.x += (player.x - this.x) * 0.1; this.y += (player.y - this.y) * 0.1; }
-            }
-            draw() {
-                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rot);
-                if(this.tier===5 || this.tier===6) { 
-                    ctx.fillStyle=this.color; ctx.shadowBlur=20; ctx.shadowColor=this.color;
-                    ctx.fillRect(-10,-8,20,16); ctx.fillRect(-16,-6,6,12); ctx.fillRect(10,-6,6,12); ctx.fillRect(-2,4,4,10); 
-                } else {
-                    ctx.fillStyle=this.color; ctx.shadowBlur=15; ctx.shadowColor=this.color;
-                    ctx.beginPath(); ctx.moveTo(0,-this.size); ctx.lineTo(this.size,0); ctx.lineTo(0,this.size); ctx.lineTo(-this.size,0); ctx.fill();
-                }
-                ctx.restore();
-            }
-        }
-
-        function handleInput(e) { if(e.cancelable) e.preventDefault(); if(gameRunning) jump(); }
-        function jump() { 
-            if(player.grounded) { 
-                player.dy = -player.jumpForce; player.grounded=false; playSound('jump'); 
-                for(let i=0;i<5;i++) particles.push(new Particle(player.x+15, player.y+30, 'dust', '#fff'));
-            }
-        }
-        window.addEventListener('keydown', e => { if(gameRunning && (e.code==='Space'||e.code==='ArrowUp')) jump(); });
-
-        function updateGame() {
-            if(powerMode || shieldMode) {
-                powerTimer--;
-                if(powerTimer<=0) { powerMode=false; shieldMode=false; canvas.classList.remove('fire-sky'); canvas.classList.remove('shield-sky'); }
-            }
-            if(player.invincible) { player.invTimer--; if(player.invTimer<=0) player.invincible=false; }
-
-            player.dy += GRAVITY; player.y += player.dy;
-
-            let groundLevel = canvas.height - FLOOR_HEIGHT;
-            if(player.y + player.height > groundLevel) { 
-                player.y = groundLevel - player.height; player.dy = 0; player.grounded=true; player.angle=0; player.spinSpeed=0; 
-                if(currentCombo > 1) floatingTexts.push(new FloatingText("COMBO END", player.x, player.y-50, "#aaa", 10));
-                currentCombo = 0;
-            } else { player.grounded=false; }
-
-            blocks.forEach(b => {
-                b.update();
-                if(player.x+HITBOX_PADDING < b.x+b.width && player.x+player.width-HITBOX_PADDING > b.x) {
-                    if((powerMode || shieldMode) && player.y < b.y+b.height && player.y+player.height > b.y) {
-                        b.markedForDeletion=true; score+=200; createExplosion(b.x, b.y, '#ffaa00');
-                        floatingTexts.push(new FloatingText("SMASH!", b.x, b.y, "#ffd700", 15));
-                    }
-                    else if(player.dy>=0 && player.y+player.height >= b.y && player.y+player.height <= b.y+25) { 
-                        player.y=b.y-player.height; player.dy=0; player.grounded=true; currentCombo=0; 
-                        b.markedForDeletion=true; player.dy = -15; score+=100; createExplosion(b.x, b.y, '#ffaa00');
-                        floatingTexts.push(new FloatingText("CRUSH!", b.x, b.y, "#fff", 12));
-                    }
-                    else if(player.dy<0 && player.y <= b.y+b.height && player.y > b.y) { 
-                        b.markedForDeletion=true; player.dy=-24; player.spinSpeed=0.8; createExplosion(b.x, b.y, '#ffaa00');
-                        floatingTexts.push(new FloatingText("BREAK!", b.x, b.y, "#fff", 12));
-                    }
-                    else if(player.y+player.height > b.y+HITBOX_PADDING && !player.invincible && !powerMode && !shieldMode) {
-                        hitPlayer();
-                    }
-                }
-            });
-
-            if(player.spinSpeed>0) { player.angle+=player.spinSpeed; player.spinSpeed*=0.96; } else if(player.angle>0) player.angle*=0.8;
-
-            if(frames%3===0) {
-                let tColor = powerMode ? '#f00' : shieldMode ? '#0ff' : '#0f0';
-                if(!powerMode && !shieldMode && currentUser && currentUser.current_skin && SKINS[currentUser.current_skin]) {
-                    tColor = SKINS[currentUser.current_skin].front;
-                }
-                trail.push({x: player.x, y: player.y, angle: player.angle, color: tColor});
-                if(trail.length > 8) trail.shift();
-            }
-            trail.forEach(t => t.x -= gameSpeed);
-
-            let spawnRate = Math.max(50, 100 - Math.floor(gameSpeed*4));
-            if(frames%spawnRate===0) obstacles.push(new Obstacle(score));
-
-            if(frames%220===0 && Math.random()>0.3) {
-                let b = new DestructibleBlock(); blocks.push(b);
-                for(let k=0; k<3; k++) coins.push(new Gem(4, b.x+100+(k*90), 40+(k*10))); 
-            }
-            if(frames%80===0) {
-                let t=1; if(Math.random()>0.7) t=2;
-                if(frames%400===0 && Math.random()>0.4) t=5; 
-                if(frames%600===0 && Math.random()>0.5) t=6; 
-                coins.push(new Gem(t));
+            
+            // Coins logic
+            if(frames % 60 === 0) {
+                coins.push({x: canvas.width, y: canvas.height - 100 - Math.random()*80 });
             }
 
+            obstacles.forEach(o => o.x -= speed);
+            coins.forEach(c => c.x -= speed);
+
+            // Collision Detection
             obstacles.forEach(o => {
-                o.update();
-                if(player.x+HITBOX_PADDING < o.x+o.width-HITBOX_PADDING && 
-                   player.x+player.width-HITBOX_PADDING > o.x+HITBOX_PADDING &&
-                   player.y+HITBOX_PADDING < o.y+o.height-HITBOX_PADDING &&
-                   player.y+player.height-HITBOX_PADDING > o.y+HITBOX_PADDING) {
-                    
-                    if(powerMode || shieldMode) {
-                        o.markedForDeletion=true; score+=100; createExplosion(o.x, o.y, o.color);
-                        floatingTexts.push(new FloatingText("BOOM!", o.x, o.y, powerMode?"#f00":"#0ff", 14));
-                    }
-                    else if(o.type === 'water') { lives=0; hitPlayer(); } 
-                    else if(o.type === 'spike') { if(!player.invincible) hitPlayer(); }
-                    else {
-                        let isStomp = player.dy > 0 && (player.y+player.height) < (o.y + o.height * 0.8);
-                        let isHeadbutt = player.dy < 0 && player.y > o.y + o.height * 0.2;
-                        
-                        if(isStomp || isHeadbutt) {
-                            o.markedForDeletion=true; currentCombo++;
-                            let pts = 100 * currentCombo; score += pts;
-                            createExplosion(o.x, o.y, o.color);
-                            floatingTexts.push(new FloatingText(`+${pts} x${currentCombo}`, o.x, o.y, "#ff0", 12));
-                            if(isStomp) player.dy = -12; else player.dy = 5;
-                        } else if(!player.invincible) hitPlayer();
-                    }
-                }
-            });
-
-            coins.forEach(c => {
-                c.update();
-                let dist = Math.hypot(player.x - c.x, player.y - c.y);
-                if (dist < 50 || (shieldMode && dist < 300)) { 
-                     if(dist < 50) { 
-                        c.markedForDeletion=true; score+=c.points; sessionCoins++; 
-                        playSound(c.points>=500?'coin_epic':'coin');
-                        floatingTexts.push(new FloatingText(`+${c.points}`, c.x, c.y, c.color, 10));
-                        if(c.tier===5) activatePower('red');
-                        if(c.tier===6) { activatePower('blue'); score+=500; floatingTexts.push(new FloatingText("+500", c.x, c.y, "#0ff", 20)); }
+                if (player.x < o.x + o.w && player.x + player.w > o.x &&
+                    player.y < 2000 && player.y + player.h > canvas.height - 50 - o.h + (o.h-40)) { // Simplified Y collision
+                     // Just simple box collision for now
+                     if(player.y + player.h > canvas.height - 50 - 5) {
+                         if(o.type === 'killbrick') die();
+                         else die(); // Hit obstacle
                      }
                 }
             });
-
-            particles.forEach(p => p.update());
-            floatingTexts.forEach(t => t.update());
-            obstacles=obstacles.filter(o=>!o.markedForDeletion); blocks=blocks.filter(b=>!b.markedForDeletion); 
-            coins=coins.filter(c=>!c.markedForDeletion); particles=particles.filter(p=>p.life>0); floatingTexts=floatingTexts.filter(t=>t.life>0);
             
-            document.getElementById('score').innerText = Math.floor(score);
-            document.getElementById('coinsDisplay').innerText = sessionCoins;
-            document.getElementById('livesDisplay').innerText = lives;
-        }
+            // Clean up
+            obstacles = obstacles.filter(o => o.x > -100);
 
-        function hitPlayer() {
-            lives--; playSound('hit'); canvas.classList.add('shake'); setTimeout(()=>canvas.classList.remove('shake'), 500);
-            currentCombo = 0;
-            if(lives<=0) {
-                gameRunning = false;
-                document.getElementById('finalScore').innerText = Math.floor(score);
-                document.getElementById('earnedCoins').innerText = sessionCoins;
-                document.getElementById('gameOver').style.display = 'block';
-                document.getElementById('jumpButton').style.display = 'none';
-                try { saveGameData(score, sessionCoins); } catch(e) {}
-            } else {
-                player.invincible=true; player.invTimer=120; document.getElementById('damageMsg').style.display='block'; setTimeout(()=>document.getElementById('damageMsg').style.display='none', 1000);
-            }
-        }
-
-        function drawGame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawStars();
-
-            if(!player.invincible || frames%4===0) {
-                ctx.save(); ctx.translate(player.x+player.width/2, player.y+player.height/2); ctx.rotate(player.angle);
-                
-                if(powerMode || shieldMode) {
-                    let c1 = powerMode ? '#f00' : '#0ff';
-                    let c2 = powerMode ? '#800' : '#008';
-                    drawCube3D(ctx, -15, -15, 30, c1, '#fff', c2);
-                    ctx.fillStyle=c1; ctx.fillRect(-20,-10,5,15); ctx.fillRect(15,-10,5,15);
-                } else {
-                    let skinKey = (currentUser && currentUser.current_skin) ? currentUser.current_skin : 'default';
-                    let skin = SKINS[skinKey] || SKINS['default'];
-                    drawCube3D(ctx, -15, -15, 30, skin.front, skin.top, skin.side);
-                    if(skinKey==='ninja') { ctx.fillStyle="red"; ctx.fillRect(-15,-5,30,5); }
-                    else { ctx.fillStyle="black"; ctx.fillRect(5,-5,6,6); }
+            // Coin Collision
+            coins = coins.filter(c => {
+                let hit = Math.hypot(player.x - c.x, player.y - c.y) < 40;
+                if(hit) {
+                    sessionCoins++;
+                    score += 100;
+                    sfx('coin');
+                    showNotify("+1 ⬢");
                 }
-                ctx.restore();
-            }
-            
-            trail.forEach(t => {
-                ctx.save(); ctx.translate(t.x+player.width/2, t.y+player.height/2); ctx.rotate(t.angle);
-                ctx.fillStyle = t.color; ctx.globalAlpha=0.3; ctx.fillRect(-15,-15,30,30); ctx.globalAlpha=1.0; ctx.restore();
+                return !hit && c.x > -50;
             });
 
-            blocks.forEach(b=>b.draw()); coins.forEach(c=>c.draw()); obstacles.forEach(o=>o.draw()); 
-            particles.forEach(p=>p.draw()); floatingTexts.forEach(t=>t.draw());
+            // Update UI
+            document.getElementById('scoreDisplay').innerText = Math.floor(score);
+            document.getElementById('coinDisplay').innerText = user.coins + sessionCoins;
             
-            drawGround3D(ctx);
+            // Shake dampening
+            if(shake > 0) shake *= 0.9;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Shake effect
+            ctx.save();
+            if(shake > 0.5) ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake);
+
+            // Clouds
+            ctx.fillStyle = "rgba(255,255,255,0.6)";
+            clouds.forEach(c => {
+                ctx.beginPath(); ctx.arc(c.x, c.y, 30*c.s, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(c.x+20*c.s, c.y-10*c.s, 40*c.s, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(c.x+40*c.s, c.y, 30*c.s, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Ground (Baseplate Green)
+            ctx.fillStyle = "#5b9e52"; // Classic Roblox Green
+            ctx.fillRect(0, canvas.height-50, canvas.width, 50);
+            // Studs on ground
+            ctx.fillStyle = "#6ab060";
+            for(let i=0; i<canvas.width; i+=20) {
+                ctx.fillRect((i - (frames*speed)%20), canvas.height-50, 10, 4);
+            }
+
+            // Obstacles
+            obstacles.forEach(o => {
+                let y = canvas.height - 50 - o.h;
+                if(o.type === 'killbrick') {
+                    ctx.shadowBlur = 10; ctx.shadowColor = 'red';
+                    drawPlasticBlock(o.x, y, o.w, o.h, '#ff3838');
+                    ctx.shadowBlur = 0;
+                } else if(o.type === 'truss') {
+                     // Draw Truss lines
+                     ctx.fillStyle = "#2d3436"; ctx.fillRect(o.x, y, 10, o.h); ctx.fillRect(o.x+30, y, 10, o.h);
+                     for(let k=0; k<o.h; k+=10) ctx.fillRect(o.x, y+k, 40, 5);
+                } else {
+                    drawPlasticBlock(o.x, y, o.w, o.h, o.col);
+                }
+            });
+
+            // Coins (Hexagons)
+            coins.forEach(c => {
+                let y = c.y + Math.sin(frames*0.1)*5;
+                ctx.fillStyle = "#55efc4"; // Robux Green
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    ctx.lineTo(c.x + 12 * Math.cos(i * 2 * Math.PI / 6), y + 12 * Math.sin(i * 2 * Math.PI / 6));
+                }
+                ctx.fill();
+                ctx.strokeStyle = "#00b894"; ctx.lineWidth=2; ctx.stroke();
+            });
+
+            // Player & Pet
+            drawPet();
+            if(gameActive) drawAvatar(player.x, player.y, player.color);
+
+            ctx.restore();
+            if(gameActive) requestAnimationFrame(() => { update(); draw(); });
+        }
+
+        // --- CONTROLS ---
+        function jump() {
+            if(player.grounded) {
+                player.dy = -12;
+                player.grounded = false;
+                sfx('jump');
+            }
+        }
+        function handleInput(e) { 
+            if(!gameActive) return; 
+            e.preventDefault(); 
+            jump(); 
+        }
+        window.addEventListener('keydown', e => { if(e.code==='Space' || e.code==='ArrowUp') handleInput(e); });
+
+        // --- CORE FUNCTIONS ---
+        function die() {
+            gameActive = false;
+            sfx('die');
+            shake = 20;
+            draw(); // Draw last frame with shake
+            
+            document.getElementById('gameOverCard').style.display = 'block';
+            document.getElementById('overlay').style.display = 'flex';
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('shopCard').style.display = 'none';
+            document.getElementById('jumpButton').style.display = 'none';
+
+            document.getElementById('finalScore').innerText = Math.floor(score);
+            document.getElementById('finalCoins').innerText = "+" + sessionCoins;
+            
+            saveData();
         }
 
         function resetGame() {
-            player.y = canvas.height - FLOOR_HEIGHT - player.height; 
-            player.dy=0; obstacles=[]; coins=[]; blocks=[]; particles=[]; floatingTexts=[];
-            score=0; sessionCoins=0; lives=1; frames=0; powerMode=false; shieldMode=false; currentCombo=0; canvas.classList.remove('fire-sky'); canvas.classList.remove('shield-sky');
-            gameRunning=true; document.getElementById('gameOver').style.display='none'; document.getElementById('jumpButton').style.display='flex';
-            initStars();
-            requestAnimationFrame(loop);
+            obstacles = []; coins = []; clouds = [];
+            score = 0; sessionCoins = 0; speed = 6;
+            player.y = 200; player.dy = 0;
+            gameActive = true;
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('jumpButton').style.display = 'flex';
+            update(); draw();
         }
-        function loop() { if(!gameRunning) return; updateGame(); drawGame(); frames++; score+=0.1; if(frames%600===0) gameSpeed+=0.5; requestAnimationFrame(loop); }
+
+        function showNotify(msg) {
+            const el = document.createElement('div');
+            el.className = 'notify-msg';
+            el.innerText = msg;
+            document.getElementById('notificationArea').appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        // --- DATA & SHOP ---
+        async function login() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            if(!sb || !u) return playGuest(); // Fallback
+
+            let { data, error } = await sb.from('leo_players').select('*').eq('username', u).eq('password', p).single();
+            
+            if(data) {
+                user = {
+                    ...data,
+                    inventory: data.inventory ? data.inventory.split(',') : ['noob'],
+                    pets: data.pets ? data.pets.split(',') : ['none'],
+                    skin: data.current_skin || 'noob',
+                    pet: data.current_pet || 'none',
+                    coins: data.coins || 0
+                };
+                updateUI();
+                renderShop();
+                document.getElementById('loginCard').style.display = 'none';
+                resetGame();
+                loadLeaderboard();
+            } else {
+                alert("Login fallito. Controlla i dati o gioca come ospite.");
+            }
+        }
+        
+        async function register() {
+             const u = document.getElementById('username').value;
+             const p = document.getElementById('password').value;
+             if(!sb || !u || !p) return alert("Inserisci username e password");
+             
+             const { error } = await sb.from('leo_players').insert([{
+                 username: u, password: p, coins: 0, 
+                 inventory: 'noob', current_skin: 'noob',
+                 pets: 'none', current_pet: 'none', best_score: 0
+             }]);
+             
+             if(error) alert("Username preso!");
+             else { alert("Account creato!"); login(); }
+        }
+
+        function playGuest() {
+            user.username = "Guest " + Math.floor(Math.random()*999);
+            updateUI();
+            document.getElementById('loginCard').style.display = 'none';
+            resetGame();
+        }
+
+        async function saveData() {
+            if(user.id === 'guest') return;
+            user.coins += sessionCoins;
+            if(score > user.highscore) user.highscore = Math.floor(score);
+            
+            updateUI();
+            
+            await sb.from('leo_players').update({
+                coins: user.coins,
+                best_score: user.highscore
+            }).eq('id', user.id);
+            loadLeaderboard();
+        }
+
+        function updateUI() {
+            document.getElementById('nameDisplay').innerText = user.username;
+            document.getElementById('coinDisplay').innerText = user.coins;
+            document.getElementById('shopBalance').innerText = user.coins;
+            player.color = SKINS[user.skin].colors;
+        }
+
+        // --- SHOP SYSTEM ---
+        function openShop() {
+            document.getElementById('gameOverCard').style.display = 'none';
+            document.getElementById('shopCard').style.display = 'block';
+            renderShop();
+        }
+        function closeShop() {
+             document.getElementById('shopCard').style.display = 'none';
+             document.getElementById('gameOverCard').style.display = 'block';
+        }
+
+        function renderShop() {
+            const grid = document.getElementById('shopGrid');
+            grid.innerHTML = '';
+            
+            const DB = shopTab === 'skins' ? SKINS : PETS;
+            const ownedList = shopTab === 'skins' ? user.inventory : user.pets;
+            const currentItem = shopTab === 'skins' ? user.skin : user.pet;
+
+            for(let key in DB) {
+                let item = DB[key];
+                let owned = ownedList.includes(key);
+                let equipped = currentItem === key;
+                
+                let div = document.createElement('div');
+                div.className = `shop-item ${equipped ? 'selected' : ''}`;
+                
+                // Preview Canvas
+                let prevC = document.createElement('canvas');
+                prevC.width=40; prevC.height=40; prevC.className='shop-preview';
+                let pCtx = prevC.getContext('2d');
+                if(shopTab==='skins') {
+                    // Draw Mini Avatar
+                    pCtx.fillStyle = item.colors[0]; pCtx.fillRect(10,5,20,15);
+                    pCtx.fillStyle = item.colors[1]; pCtx.fillRect(5,20,30,15);
+                } else {
+                    if(item.color) { pCtx.fillStyle=item.color; pCtx.fillRect(10,10,20,20); }
+                }
+                
+                let btnTxt = equipped ? "EQUIPPED" : (owned ? "EQUIP" : `${item.price} ⬢`);
+                let btnClass = equipped ? "btn-green" : (owned ? "btn-blue" : "btn-shop");
+                
+                div.innerHTML = `<b>${item.name}</b><br>`;
+                div.appendChild(prevC);
+                div.innerHTML += `<button class="btn ${btnClass}" style="padding:5px; font-size:10px;" onclick="handleShopAction('${key}')">${btnTxt}</button>`;
+                
+                grid.appendChild(div);
+            }
+        }
+
+        async function handleShopAction(key) {
+            sfx('click');
+            const isSkin = shopTab === 'skins';
+            const DB = isSkin ? SKINS : PETS;
+            const item = DB[key];
+            let owned = isSkin ? user.inventory.includes(key) : user.pets.includes(key);
+
+            if(owned) {
+                // Equip
+                if(isSkin) user.skin = key; else user.pet = key;
+            } else {
+                // Buy
+                if(user.coins >= item.price) {
+                    user.coins -= item.price;
+                    if(isSkin) user.inventory.push(key); else user.pets.push(key);
+                    // Auto equip
+                    if(isSkin) user.skin = key; else user.pet = key;
+                } else {
+                    alert("Non hai abbastanza Robux!");
+                    return;
+                }
+            }
+            
+            updateUI();
+            renderShop();
+            
+            // Sync DB
+            if(user.id !== 'guest') {
+                let updatePayload = { coins: user.coins };
+                if(isSkin) {
+                    updatePayload.inventory = user.inventory.join(',');
+                    updatePayload.current_skin = user.skin;
+                } else {
+                    updatePayload.pets = user.pets.join(',');
+                    updatePayload.current_pet = user.pet;
+                }
+                await sb.from('leo_players').update(updatePayload).eq('id', user.id);
+            }
+        }
+
+        async function loadLeaderboard() {
+            const list = document.getElementById('leaderboardList');
+            if(!sb) { list.innerHTML = '<div class="list-item">Offline Mode</div>'; return; }
+            
+            let { data } = await sb.from('leo_players').select('username, best_score').order('best_score', {ascending:false}).limit(5);
+            if(data) {
+                list.innerHTML = data.map(p => `
+                    <div class="list-item">
+                        <div style="display:flex;align-items:center;">
+                            <div class="avatar-head"></div> ${p.username}
+                        </div>
+                        <span style="font-weight:bold; color:#ffeaa7;">${p.best_score}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Init
+        window.onload = () => {
+             draw(); // Draw BG immediately
+             loadLeaderboard();
+        };
+
     </script>
 </body>
 </html>
