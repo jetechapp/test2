@@ -6,9 +6,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#ff3366">
-    <title>🦸 Marvel Runner - Fixed</title>
+    <title>🦸 Marvel Runner - Gioco Gratis!</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦸</text></svg>">
     
     <style>
         /* ===== RESET & BASE ===== */
@@ -19,8 +21,7 @@
             -webkit-tap-highlight-color: transparent;
             -webkit-font-smoothing: antialiased;
             -webkit-touch-callout: none;
-            user-select: none;
-            -webkit-user-select: none;
+            user-select: none; /* Impedisce la selezione del testo */
         }
 
         :root {
@@ -45,206 +46,272 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            touch-action: none; /* Fondamentale per il gaming su mobile */
+            touch-action: none; /* FONDAMENTALE PER IPHONE: Blocca lo scroll elastico */
         }
 
-        /* ===== GAME CONTAINER ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 51, 102, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(0, 204, 255, 0.15) 0%, transparent 50%),
+                repeating-linear-gradient(45deg, transparent 0px, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px);
+            z-index: -1;
+        }
+
+        /* ===== LOADING SCREEN ===== */
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+
+        .loading-content { text-align: center; padding: 20px; }
+        .spinner {
+            width: 80px; height: 80px;
+            border: 8px solid rgba(255, 255, 255, 0.3);
+            border-top: 8px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 30px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-title {
+            font-family: 'Bangers', cursive; font-size: 48px; color: var(--accent);
+            text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3); margin-bottom: 20px; letter-spacing: 2px;
+        }
+
+        /* ===== GAME CONTAINER (FIXED SIZE) ===== */
         #gameContainer {
             width: 100%;
-            height: 100vh; /* Usa tutta l'altezza disponibile */
-            width: 100vw;
+            height: 100vh; /* Usa tutta l'altezza */
             position: relative;
-            background: #000;
+            margin: 0;
+            display: none;
+        }
+
+        @media (orientation: portrait) {
+            #gameContainer { display: none !important; }
+            #rotateMessage { display: flex !important; }
         }
 
         #gameCanvas {
             width: 100%;
             height: 100%;
             display: block;
+            background: linear-gradient(to bottom, #1a0b2e, #2d1b69);
         }
 
-        /* ===== HUD ===== */
+        /* ===== HUD (SAFE AREA FIX) ===== */
         #gameHUD {
             position: absolute;
-            top: max(10px, env(safe-area-inset-top)); /* Rispetta il notch */
+            top: max(10px, env(safe-area-inset-top)); /* Notch Support */
             left: max(10px, env(safe-area-inset-left));
-            right: max(10px, env(safe-area-inset-right));
+            width: calc(100% - max(20px, env(safe-area-inset-left) + env(safe-area-inset-right)));
+            padding: 0;
             display: flex;
             justify-content: space-between;
-            pointer-events: none; /* Permette di cliccare attraverso l'HUD */
+            pointer-events: none;
             z-index: 10;
         }
 
         .hud-card {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 12px;
-            padding: 8px 15px;
-            border: 2px solid var(--primary);
-            backdrop-filter: blur(4px);
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 10px 15px;
+            border: 3px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
         }
 
-        .hud-left { display: flex; flex-direction: column; gap: 5px; }
-        .hud-right { text-align: right; }
+        .hud-left { display: flex; flex-direction: column; gap: 8px; min-width: 150px; }
+        .hud-right { text-align: right; min-width: 150px; }
 
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            color: #333;
-            font-weight: bold;
+        .player-info { display: flex; align-items: center; gap: 12px; }
+        .player-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; border: 3px solid white;
         }
+        .player-name {
+            font-family: 'Bangers', cursive; font-size: 20px; color: var(--primary);
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+        }
+        .stat { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #333; font-weight: bold; }
 
-        /* ===== CONTROLS (IOS FIX) ===== */
+        /* ===== CONTROLS (IOS FIX & ERGONOMICS) ===== */
         .controls {
             position: absolute;
-            bottom: max(20px, env(safe-area-inset-bottom)); /* Solleva i controlli sopra la barra Home */
+            bottom: max(20px, env(safe-area-inset-bottom)); /* Home Bar Support */
             right: max(20px, env(safe-area-inset-right));
             left: max(20px, env(safe-area-inset-left));
             display: flex;
-            justify-content: space-between; /* Separa salto e movimento */
-            pointer-events: none; /* Il container non blocca, i bottoni si */
+            justify-content: space-between; /* Separa Salto da Slide */
             z-index: 20;
-            width: auto;
+            pointer-events: none; /* Permette il click through nello spazio vuoto */
         }
-
-        .controls-left {
+        
+        /* Contenitori per i pulsanti che riattivano gli eventi pointer */
+        .controls-left, .controls-right {
+            pointer-events: auto;
             display: flex;
             gap: 15px;
-            pointer-events: auto;
-        }
-
-        .controls-right {
-            pointer-events: auto;
         }
 
         .control-btn {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.2);
+            width: 70px; height: 70px;
+            background: linear-gradient(135deg, var(--primary), #ff6699);
             border: 4px solid white;
             border-radius: 50%;
-            color: white;
-            font-size: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px);
-            transition: transform 0.1s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            color: white; font-size: 24px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            user-select: none;
+            touch-action: none; /* Impedisce zoom/scroll browser */
+            -webkit-user-select: none;
         }
 
-        .control-btn:active {
-            transform: scale(0.9);
-            background: rgba(255, 255, 255, 0.4);
-        }
-
-        .slide-btn { background: linear-gradient(135deg, var(--secondary), #00aaff); }
+        .control-btn:active { transform: scale(0.90); opacity: 0.8; }
         .jump-btn { background: linear-gradient(135deg, var(--accent), #ffdd44); }
+        .slide-btn { background: linear-gradient(135deg, var(--secondary), #00aaff); }
 
-        /* ===== MENUS (RESPONSIVE FIX) ===== */
+        /* ===== MENU OVERLAYS (RESPONSIVE FIX) ===== */
         .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(26, 11, 46, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
             z-index: 100;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
+            opacity: 0; visibility: hidden; transition: all 0.3s;
         }
-
         .overlay.active { opacity: 1; visibility: visible; }
 
         .menu-card {
             background: var(--card-bg);
-            border-radius: 20px;
-            padding: 25px;
-            width: 90%;
-            max-width: 450px;
-            max-height: 90vh; /* Evita che esca dallo schermo */
-            overflow-y: auto; /* Scroll se troppo alto */
-            border: 4px solid var(--accent);
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-            text-align: center;
+            border-radius: 24px;
+            padding: 30px;
+            width: 90%; max-width: 500px;
+            border: 6px solid var(--accent);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-height: 90vh; /* Limita altezza */
+            overflow-y: auto; /* Scroll se necessario */
+        }
+        
+        /* Fix per schermi landscape piccoli (iPhone) */
+        @media (max-height: 500px) {
+            .menu-card { padding: 15px; border-width: 4px; }
+            .menu-title { font-size: 32px; margin-bottom: 10px; }
+            .control-btn { width: 55px; height: 55px; font-size: 20px; }
+            .form-group { margin-bottom: 10px; }
+            .input-field { padding: 10px; font-size: 14px; }
+            .btn { padding: 10px; font-size: 16px; margin-top: 5px; }
         }
 
         .menu-title {
-            font-family: 'Bangers', cursive;
-            font-size: 36px;
-            color: var(--primary);
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+            font-family: 'Bangers', cursive; font-size: 42px; color: var(--primary);
+            text-align: center; margin-bottom: 20px; text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
         }
 
+        /* ===== FORMS & BUTTONS ===== */
+        .form-group { margin-bottom: 15px; }
         .input-field {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            font-size: 16px;
+            width: 100%; padding: 15px;
+            border: 3px solid var(--primary); border-radius: 12px;
+            font-family: 'Comic Neue', cursive; font-size: 18px;
         }
-
         .btn {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 10px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 18px;
-            color: white;
-            cursor: pointer;
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            font-family: 'Comic Neue', cursive; font-size: 20px; font-weight: bold;
+            cursor: pointer; text-align: center; display: block; margin-top: 10px;
+            color: white; text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), #ff6699); }
+        .btn-secondary { background: linear-gradient(135deg, var(--secondary), #00aaff); }
+        .btn-accent { background: linear-gradient(135deg, var(--accent), #ffdd44); color: #333; text-shadow: none; }
+        .btn:active { transform: translateY(2px); }
+
+        /* ===== SHOP GRID ===== */
+        .shop-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px; margin: 15px 0; max-height: 200px; overflow-y: auto;
+        }
+        .skin-card {
+            background: white; border-radius: 12px; padding: 10px;
+            border: 3px solid transparent; text-align: center; cursor: pointer;
+        }
+        .skin-card.owned { border-color: var(--success); }
+        .skin-card.equipped { border-color: var(--accent); background: #fff9e6; }
+        .skin-preview { font-size: 32px; margin-bottom: 5px; }
+        .skin-name { font-family: 'Bangers', cursive; font-size: 14px; color: var(--primary); }
+        .buy-btn {
+            width: 100%; padding: 5px; background: var(--primary);
+            color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 12px;
         }
 
-        .btn-primary { background: var(--primary); }
-        .btn-secondary { background: var(--secondary); }
-        .btn-accent { background: var(--accent); color: #333; }
+        /* ===== MESSAGES ===== */
+        .message {
+            position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; padding: 10px 20px; border-radius: 30px;
+            font-weight: bold; text-align: center; z-index: 50;
+            opacity: 0; visibility: hidden; transition: all 0.3s;
+        }
+        .message.show { opacity: 1; visibility: visible; animation: bounceIn 0.5s; }
+        @keyframes bounceIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            70% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
 
         /* ===== ROTATE MESSAGE ===== */
         #rotateMessage {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--primary);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            text-align: center;
-            color: white;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: none; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 1000;
+            text-align: center; color: white;
         }
+        .rotate-icon { font-size: 80px; margin-bottom: 20px; animation: rotate 2s linear infinite; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
 
-        @media (orientation: portrait) {
-            #rotateMessage { display: flex !important; }
-            #gameContainer { display: none; }
-        }
-
-        /* Specific adjustments for small landscape screens (mobile) */
-        @media (max-height: 500px) {
-            .menu-card { padding: 15px; }
-            .menu-title { font-size: 28px; margin-bottom: 10px; }
-            .input-field { padding: 8px; margin-bottom: 8px; }
-            .btn { padding: 10px; font-size: 16px; margin-bottom: 5px; }
-            .control-btn { width: 60px; height: 60px; font-size: 24px; }
-            
-            /* Sposta i controlli un po' più in basso sui piccoli schermi */
-            .controls { bottom: 10px; } 
+        /* ===== FOOTER ===== */
+        .footer {
+            position: fixed; bottom: 0; left: 0; width: 100%; padding: 5px;
+            text-align: center; background: rgba(26, 11, 46, 0.9);
+            border-top: 2px solid var(--accent); z-index: 5;
+            font-size: 10px; color: rgba(255,255,255,0.7);
+            pointer-events: none; /* Lascia passare i click ai controlli sotto se necessario */
         }
     </style>
 </head>
 <body>
+    <div id="loadingScreen">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h1 class="loading-title">🦸 MARVEL RUNNER 3D</h1>
+            <p>Caricamento... Mettiti comodo!</p>
+        </div>
+    </div>
 
     <div id="rotateMessage">
-        <div style="font-size: 60px; margin-bottom: 20px;">📱</div>
-        <h1>RUOTA IL TELEFONO</h1>
-        <p>Gioca in orizzontale per vincere!</p>
+        <div class="rotate-icon">📱</div>
+        <div style="font-family: 'Bangers'; font-size: 32px;">GIRA IL TELEFONO!</div>
+        <p>Funziona solo in orizzontale</p>
     </div>
 
     <div id="gameContainer">
@@ -252,14 +319,22 @@
         
         <div id="gameHUD">
             <div class="hud-card hud-left">
-                <div class="stat">👤 <span id="playerName">Giocatore</span></div>
+                <div class="player-info">
+                    <div class="player-avatar" id="playerAvatar">🦸</div>
+                    <div class="player-name" id="playerName">Giocatore</div>
+                </div>
                 <div class="stat">💰 <span id="bankDisplay">0</span></div>
             </div>
+            
             <div class="hud-card hud-right">
                 <div class="stat">⭐ PUNTI: <span id="scoreDisplay">0</span></div>
                 <div class="stat">❤️ VITE: <span id="livesDisplay">3</span></div>
+                <div class="stat">⚡ COMBO: <span id="comboDisplay">0x</span></div>
             </div>
         </div>
+
+        <div id="comboCounter" class="message">COMBO!</div>
+        <div id="damageMsg" class="message" style="background: var(--danger);">AHIA!</div>
 
         <div class="controls">
             <div class="controls-left">
@@ -267,7 +342,7 @@
                 <button class="control-btn slide-btn" id="btnRight">→</button>
             </div>
             <div class="controls-right">
-                <button class="control-btn jump-btn" id="btnJump">JUMP</button>
+                <button class="control-btn jump-btn" id="btnJump">🦘</button>
             </div>
         </div>
     </div>
@@ -275,392 +350,686 @@
     <div id="mainMenu" class="overlay active">
         <div class="menu-card">
             <h1 class="menu-title">🦸 MARVEL RUNNER</h1>
-            <div class="form-group">
-                <input type="text" id="usernameInput" class="input-field" placeholder="Nome Eroe">
+            
+            <div id="loginForm">
+                <div class="form-group">
+                    <input type="text" id="usernameInput" class="input-field" placeholder="Nome Giocatore" maxlength="12">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="passwordInput" class="input-field" placeholder="Password">
+                </div>
+                
+                <button class="btn btn-primary" onclick="login()">🚀 GIOCA ORA!</button>
+                <button class="btn btn-secondary" onclick="showRegister()">📝 REGISTRATI</button>
+                <button class="btn btn-accent" onclick="playAsGuest()">🎮 OSPITE</button>
+                
+                <div id="loginMessage" style="margin-top: 10px; text-align: center; color: var(--danger); font-size: 14px; min-height: 20px;"></div>
             </div>
-            <button class="btn btn-primary" onclick="startGame()">🚀 GIOCA SUBITO</button>
-            <p style="margin-top: 10px; font-size: 12px; opacity: 0.7">Tocca JUMP per saltare, Frecce per muoverti</p>
+            
+            <div id="registerForm" style="display: none;">
+                <div class="form-group">
+                    <input type="text" id="regUsername" class="input-field" placeholder="Nome Supereroe">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="regPassword" class="input-field" placeholder="Password">
+                </div>
+                <button class="btn btn-primary" onclick="register()">✅ CREA ACCOUNT</button>
+                <button class="btn btn-secondary" onclick="showLogin()">↩️ INDIETRO</button>
+                <div id="registerMessage" style="margin-top: 10px; color: var(--danger);"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="shopMenu" class="overlay">
+        <div class="menu-card">
+            <h1 class="menu-title">🏪 NEGOZIO</h1>
+            <div style="text-align: center; margin-bottom: 10px; color: var(--primary); font-weight: bold;">
+                LE TUE MONETE: <span id="shopCoins">0</span> 💰
+            </div>
+            
+            <div class="shop-grid" id="skinGrid">
+                </div>
+            
+            <button class="btn btn-accent" onclick="closeShop()">🎮 TORNA AL GIOCO</button>
         </div>
     </div>
 
     <div id="gameOverMenu" class="overlay">
         <div class="menu-card">
             <h1 class="menu-title" style="color: var(--danger);">💀 GAME OVER</h1>
-            <h2 style="margin: 20px 0;">Punteggio: <span id="finalScore">0</span></h2>
-            <button class="btn btn-primary" onclick="resetGame()">🔄 RIPROVA</button>
-            <button class="btn btn-secondary" onclick="showMenu()">🏠 MENU</button>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <h2 style="color: var(--primary);">PUNTI: <span id="finalScore">0</span></h2>
+                <h3 style="color: var(--accent);">MONETE: +<span id="earnedCoins">0</span> 💰</h3>
+            </div>
+            
+            <button class="btn btn-primary" onclick="restartGame()">🔄 RIGIOCA</button>
+            <button class="btn btn-accent" onclick="openShop()">🏪 NEGOZIO</button>
+            <button class="btn btn-secondary" onclick="showMainMenu()">🏠 MENU</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURAZIONE
+        // ================= CONFIGURAZIONE & VARIABILI =================
         const CONFIG = {
-            START_SPEED: 5, // Ridotto da 6 per renderlo più facile all'inizio
-            MAX_SPEED: 12,
-            ACCELERATION: 0.0005, // Ridotta accelerazione
-            MIN_OBSTACLE_DISTANCE: 400, // Distanza minima pixel tra ostacoli
+            VERSION: '3.5.0',
+            STORAGE_KEY: 'marvelRunnerFixed',
+            // Difficoltà bilanciata
+            START_SPEED: 5, // Ridotta da 6
+            MAX_SPEED: 14,
+            OBSTACLE_COOLDOWN: 350, // Distanza minima pixel tra ostacoli (FIX DIFFICOLTÀ)
+            SKINS: {
+                'default': { name: 'EROE BASE', price: 0, color: '#ff3366', emoji: '🦸' },
+                'ironman': { name: 'IRON MAN', price: 200, color: '#ff3333', emoji: '🤖' },
+                'spiderman': { name: 'SPIDER-MAN', price: 500, color: '#ff0000', emoji: '🕷️' },
+                'thor': { name: 'THOR', price: 1000, color: '#ffcc00', emoji: '⚡' },
+                'hulk': { name: 'HULK', price: 1500, color: '#00ff00', emoji: '💪' },
+                'captain': { name: 'CAPITANO', price: 2000, color: '#0000ff', emoji: '🛡️' }
+            }
         };
 
-        // STATO DEL GIOCO
-        let canvas, ctx;
-        let animationId;
-        let isRunning = false;
-        let score = 0;
-        let speed = CONFIG.START_SPEED;
-        let obstacles = [];
-        let coins = [];
-        let lastObstacleX = 0; // Per calcolare la distanza
-        let lives = 3;
-
-        // PLAYER
-        let player = {
-            x: 50,
-            y: 0,
-            width: 40,
-            height: 60,
-            vy: 0,
-            vx: 0,
-            grounded: false,
-            lane: 1, // 0: sinistra, 1: centro, 2: destra
-            targetX: 0
+        let game = {
+            canvas: null, ctx: null,
+            running: false,
+            width: 0, height: 0,
+            animationFrame: null,
+            player: null,
+            obstacles: [], coins: [], particles: [],
+            score: 0, lives: 3, combo: 0,
+            speed: CONFIG.START_SPEED,
+            coinsCollected: 0,
+            lastObstacleX: 0, // Per il cooldown ostacoli
+            currentUser: null,
+            isMobile: false
         };
 
-        // SETUP INIZIALE
-        window.onload = () => {
-            canvas = document.getElementById('gameCanvas');
-            ctx = canvas.getContext('2d');
-            resize();
-            window.addEventListener('resize', resize);
-            setupControls();
-        };
+        // ================= INIZIALIZZAZIONE =================
+        window.addEventListener('load', () => {
+            game.isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            checkOrientation();
+            window.addEventListener('resize', () => {
+                checkOrientation();
+                resizeCanvas();
+            });
+            
+            initGame();
+        });
 
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            // Ricalcola posizione player se stiamo ridimensionando
-            if(player) {
-                const lanes = [canvas.width * 0.2, canvas.width * 0.5 - 20, canvas.width * 0.8 - 40];
-                player.targetX = lanes[player.lane];
+        function checkOrientation() {
+            const rotateMsg = document.getElementById('rotateMessage');
+            const gameCont = document.getElementById('gameContainer');
+            
+            // Logica semplice: se altezza > larghezza, mostra messaggio
+            if (window.innerHeight > window.innerWidth) {
+                rotateMsg.style.display = 'flex';
+                gameCont.style.display = 'none';
+                if(game.running) game.running = false; // Pausa brutale
+            } else {
+                rotateMsg.style.display = 'none';
+                gameCont.style.display = 'block';
+                if(!game.running && document.getElementById('gameOverMenu').style.opacity !== '1' && document.getElementById('mainMenu').style.opacity !== '1') {
+                     // Opzionale: riprendi gioco se era in pausa
+                }
             }
         }
 
-        // CONTROLLI (FIXED FOR IOS)
+        function initGame() {
+            game.canvas = document.getElementById('gameCanvas');
+            game.ctx = game.canvas.getContext('2d');
+            resizeCanvas();
+            setupControls();
+            
+            // Nascondi loading
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.opacity = '0';
+                setTimeout(() => document.getElementById('loadingScreen').style.display = 'none', 500);
+            }, 1000);
+            
+            // Carica dati utente se esistono
+            tryLoadLastUser();
+        }
+
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            game.canvas.width = container.clientWidth;
+            game.canvas.height = container.clientHeight;
+            game.width = game.canvas.width;
+            game.height = game.canvas.height;
+        }
+
+        // ================= CONTROLLI (FIX IPHONE CRUCIALE) =================
         function setupControls() {
-            const btnLeft = document.getElementById('btnLeft');
-            const btnRight = document.getElementById('btnRight');
-            const btnJump = document.getElementById('btnJump');
-
-            // Helper per aggiungere eventi touch/mouse in modo sicuro
-            function addTouch(elem, callback) {
-                elem.addEventListener('touchstart', (e) => {
-                    e.preventDefault(); // Stop zoom/scroll
-                    callback();
-                }, { passive: false });
+            // Helper per aggiungere listener che non fanno impazzire iOS
+            const addTouchBtn = (id, actionStart, actionEnd) => {
+                const btn = document.getElementById(id);
                 
-                elem.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    callback();
+                // TOUCH EVENTS (Cruciale: passive false per prevenire default)
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault(); // Blocca zoom e scroll
+                    if(game.running) actionStart();
+                }, { passive: false });
+
+                if(actionEnd) {
+                    btn.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        if(game.running) actionEnd();
+                    }, { passive: false });
+                }
+
+                // MOUSE EVENTS (Per PC)
+                btn.addEventListener('mousedown', (e) => {
+                    if(game.running) actionStart();
                 });
-            }
+                if(actionEnd) {
+                    btn.addEventListener('mouseup', () => {
+                        if(game.running) actionEnd();
+                    });
+                }
+            };
 
-            addTouch(btnLeft, () => moveLane(-1));
-            addTouch(btnRight, () => moveLane(1));
-            addTouch(btnJump, () => jump());
+            addTouchBtn('btnJump', jump, null);
+            addTouchBtn('btnLeft', slideLeft, stopSlide);
+            addTouchBtn('btnRight', slideRight, stopSlide);
 
-            // Tastiera
+            // TASTIERA
             window.addEventListener('keydown', (e) => {
-                if (!isRunning) return;
-                if (e.key === 'ArrowLeft') moveLane(-1);
-                if (e.key === 'ArrowRight') moveLane(1);
-                if (e.key === ' ' || e.key === 'ArrowUp') jump();
+                if (!game.running) return;
+                if (e.code === 'Space' || e.code === 'ArrowUp') jump();
+                if (e.code === 'ArrowLeft') slideLeft();
+                if (e.code === 'ArrowRight') slideRight();
+            });
+
+            window.addEventListener('keyup', (e) => {
+                if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') stopSlide();
             });
         }
 
-        function moveLane(dir) {
-            player.lane += dir;
-            if (player.lane < 0) player.lane = 0;
-            if (player.lane > 2) player.lane = 2;
-        }
-
-        function jump() {
-            if (player.grounded) {
-                player.vy = -15;
-                player.grounded = false;
-            }
-        }
-
-        // LOGICA DI GIOCO
+        // ================= LOGICA DI GIOCO =================
         function startGame() {
-            document.getElementById('mainMenu').classList.remove('active');
-            document.getElementById('gameOverMenu').classList.remove('active');
+            game.running = true;
+            game.score = 0;
+            game.coinsCollected = 0;
+            game.lives = 3;
+            game.combo = 0;
+            game.speed = CONFIG.START_SPEED;
+            game.obstacles = [];
+            game.coins = [];
+            game.lastObstacleX = 0;
             
-            // Reset variabili
-            isRunning = true;
-            score = 0;
-            lives = 3;
-            speed = CONFIG.START_SPEED;
-            obstacles = [];
-            coins = [];
-            player.lane = 1;
-            player.y = canvas.height - 100;
-            lastObstacleX = canvas.width; // Reset distanza
+            // Reset Player
+            game.player = {
+                x: game.width * 0.2,
+                y: game.height * 0.7,
+                width: 40, height: 40,
+                vy: 0, vx: 0,
+                grounded: false,
+                jumpForce: 13,
+                slideSpeed: 0
+            };
 
-            updateHUD();
-            loop();
+            updateUI();
+            gameLoop();
         }
 
-        function loop() {
-            if (!isRunning) return;
-
+        function gameLoop() {
+            if (!game.running) return;
+            
             update();
-            draw();
-            animationId = requestAnimationFrame(loop);
+            render();
+            game.animationFrame = requestAnimationFrame(gameLoop);
         }
 
         function update() {
-            // Velocità gioco
-            if (speed < CONFIG.MAX_SPEED) speed += CONFIG.ACCELERATION;
-            score += speed * 0.1;
-
-            // Player Movimento Laterale (Liscio)
-            const lanes = [canvas.width * 0.2, canvas.width * 0.5 - 20, canvas.width * 0.8 - 40];
-            player.targetX = lanes[player.lane];
-            player.x += (player.targetX - player.x) * 0.2;
-
-            // Player Gravità
-            player.vy += 0.8;
-            player.y += player.vy;
+            // Player Fisica
+            game.player.vy += 0.6; // Gravità
+            game.player.y += game.player.vy;
+            game.player.x += game.player.slideSpeed;
             
-            const groundY = canvas.height * 0.85 - player.height;
-            if (player.y > groundY) {
-                player.y = groundY;
-                player.vy = 0;
-                player.grounded = true;
+            // Attrito slide
+            game.player.slideSpeed *= 0.9;
+
+            // Limiti
+            if(game.player.x < 10) game.player.x = 10;
+            if(game.player.x > game.width - 50) game.player.x = game.width - 50;
+
+            // Terreno
+            const groundY = game.height * 0.85;
+            if (game.player.y + game.player.height > groundY) {
+                game.player.y = groundY - game.player.height;
+                game.player.vy = 0;
+                game.player.grounded = true;
+            } else {
+                game.player.grounded = false;
             }
 
-            // Generazione Ostacoli (BILANCIATA)
-            // Genera solo se l'ultimo ostacolo è abbastanza lontano
-            const distFromLast = canvas.width - lastObstacleX;
+            // Generazione Ostacoli (CON FIX COOLDOWN)
+            // Genera solo se l'ultimo è lontano
+            const distFromLast = game.width - game.lastObstacleX;
             
-            if (distFromLast > CONFIG.MIN_OBSTACLE_DISTANCE) {
-                // 2% di possibilità ogni frame, ma solo se c'è spazio
-                if (Math.random() < 0.02) {
+            if (distFromLast > CONFIG.OBSTACLE_COOLDOWN) { 
+                if (Math.random() < 0.03) { // 3% chance
                     createObstacle();
                 }
             }
 
-            // Aggiorna ostacoli
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                let obs = obstacles[i];
-                obs.x -= speed;
-                
-                // Collisione
-                if (checkCollision(player, obs)) {
-                    hitObstacle();
-                    obstacles.splice(i, 1);
-                } else if (obs.x + obs.width < 0) {
-                    obstacles.splice(i, 1);
-                }
-            }
+            // Generazione Monete
+            if (Math.random() < 0.05) createCoin();
 
-            // Distanza ultimo ostacolo tracciata
-            if (obstacles.length > 0) {
-                lastObstacleX = obstacles[obstacles.length - 1].x;
-            } else {
-                lastObstacleX = -100; // Reset se non ci sono ostacoli
-            }
+            // Aggiorna oggetti
+            updateEntities();
 
-            updateHUD();
+            // Punteggio e Velocità
+            game.score += (game.speed * 0.05);
+            game.speed += 0.002; // Incremento lento
+            if(game.speed > CONFIG.MAX_SPEED) game.speed = CONFIG.MAX_SPEED;
+            
+            updateUI();
         }
 
         function createObstacle() {
-            // Scegli una corsia casuale
-            const laneIndex = Math.floor(Math.random() * 3);
-            const lanes = [canvas.width * 0.2, canvas.width * 0.5 - 20, canvas.width * 0.8 - 40];
-            
-            obstacles.push({
-                x: canvas.width,
-                y: canvas.height * 0.85 - 50,
-                width: 50,
-                height: 50,
-                lane: laneIndex,
-                // Sovrascrivi X per allineare alla corsia, ma mantieni spawn fuori schermo
-                realX: lanes[laneIndex] 
-            });
-            
-            // Nota: per semplicità visiva 2D, facciamo scorrere tutto da destra a sinistra
-            // ma per simulare le corsie in 2D side-scrolling, l'ostacolo deve colpire solo se siamo sulla stessa corsia
-            // In questo codice semplificato 2D "runner style", gli ostacoli arrivano su tutte le X, 
-            // ma modifichiamo per rendere giocabile: gli ostacoli sono oggetti fisici che arrivano
+            const size = 30 + Math.random() * 30;
+            const obs = {
+                x: game.width,
+                y: game.height * 0.85 - size,
+                width: size,
+                height: size,
+                color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+                touched: false
+            };
+            game.obstacles.push(obs);
+            game.lastObstacleX = game.width;
         }
 
-        // Modifica draw e update per ostacoli "classici" da destra (stile Mario) o "3D" (stile Subway Surfers)?
-        // Dato il codice originale, sembra un side-scroller 2D. 
-        // Adattiamo la logica: Gli ostacoli arrivano da destra. Il giocatore deve Saltare.
-        // Se vogliamo le corsie, dobbiamo cambiare la logica di collisione.
-        // **FIX:** Per semplicità e robustezza, manteniamo il Side Scroller puro (Salta e basta) o implementiamo corsie vere.
-        // Dato che ci sono i tasti "Left/Right", implemento corsie visive.
-
-        // CORREZIONE LOGICA UPDATE OSTACOLI PER CORSIE
-        // Gli ostacoli in un side scroller con corsie 3D simulate in 2D è complesso.
-        // Semplifichiamo: Gli ostacoli appaiono a random X? No, usiamo la logica classica 2D side scroll.
-        // Left/Right sposta il personaggio. Gli ostacoli sono su "binari" invisibili.
-        
-        // Riscrivo createObstacle per essere coerente con il sistema a corsie
-        // Gli ostacoli hanno una 'x' fisica che scorre, e una 'y' (profondità simulata o lane)?
-        // NO, facciamo un classico Side Scroller dove Left/Right muove fisicamente sull'asse X.
-        // Gli ostacoli appaiono a diverse altezze o posizioni X.
-
-        function draw() {
-            // Sfondo
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#1a0b2e');
-            gradient.addColorStop(1, '#4a3b8c');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Terreno
-            ctx.fillStyle = '#6644aa';
-            ctx.fillRect(0, canvas.height * 0.85, canvas.width, canvas.height * 0.15);
-
-            // Linee corsie (per riferimento visivo)
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.beginPath();
-            ctx.moveTo(0, canvas.height * 0.85);
-            ctx.lineTo(canvas.width, canvas.height * 0.85);
-            ctx.stroke();
-
-            // Player
-            ctx.fillStyle = lives > 1 ? '#ff3366' : '#ff3333'; // Rosso scuro se colpito
-            // Disegna player
-            ctx.beginPath();
-            ctx.roundRect(player.x, player.y, player.width, player.height, 10);
-            ctx.fill();
-            // Occhi
-            ctx.fillStyle = 'white';
-            ctx.fillRect(player.x + 10, player.y + 10, 8, 8);
-            ctx.fillRect(player.x + 25, player.y + 10, 8, 8);
-
-            // Ostacoli
-            ctx.fillStyle = '#ffcc00';
-            obstacles.forEach(obs => {
-                // Per far funzionare le corsie in un side scroller 2D:
-                // L'ostacolo deve essere disegnato alla X calcolata in base alla sua corsia?
-                // No, semplifichiamo: Gli ostacoli arrivano da destra verso sinistra.
-                // La loro Y è fissa. La loro X si muove.
-                // MA il giocatore si muove Left/Right. 
-                // QUINDI: Gli ostacoli devono spawnare su una delle 3 corsie (asse Y in 3D, asse Z in 2D depth?).
-                
-                // FIX LOGICO DEL GIOCO:
-                // Questo è un Side Scroller 2D. "Left/Right" sposta il personaggio lungo l'asse X.
-                // Gli ostacoli arrivano da destra.
-                // Se l'ostacolo è sulla corsia 1, avrà una certa altezza? No.
-                // Facciamo che gli ostacoli sono "Blocchi" che arrivano da destra.
-                // Per schivarli devi saltare.
-                // A cosa servono Left/Right? Forse per raccogliere monete sparse?
-                // O forse il gioco originale intendeva "Subway Surfers" style (dietro la schiena)?
-                // Il codice originale usava slideLeft/Right modificando X. 
-                
-                // INTERPRETAZIONE CORRETTA:
-                // Gli ostacoli vengono generati random sulla X fuori schermo? No, nel codice originale obs.x = canvas.width.
-                // Quindi arrivano tutti da destra.
-                // Se il player si sposta a sinistra/destra, sta solo cambiando la sua X.
-                // Quindi gli ostacoli devono spawnare a diverse "altitudini"? No.
-                // Devono spawnare a diverse X "locali" (cioè profondità)? No.
-                
-                // SOLUZIONE GIOCOCASUAL: 
-                // Gli ostacoli sono rettangoli che occupano una porzione verticale? No.
-                // Facciamo che gli ostacoli spawnano su una delle 3 "linee" orizzontali invisibili.
-                // Ma visivamente è un casino in 2D laterale.
-                
-                // RESET AL CONCETTO PIU SEMPLICE PER UN FIX VELOCE:
-                // Gli ostacoli sono cubi a terra. Devi saltarli.
-                // Left/Right servono per evitare ostacoli volanti o prendere monete.
-                // Facciamo che gli ostacoli in questo fix sono tutti a terra. Devi saltare.
-                // Left/Right è disabilitato per semplicità o serve per micro-adjust?
-                // Manteniamo le corsie: Gli ostacoli vengono assegnati a una corsia.
-                // Se l'ostacolo è nella corsia del player, collisione.
-                
-                // Disegno ostacolo
-                // Se è sulla stessa corsia del player, lo disegniamo "pieno".
-                // Se è su un'altra corsia, lo disegniamo "sfocato" o più piccolo (pseudo 3D)?
-                // Troppo complesso.
-                
-                // SEMPLIFICAZIONE DRASTICA PER FUNZIONAMENTO SU MOBILE:
-                // Ignoriamo le corsie per gli ostacoli per ora. Gli ostacoli sono fisici sulla X.
-                // L'ostacolo ha una Y fissa. La sua X scorre.
-                // Ma la sua posizione "trasversale" (Z) deve combaciare col player.
-                // Facciamo così:
-                // 1. Gli ostacoli hanno una proprietà `lane` (0, 1, 2).
-                // 2. Vengono disegnati in posizioni Y diverse per simulare la profondità? 
-                //    Meglio: Usiamo colori diversi per le corsie.
-                
-                // Dato il tempo: Facciamo che Left/Right sposta il player.
-                // Gli ostacoli spawnano a diverse altezze Y? No.
-                // Spawnano su diverse X relative al terreno?
-                
-                // OK, facciamo che gli ostacoli arrivano sulla corsia del player o adiacente.
-                // Visivamente: Disegnamo l'ostacolo nella posizione X corrispondente alla sua corsia.
-                // Ma scorrono verso sinistra? Questo rompe la prospettiva.
-                
-                // NUOVO APPROCCIO (Migliore per il codice fornito):
-                // Il codice originale era un side scroller. Left/Right spostavano il player.
-                // Gli ostacoli avevano width random.
-                // Quindi dovevi spostarti per trovare il "buco" o saltare.
-                
-                // Disegno l'ostacolo
-                ctx.beginPath();
-                ctx.roundRect(obs.x, obs.y, obs.width, obs.height, 5);
-                ctx.fill();
+        function createCoin() {
+            game.coins.push({
+                x: game.width,
+                y: (game.height * 0.4) + Math.random() * (game.height * 0.3),
+                size: 20,
+                value: 10,
+                floatOffset: Math.random() * 10
             });
-            
-            // Per questo fix rapido, rendiamo gli ostacoli rettangoli che coprono TUTTA l'altezza ma hanno buchi?
-            // O semplici blocchi da saltare.
-            // Opzione scelta: Blocchi da saltare. I tasti Left/Right sono "extra" in questa versione fixed base,
-            // ma li lascio funzionanti per chi vuole muoversi mentre salta.
+        }
+
+        function updateEntities() {
+            // OSTACOLI
+            for (let i = game.obstacles.length - 1; i >= 0; i--) {
+                let obs = game.obstacles[i];
+                obs.x -= game.speed;
+
+                // Collisione
+                if (!obs.touched && checkCollision(game.player, obs)) {
+                    obs.touched = true;
+                    takeDamage();
+                }
+
+                if (obs.x < -100) game.obstacles.splice(i, 1);
+            }
+
+            // MONETE
+            for (let i = game.coins.length - 1; i >= 0; i--) {
+                let coin = game.coins[i];
+                coin.x -= game.speed;
+                coin.y += Math.sin(Date.now() / 200 + coin.floatOffset) * 0.5;
+
+                // Raccolta (cerchio vs rettangolo approx)
+                if (Math.abs((game.player.x + 20) - coin.x) < 40 && 
+                    Math.abs((game.player.y + 20) - coin.y) < 40) {
+                    collectCoin(coin.value);
+                    game.coins.splice(i, 1);
+                } else if (coin.x < -50) {
+                    game.coins.splice(i, 1);
+                }
+            }
         }
 
         function checkCollision(p, o) {
-            // Semplice AABB collision
             return (p.x < o.x + o.width &&
                     p.x + p.width > o.x &&
                     p.y < o.y + o.height &&
                     p.y + p.height > o.y);
         }
 
-        function hitObstacle() {
-            lives--;
-            // Shake effect
-            canvas.style.transform = 'translate(5px, 5px)';
-            setTimeout(() => canvas.style.transform = 'none', 100);
+        // ================= GRAFICA =================
+        function render() {
+            const ctx = game.ctx;
+            // Clear
+            ctx.clearRect(0, 0, game.width, game.height);
+
+            // Sfondo & Stelle
+            // (Il gradiente è nel CSS del canvas, qui disegniamo solo dettagli extra se vogliamo)
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            for(let i=0; i<10; i++) {
+                ctx.fillRect(
+                    (Date.now() / 10 * (i+1)) % game.width, 
+                    (i * 50) % game.height, 
+                    2, 2
+                );
+            }
+
+            // Terreno
+            ctx.fillStyle = '#442266';
+            ctx.fillRect(0, game.height * 0.85, game.width, game.height * 0.15);
+            ctx.strokeStyle = '#ffcc00';
+            ctx.beginPath();
+            ctx.moveTo(0, game.height * 0.85);
+            ctx.lineTo(game.width, game.height * 0.85);
+            ctx.stroke();
+
+            // Ostacoli
+            game.obstacles.forEach(obs => {
+                ctx.fillStyle = obs.color;
+                // Disegna blocco
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                // Bordino
+                ctx.strokeStyle = 'white';
+                ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+            });
+
+            // Monete
+            game.coins.forEach(coin => {
+                ctx.beginPath();
+                ctx.arc(coin.x, coin.y, 12, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffcc00';
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = '#fff';
+                ctx.font = '14px Arial';
+                ctx.fillText('$', coin.x - 4, coin.y + 5);
+            });
+
+            // Player
+            if (game.player) {
+                const skinKey = game.currentUser?.skin || 'default';
+                const skin = CONFIG.SKINS[skinKey];
+                
+                // Ombra
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(game.player.x + 20, game.player.y + 40, 15, 5, 0, 0, Math.PI*2);
+                ctx.fill();
+
+                // Corpo
+                ctx.fillStyle = skin.color;
+                roundRect(ctx, game.player.x, game.player.y, 40, 40, 8, true);
+                
+                // Emoji (Faccia)
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(skin.emoji, game.player.x + 20, game.player.y + 30);
+            }
+        }
+
+        // Utility per rettangoli stondati
+        function roundRect(ctx, x, y, width, height, radius, fill) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + width, y, x + width, y + height, radius);
+            ctx.arcTo(x + width, y + height, x, y + height, radius);
+            ctx.arcTo(x, y + height, x, y, radius);
+            ctx.arcTo(x, y, x + width, y, radius);
+            ctx.closePath();
+            if (fill) ctx.fill();
+        }
+
+        // ================= AZIONI UTENTE =================
+        function jump() {
+            if (game.player.grounded) {
+                game.player.vy = -game.player.jumpForce;
+                game.player.grounded = false;
+            }
+        }
+        function slideLeft() { game.player.slideSpeed = -10; }
+        function slideRight() { game.player.slideSpeed = 10; }
+        function stopSlide() { game.player.slideSpeed = 0; }
+
+        function takeDamage() {
+            game.lives--;
+            game.combo = 0;
+            showMessage('damageMsg');
             
-            if (lives <= 0) {
+            // Effetto visivo "hit"
+            game.canvas.style.transform = "translateX(10px)";
+            setTimeout(() => game.canvas.style.transform = "none", 50);
+
+            if (game.lives <= 0) {
                 gameOver();
             }
         }
 
-        function updateHUD() {
-            document.getElementById('scoreDisplay').innerText = Math.floor(score);
-            document.getElementById('livesDisplay').innerText = lives;
-            // Seleziona nome
-            const name = document.getElementById('usernameInput').value || 'Eroe';
-            document.getElementById('playerName').innerText = name;
+        function collectCoin(amount) {
+            game.combo++;
+            let bonus = Math.floor(game.combo / 5) * 5; // Bonus ogni 5 combo
+            let total = amount + bonus;
+            
+            game.coinsCollected += total;
+            game.score += 50;
+            
+            if(game.currentUser) {
+                game.currentUser.coins += total;
+            }
+            
+            if(game.combo > 1) {
+                const comboEl = document.getElementById('comboCounter');
+                comboEl.innerText = game.combo + "x COMBO!";
+                showMessage('comboCounter');
+            }
         }
 
         function gameOver() {
-            isRunning = false;
-            cancelAnimationFrame(animationId);
-            document.getElementById('finalScore').innerText = Math.floor(score);
+            game.running = false;
+            if(game.currentUser) {
+                if(game.score > (game.currentUser.highScore || 0)) {
+                    game.currentUser.highScore = game.score;
+                }
+                saveData();
+            }
+            
+            document.getElementById('finalScore').innerText = Math.floor(game.score);
+            document.getElementById('earnedCoins').innerText = game.coinsCollected;
+            
+            hideOverlays();
             document.getElementById('gameOverMenu').classList.add('active');
         }
 
-        function resetGame() {
+        // ================= SISTEMA UTENTE & SHOP =================
+        function tryLoadLastUser() {
+            const data = localStorage.getItem(CONFIG.STORAGE_KEY);
+            if(data) {
+                const users = JSON.parse(data);
+                // Prendi l'ultimo usato o il primo
+                if(users.length > 0) {
+                    // Per ora chiediamo sempre il login per sicurezza
+                    // Ma potremmo autologgare
+                }
+            }
+        }
+
+        function login() {
+            const name = document.getElementById('usernameInput').value.trim();
+            const pass = document.getElementById('passwordInput').value.trim();
+            const msg = document.getElementById('loginMessage');
+
+            if(!name || !pass) {
+                msg.innerText = "Inserisci nome e password!";
+                return;
+            }
+
+            const data = localStorage.getItem(CONFIG.STORAGE_KEY);
+            let users = data ? JSON.parse(data) : [];
+            
+            const user = users.find(u => u.name === name && u.pass === pass);
+            
+            if(user) {
+                game.currentUser = user;
+                startGameFromMenu();
+            } else {
+                msg.innerText = "Nome o password errati!";
+            }
+        }
+
+        function register() {
+            const name = document.getElementById('regUsername').value.trim();
+            const pass = document.getElementById('regPassword').value.trim();
+            const msg = document.getElementById('registerMessage');
+
+            if(!name || !pass) {
+                msg.innerText = "Campi vuoti!";
+                return;
+            }
+
+            const data = localStorage.getItem(CONFIG.STORAGE_KEY);
+            let users = data ? JSON.parse(data) : [];
+
+            if(users.find(u => u.name === name)) {
+                msg.innerText = "Nome già preso!";
+                return;
+            }
+
+            const newUser = {
+                name: name, pass: pass,
+                coins: 500, // Bonus benvenuto
+                skin: 'default',
+                inventory: ['default'],
+                highScore: 0
+            };
+            
+            users.push(newUser);
+            localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(users));
+            
+            game.currentUser = newUser;
+            startGameFromMenu();
+        }
+
+        function playAsGuest() {
+            game.currentUser = {
+                name: 'Ospite', coins: 0, skin: 'default', inventory: ['default']
+            };
+            startGameFromMenu();
+        }
+
+        function startGameFromMenu() {
+            updateUI();
+            updateAvatar();
+            hideOverlays();
             startGame();
         }
 
-        function showMenu() {
-            document.getElementById('gameOverMenu').classList.remove('active');
+        function updateUI() {
+            if(!game.currentUser) return;
+            document.getElementById('playerName').innerText = game.currentUser.name;
+            document.getElementById('bankDisplay').innerText = game.currentUser.coins;
+            document.getElementById('scoreDisplay').innerText = Math.floor(game.score);
+            document.getElementById('livesDisplay').innerText = game.lives;
+            document.getElementById('comboDisplay').innerText = game.combo + "x";
+        }
+
+        function updateAvatar() {
+            const skinId = game.currentUser.skin;
+            const emoji = CONFIG.SKINS[skinId].emoji;
+            document.getElementById('playerAvatar').innerText = emoji;
+        }
+
+        function saveData() {
+            if(!game.currentUser || game.currentUser.name === 'Ospite') return;
+            
+            const data = localStorage.getItem(CONFIG.STORAGE_KEY);
+            let users = data ? JSON.parse(data) : [];
+            
+            const idx = users.findIndex(u => u.name === game.currentUser.name);
+            if(idx !== -1) {
+                users[idx] = game.currentUser;
+                localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(users));
+            }
+        }
+
+        // ================= SHOP LOGIC =================
+        function openShop() {
+            hideOverlays();
+            document.getElementById('shopMenu').classList.add('active');
+            renderShop();
+        }
+
+        function renderShop() {
+            const grid = document.getElementById('skinGrid');
+            grid.innerHTML = '';
+            document.getElementById('shopCoins').innerText = game.currentUser.coins;
+
+            for(const [key, skin] of Object.entries(CONFIG.SKINS)) {
+                const owned = game.currentUser.inventory.includes(key);
+                const equipped = game.currentUser.skin === key;
+                
+                const div = document.createElement('div');
+                div.className = `skin-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
+                
+                let btnHtml = '';
+                if(equipped) btnHtml = `<button class="buy-btn" disabled>EQUIPAGGIATA</button>`;
+                else if(owned) btnHtml = `<button class="buy-btn" onclick="equipSkin('${key}')">USA</button>`;
+                else btnHtml = `<button class="buy-btn" onclick="buySkin('${key}')">COMPRA ${skin.price}</button>`;
+
+                div.innerHTML = `
+                    <div class="skin-preview">${skin.emoji}</div>
+                    <div class="skin-name">${skin.name}</div>
+                    ${btnHtml}
+                `;
+                grid.appendChild(div);
+            }
+        }
+
+        window.buySkin = function(key) {
+            const skin = CONFIG.SKINS[key];
+            if(game.currentUser.coins >= skin.price) {
+                game.currentUser.coins -= skin.price;
+                game.currentUser.inventory.push(key);
+                saveData();
+                renderShop();
+            } else {
+                alert("Non hai abbastanza monete!");
+            }
+        };
+
+        window.equipSkin = function(key) {
+            game.currentUser.skin = key;
+            saveData();
+            renderShop();
+            updateAvatar();
+        };
+
+        window.closeShop = function() {
+            hideOverlays();
+            if(game.running) {
+                // Se il gioco era in corso (improbabile da shop)
+            } else {
+                // Torna al game over o menu
+                document.getElementById('gameOverMenu').classList.add('active');
+            }
+        };
+
+        // ================= HELPERS UI =================
+        window.showRegister = () => {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        };
+        window.showLogin = () => {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+        };
+        window.restartGame = () => {
+            hideOverlays();
+            startGame();
+        };
+        window.showMainMenu = () => {
+            hideOverlays();
             document.getElementById('mainMenu').classList.add('active');
+        };
+
+        function hideOverlays() {
+            document.querySelectorAll('.overlay').forEach(el => el.classList.remove('active'));
+        }
+
+        function showMessage(id) {
+            const el = document.getElementById(id);
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 1500);
         }
     </script>
 </body>
